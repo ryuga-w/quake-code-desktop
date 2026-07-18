@@ -1,0 +1,5 @@
+Quake Code Web
+==============
+Aktif Dal : feat/desktop-app-overhaul
+Tarih     : 29 Haziran 2026
+Durum     : ­şşó ├çal─▒┼ş─▒yor

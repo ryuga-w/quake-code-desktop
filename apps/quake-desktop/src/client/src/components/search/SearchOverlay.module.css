@@ -1,0 +1,204 @@
+/* ============================================================
+   Arama overlay (Codex "Arama") — ortalanmış modal + iki sonuç grubu
+   Tüm renkler design token'larından (dark/light otomatik).
+   ============================================================ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: start center;
+  padding: 12vh 24px 24px;
+  background: rgba(0, 0, 0, 0.54);
+  backdrop-filter: blur(10px);
+}
+
+.overlay {
+  width: min(720px, 94vw);
+  max-height: min(640px, 72vh);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+/* ---- Input satırı ---- */
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+.searchIcon {
+  flex: none;
+  color: var(--accent);
+}
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--heading);
+  font-family: inherit;
+  font-size: 17px;
+  outline: none;
+}
+.input::placeholder {
+  color: var(--muted);
+}
+
+.spinner {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 999px;
+  animation: searchSpin 0.7s linear infinite;
+}
+@keyframes searchSpin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+}
+
+.closeBtn {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+.closeBtn:hover {
+  color: var(--heading);
+  border-color: var(--border-strong);
+  background: var(--panel);
+}
+.closeBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- Sonuç gövdesi ---- */
+.results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.hint,
+.error {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+.error {
+  color: var(--error);
+}
+
+/* ---- Grup ---- */
+.group {
+  margin-bottom: 6px;
+}
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.count {
+  margin-left: auto;
+  color: var(--muted-2);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.item:hover {
+  background: var(--accent-soft);
+  border-color: var(--border);
+}
+.item:focus-visible {
+  outline: none;
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.itemTop {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.itemIcon {
+  flex: none;
+  color: var(--muted);
+}
+.itemPath,
+.itemName {
+  color: var(--heading);
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.itemPath {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.itemLine {
+  flex: none;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.itemText {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

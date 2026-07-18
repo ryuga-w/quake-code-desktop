@@ -1,0 +1,476 @@
+.composer {
+  position: absolute;
+  right: 18px;
+  bottom: 10px;
+  left: 18px;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: min(var(--conversation-composer-width, 720px), calc(100% - 36px));
+  min-height: 104px;
+  margin: 0 auto;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--heading) 4%, transparent);
+  border-radius: 19px;
+  background: var(--composer-surface, #2b2b2b);
+  box-shadow: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.composer:hover,
+.composer:focus-within {
+  border-color: color-mix(in srgb, var(--heading) 4%, transparent);
+  background: var(--composer-surface, #2b2b2b);
+  box-shadow: none;
+}
+
+.composer[data-busy="true"] {
+  border-color: color-mix(in srgb, var(--heading) 7%, transparent);
+}
+
+.inputRow {
+  display: grid;
+  min-height: 64px;
+  padding: 12px 14px 2px;
+}
+
+.inputRow textarea {
+  width: 100%;
+  min-height: 50px;
+  max-height: 220px;
+  resize: none;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 0;
+  outline: 0;
+  background: transparent;
+  color: var(--composer-text, var(--text-primary, var(--heading)));
+  box-shadow: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.inputRow textarea:focus {
+  box-shadow: none;
+}
+
+.inputRow textarea::placeholder {
+  color: var(--composer-placeholder, var(--text-muted, var(--muted)));
+}
+
+.inputRow textarea:disabled {
+  opacity: .55;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 8px 8px;
+}
+
+.primaryControls,
+.secondaryControls {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 4px;
+}
+
+.secondaryControls {
+  justify-content: flex-end;
+  gap: 3px;
+}
+
+.iconButton,
+.sendButton {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-muted, var(--muted));
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled),
+.addMenu[open] > .iconButton {
+  background: var(--surface-hover, color-mix(in srgb, var(--heading) 7%, transparent));
+  color: var(--text-primary, var(--heading));
+}
+
+.iconButton:focus-visible,
+.sendButton:focus-visible,
+.addPopover button:focus-visible,
+.preferenceSummary:focus-visible,
+.preferencesPopover button:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--accent));
+  outline-offset: 2px;
+}
+
+.addMenu {
+  position: relative;
+  min-width: 0;
+}
+
+.addMenu > summary {
+  list-style: none;
+}
+
+.addMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.addPopover {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 0;
+  z-index: 70;
+  width: 236px;
+  padding: 7px;
+  border: 1px solid var(--stroke-subtle, var(--border));
+  border-radius: 14px;
+  background: var(--surface-overlay, var(--panel));
+  color: var(--text-primary, var(--heading));
+  box-shadow: var(--shadow-overlay);
+}
+
+.menuLabel {
+  padding: 5px 7px 6px;
+  color: var(--text-subtle, var(--muted-2));
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.addPopover button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 9px;
+  padding: 6px 7px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.addPopover button:hover {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+}
+
+.addPopover button span,
+.addPopover button b,
+.addPopover button small {
+  display: block;
+  min-width: 0;
+}
+
+.addPopover button b {
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.addPopover button small {
+  margin-top: 2px;
+  color: var(--text-subtle, var(--muted-2));
+  font-size: 10.5px;
+  font-weight: 450;
+}
+
+.preferencesMenu {
+  position: relative;
+  min-width: 0;
+}
+
+.preferencesMenu > summary {
+  list-style: none;
+}
+
+.preferencesMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.preferencesMenu > .preferenceSummary {
+  cursor: pointer;
+}
+
+.preferencesMenu[open] > .preferenceSummary {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+}
+
+.preferenceSummary[aria-busy="true"] {
+  opacity: .62;
+}
+
+.preferencesPopover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 9px);
+  z-index: 72;
+  width: min(300px, calc(100vw - 48px));
+  overflow: hidden;
+  border: 1px solid var(--stroke-subtle, var(--border));
+  border-radius: 14px;
+  background: var(--surface-overlay, var(--panel));
+  color: var(--text-primary, var(--heading));
+  box-shadow: var(--shadow-overlay);
+}
+
+.preferenceSection {
+  padding: 7px;
+}
+
+.preferenceSection + .preferenceSection {
+  border-top: 1px solid var(--stroke-subtle, var(--border));
+}
+
+.preferenceSection h3 {
+  margin: 0;
+  padding: 5px 7px 6px;
+  color: var(--text-subtle, var(--muted-2));
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.preferenceList {
+  display: grid;
+  gap: 2px;
+  max-height: 218px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.preferenceList button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: 12px var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.preferenceList button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preferenceList button svg {
+  color: var(--accent);
+}
+
+.preferenceList button:hover:not(:disabled),
+.effortOptions button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+}
+
+.preferenceList button:disabled,
+.effortOptions button:disabled {
+  cursor: progress;
+  opacity: .55;
+}
+
+.effortOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.effortOptions button {
+  min-width: 0;
+  min-height: 31px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted, var(--muted));
+  font: 11px var(--font-sans);
+  cursor: pointer;
+}
+
+.effortOptions button[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text-primary, var(--heading));
+}
+
+.preferenceSummary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: max-content;
+  min-width: 0;
+  max-width: 250px;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0 23px 0 8px;
+  color: var(--text-primary, var(--heading));
+}
+
+.preferenceSummary::after {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  width: 6px;
+  height: 6px;
+  content: "";
+  border-right: 1.4px solid currentColor;
+  border-bottom: 1.4px solid currentColor;
+  opacity: .56;
+  transform: translateY(-68%) rotate(45deg);
+}
+
+.preferenceSummary:hover {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+}
+
+.preferenceModel,
+.preferenceEffort {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preferenceModel {
+  max-width: 148px;
+  color: var(--text-primary, var(--heading));
+  font-size: 12px;
+  font-weight: 540;
+}
+
+.preferenceEffort {
+  flex: 0 0 auto;
+  max-width: 82px;
+  color: var(--text-muted, var(--muted));
+  font-size: 12px;
+  font-weight: 480;
+}
+
+.preferenceEffort[data-level="max"] {
+  color: #aa9abd;
+}
+
+.sendButton {
+  border-radius: 50%;
+  background: #f1f1f1;
+  color: #242424;
+  transition: transform 100ms ease, opacity 120ms ease, background 120ms ease;
+}
+
+.sendButton:hover:not(:disabled) {
+  background: var(--heading);
+  transform: translateY(-1px);
+}
+
+.sendButton:active:not(:disabled) {
+  transform: scale(.96);
+}
+
+.sendButton:disabled {
+  cursor: not-allowed;
+  opacity: .32;
+}
+
+.stopButton {
+  background: var(--error-soft, color-mix(in srgb, var(--error) 15%, var(--panel)));
+  color: var(--error, #ef4444);
+}
+
+.stopButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 22%, var(--panel));
+  color: var(--error, #ef4444);
+}
+
+:global([data-theme="light"]) .composer {
+  border-color: var(--border);
+  background: var(--composer-surface, #fff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 20px rgba(0, 0, 0, .04);
+}
+
+:global([data-theme="light"]) .composer:hover,
+:global([data-theme="light"]) .composer:focus-within {
+  border-color: color-mix(in srgb, var(--heading) 10%, transparent);
+  background: var(--composer-surface, #fff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 20px rgba(0, 0, 0, .04);
+}
+
+:global([data-theme="light"]) .sendButton {
+  background: #242428;
+  color: #fff;
+}
+
+:global([data-theme="light"]) .sendButton:disabled {
+  background: #d8d8dd;
+  color: #77777e;
+}
+
+:global([data-theme="light"]) .stopButton,
+:global([data-theme="light"]) .stopButton:hover:not(:disabled) {
+  background: var(--error-soft, #fee2e2);
+  color: var(--error, #b91c1c);
+}
+
+@container side-conversation (max-width: 520px) {
+  .composer {
+    right: 10px;
+    bottom: 8px;
+    left: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .preferenceModel {
+    max-width: 92px;
+  }
+}
+
+@container subagent-workspace (max-width: 540px) {
+  .composer {
+    right: 10px;
+    bottom: 8px;
+    left: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .preferenceModel {
+    max-width: 92px;
+  }
+}
+
+@container side-conversation (max-width: 420px) {
+  .preferenceEffort {
+    display: none;
+  }
+}
+
+@container subagent-workspace (max-width: 420px) {
+  .preferenceEffort {
+    display: none;
+  }
+}

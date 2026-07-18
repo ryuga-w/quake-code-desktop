@@ -1,0 +1,85 @@
+{
+  "$schema": "https://raw.githubusercontent.com/badlogic/quake-code/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
+  "name": "mrquake-founder",
+  "vars": {
+    "red": "#ff5f56",
+    "redBright": "#ff8a80",
+    "redDeep": "#c63c35",
+    "crimson": "#ff6b81",
+    "ember": "#ffb86b",
+    "gray": "#a3a3a3",
+    "dimGray": "#6d6d6d",
+    "darkGray": "#444444",
+    "panel": "#3a1f24",
+    "panelSoft": "#2b171b",
+    "panelOk": "#3a1f24",
+    "panelErr": "#4a1d22",
+    "customPanel": "#33191e"
+  },
+  "colors": {
+    "accent": "red",
+    "border": "redDeep",
+    "borderAccent": "redBright",
+    "borderMuted": "darkGray",
+    "success": "red",
+    "error": "crimson",
+    "warning": "ember",
+    "muted": "gray",
+    "dim": "dimGray",
+    "text": "",
+    "thinkingText": "gray",
+
+    "selectedBg": "#3a2025",
+    "userMessageBg": "#26161a",
+    "userMessageText": "#ffffff",
+    "customMessageBg": "customPanel",
+    "customMessageText": "",
+    "customMessageLabel": "redBright",
+    "toolPendingBg": "panelSoft",
+    "toolSuccessBg": "panelOk",
+    "toolErrorBg": "panelErr",
+    "toolTitle": "",
+    "toolOutput": "gray",
+
+    "mdHeading": "redBright",
+    "mdLink": "#f78fb3",
+    "mdLinkUrl": "dimGray",
+    "mdCode": "red",
+    "mdCodeBlock": "red",
+    "mdCodeBlockBorder": "gray",
+    "mdQuote": "gray",
+    "mdQuoteBorder": "gray",
+    "mdHr": "gray",
+    "mdListBullet": "red",
+
+    "toolDiffAdded": "redBright",
+    "toolDiffRemoved": "crimson",
+    "toolDiffContext": "gray",
+
+    "syntaxComment": "#7f8c8d",
+    "syntaxKeyword": "#ff8a80",
+    "syntaxFunction": "#ffb86b",
+    "syntaxVariable": "#9cdcfe",
+    "syntaxString": "#f1a36f",
+    "syntaxNumber": "#ff9e9e",
+    "syntaxType": "#ff7f7f",
+    "syntaxOperator": "#d4d4d4",
+    "syntaxPunctuation": "#d4d4d4",
+
+    "thinkingOff": "darkGray",
+    "thinkingMinimal": "#7d5652",
+    "thinkingLow": "#a15e5a",
+    "thinkingMedium": "redDeep",
+    "thinkingHigh": "red",
+    "thinkingXhigh": "redBright",
+
+    "bashMode": "red",
+
+    "messageRail": "redBright"
+  },
+  "export": {
+    "pageBg": "#160d10",
+    "cardBg": "#211116",
+    "infoBg": "#31161b"
+  }
+}

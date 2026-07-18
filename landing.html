@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quake Code | AI destekli kod üretim istasyonu</title>
+  <meta
+    name="description"
+    content="Quake Code ile tek bir çalışma alanında kod yaz, terminal çalıştır, dosya düzenle ve AI ajanlarıyla üretim hızını artır."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06131a;
+      --surface: #0d2027;
+      --surface-2: #132c35;
+      --line: rgba(255, 255, 255, 0.12);
+      --text: #edf5f3;
+      --muted: #9fb5b1;
+      --warm: #f4b860;
+      --teal: #3ed0be;
+      --teal-strong: #78f0dd;
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.35);
+      --container: 1180px;
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(62, 208, 190, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(244, 184, 96, 0.16), transparent 24%),
+        linear-gradient(180deg, #06131a 0%, #08161c 100%);
+      color: var(--text);
+      font-family: "Manrope", system-ui, sans-serif;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .container {
+      width: min(calc(100% - 40px), var(--container));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      background: rgba(6, 19, 26, 0.74);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      font-family: "Sora", sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background:
+        linear-gradient(150deg, rgba(244, 184, 96, 0.92), rgba(62, 208, 190, 0.92));
+      color: #06222a;
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      font-weight: 800;
+    }
+
+    .desktop-nav {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .desktop-nav a:hover,
+    .mobile-nav a:hover {
+      color: var(--text);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-toggle {
+      display: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .menu-toggle span,
+    .menu-toggle span::before,
+    .menu-toggle span::after {
+      display: block;
+      width: 18px;
+      height: 2px;
+      margin: 0 auto;
+      background: var(--text);
+      border-radius: 999px;
+      transition: transform 160ms ease, opacity 160ms ease;
+      content: "";
+    }
+
+    .menu-toggle span::before {
+      transform: translateY(-6px);
+    }
+
+    .menu-toggle span::after {
+      transform: translateY(4px);
+    }
+
+    .menu-toggle[aria-expanded="true"] span {
+      background: transparent;
+    }
+
+    .menu-toggle[aria-expanded="true"] span::before {
+      transform: translateY(0) rotate(45deg);
+    }
+
+    .menu-toggle[aria-expanded="true"] span::after {
+      transform: translateY(-2px) rotate(-45deg);
+    }
+
+    .mobile-nav {
+      display: none;
+      padding: 0 0 20px;
+    }
+
+    .mobile-nav[data-open="true"] {
+      display: grid;
+      gap: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background: rgba(7, 24, 31, 0.75);
+      color: #d9e7e4;
+      font-size: 0.86rem;
+      width: fit-content;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal-strong);
+      box-shadow: 0 0 0 8px rgba(120, 240, 221, 0.1);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 0 20px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--warm), #f7d48f 60%, #fff0c7);
+      color: #15232b;
+      font-weight: 800;
+    }
+
+    .btn-secondary {
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .btn-ghost {
+      color: var(--muted);
+      min-height: 44px;
+      padding: 0 12px;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 88svh;
+      display: flex;
+      align-items: stretch;
+      overflow: clip;
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(6, 19, 26, 0.88) 0%, rgba(6, 19, 26, 0.74) 36%, rgba(6, 19, 26, 0.52) 62%, rgba(6, 19, 26, 0.9) 100%),
+        linear-gradient(180deg, rgba(6, 19, 26, 0.22), rgba(6, 19, 26, 0.18)),
+        url("test-quake-localhost.png") center center / cover no-repeat;
+      transform: scale(1.02);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 180px;
+      background: linear-gradient(180deg, rgba(6, 19, 26, 0), #08161c 88%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      align-content: center;
+      width: 100%;
+      padding: 80px 0 160px;
+    }
+
+    .hero-copy {
+      max-width: 720px;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: #d8ece7;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Sora", sans-serif;
+      font-size: clamp(3.4rem, 8vw, 6.4rem);
+      line-height: 0.96;
+      font-weight: 800;
+      max-width: 10ch;
+    }
+
+    .hero-lead {
+      max-width: 620px;
+      margin: 24px 0 0;
+      color: #c4d6d2;
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      line-height: 1.65;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      width: min(100%, 820px);
+      margin-top: 52px;
+    }
+
+    .metric {
+      padding: 18px 20px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(9, 27, 34, 0.62);
+      backdrop-filter: blur(12px);
+      min-height: 104px;
+    }
+
+    .metric strong {
+      display: block;
+      font-family: "Sora", sans-serif;
+      font-size: clamp(1.3rem, 2.5vw, 2rem);
+      margin-bottom: 8px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .section {
+      position: relative;
+      padding: 96px 0;
+    }
+
+    .section.alt {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+        rgba(10, 22, 28, 0.76);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .section-head {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 34px;
+      max-width: 720px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-family: "Sora", sans-serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1.02;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.7;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .feature-card {
+      min-height: 260px;
+      padding: 28px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+        rgba(10, 27, 33, 0.72);
+      box-shadow: var(--shadow);
+    }
+
+    .feature-card strong {
+      display: inline-grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      margin-bottom: 26px;
+      border-radius: 18px;
+      background: rgba(62, 208, 190, 0.12);
+      color: var(--teal-strong);
+      font-size: 1.12rem;
+      font-family: "Sora", sans-serif;
+    }
+
+    .feature-card h3,
+    .workflow-copy h3,
+    .pricing-card h3 {
+      margin: 0 0 12px;
+      font-family: "Sora", sans-serif;
+      font-size: 1.36rem;
+      line-height: 1.18;
+    }
+
+    .feature-card p,
+    .workflow-copy p,
+    .pricing-card p,
+    .footer-copy p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .workflow-stage,
+    .workflow-copy {
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+        rgba(9, 25, 32, 0.76);
+      box-shadow: var(--shadow);
+    }
+
+    .workflow-stage {
+      padding: 26px;
+    }
+
+    .workflow-shot {
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #051116;
+    }
+
+    .workflow-shot img {
+      width: 100%;
+      height: clamp(300px, 42vw, 470px);
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .workflow-rail {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .rail-item {
+      min-height: 96px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .rail-item span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: rgba(244, 184, 96, 0.12);
+      color: var(--warm);
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .rail-item h4 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .rail-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .workflow-copy {
+      padding: 30px;
+      display: grid;
+      align-content: center;
+      gap: 20px;
+    }
+
+    .workflow-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .workflow-point {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .workflow-point strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+      color: #e8f7f4;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .pricing-card {
+      padding: 28px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+        rgba(10, 26, 33, 0.78);
+      min-height: 100%;
+    }
+
+    .pricing-card.featured {
+      background:
+        linear-gradient(180deg, rgba(244, 184, 96, 0.18), rgba(62, 208, 190, 0.14)),
+        rgba(14, 28, 35, 0.86);
+      border-color: rgba(244, 184, 96, 0.28);
+    }
+
+    .pricing-tier {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #dcebe8;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .price {
+      margin: 24px 0 14px;
+      font-family: "Sora", sans-serif;
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      line-height: 1;
+    }
+
+    .price small {
+      font-family: "Manrope", sans-serif;
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .pricing-list {
+      display: grid;
+      gap: 12px;
+      margin: 20px 0 30px;
+      padding: 0;
+      list-style: none;
+      color: #d8e7e4;
+    }
+
+    .pricing-list li {
+      position: relative;
+      padding-left: 20px;
+      line-height: 1.55;
+    }
+
+    .pricing-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.62em;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal-strong);
+    }
+
+    .final-band {
+      padding: 28px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(135deg, rgba(244, 184, 96, 0.15), rgba(62, 208, 190, 0.12)),
+        rgba(10, 25, 31, 0.9);
+      display: grid;
+      grid-template-columns: 1.2fr auto;
+      gap: 18px;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    .final-band h2 {
+      margin: 0 0 10px;
+      font-family: "Sora", sans-serif;
+      font-size: clamp(1.9rem, 4vw, 3rem);
+      line-height: 1.04;
+    }
+
+    .site-footer {
+      padding: 26px 0 42px;
+      color: var(--muted);
+    }
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .footer-copy {
+      max-width: 520px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 1080px) {
+      .metrics,
+      .feature-grid,
+      .pricing-grid,
+      .workflow,
+      .final-band {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow-stage,
+      .workflow-copy,
+      .final-band {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .desktop-nav,
+      .header-actions .btn-ghost,
+      .header-actions .btn-secondary {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+
+      .hero-media {
+        background:
+          linear-gradient(180deg, rgba(6, 19, 26, 0.84) 0%, rgba(6, 19, 26, 0.64) 34%, rgba(6, 19, 26, 0.92) 100%),
+          url("test-quake-localhost.png") 68% top / cover no-repeat;
+      }
+
+      .hero-content {
+        padding: 54px 0 120px;
+      }
+
+      h1 {
+        max-width: 12ch;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        width: min(calc(100% - 28px), var(--container));
+      }
+
+      .header-row {
+        min-height: 72px;
+      }
+
+      .pill {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-actions,
+      .footer-row {
+        align-items: stretch;
+      }
+
+      .hero-actions .btn,
+      .final-band .btn,
+      .pricing-card .btn {
+        width: 100%;
+      }
+
+      .hero-actions,
+      .footer-row {
+        flex-direction: column;
+      }
+
+      .metrics {
+        gap: 12px;
+      }
+
+      .metric,
+      .feature-card,
+      .workflow-stage,
+      .workflow-copy,
+      .pricing-card,
+      .final-band {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .workflow-rail {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="header-row">
+        <a class="brand" href="#top" aria-label="Quake Code ana sayfa">
+          <span class="brand-mark">Q</span>
+          <span>Quake Code</span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="Ana navigasyon">
+          <a href="#features">Neler var</a>
+          <a href="#workflow">Nasıl işler</a>
+          <a href="#pricing">Planlar</a>
+        </nav>
+
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="#pricing">Fiyatlar</a>
+          <a class="btn btn-secondary" href="#workflow">Ürünü incele</a>
+          <a class="btn btn-primary" href="#cta">Hemen başla</a>
+          <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Menüyü aç">
+            <span></span>
+          </button>
+        </div>
+      </div>
+
+      <nav class="mobile-nav" id="mobileNav" data-open="false" aria-label="Mobil navigasyon">
+        <a href="#features">Neler var</a>
+        <a href="#workflow">Nasıl işler</a>
+        <a href="#pricing">Planlar</a>
+        <a href="#cta">Hemen başla</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-media" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="container">
+          <div class="hero-copy">
+            <div class="pill">
+              <span class="pill-dot"></span>
+              Tek workspace içinde sohbet, terminal, dosyalar ve ajanlar
+            </div>
+            <p class="eyebrow">Quake Code</p>
+            <h1>Kodu konuşarak değil, üretime bağlayarak hızlandır.</h1>
+            <p class="hero-lead">
+              Prompt yaz, terminal çalıştır, dosya düzenle, ekranı takip et. Quake Code; dağınık araç zinciri yerine tek bir ürün akışı kurar ve AI ajanlarını gerçek işin içine yerleştirir.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#cta">14 gün ücretsiz dene</a>
+              <a class="btn btn-secondary" href="#workflow">Canlı arayüzü gör</a>
+            </div>
+
+            <div class="metrics">
+              <article class="metric">
+                <strong>Tek panel</strong>
+                <span>Sohbet, terminal, dosya işlemleri ve araç çıktıları aynı akışta kalır.</span>
+              </article>
+              <article class="metric">
+                <strong>Gerçek komutlar</strong>
+                <span>AI yalnızca önermez; workspace içinde komut çalıştırır ve sonucu takip eder.</span>
+              </article>
+              <article class="metric">
+                <strong>Çoklu model</strong>
+                <span>Farklı modelleri aynı üretim rutini içinde seçip kıyaslayabilirsin.</span>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <div class="pill">Üretim hızını artıran parçalar</div>
+          <h2>Bir geliştiricinin gün içinde gerçekten kullandığı yüzeyler.</h2>
+          <p>
+            Landing page burada pazarlama lafına yaslanmıyor. Ürünün değerini veren şey; komut çalıştırma, dosya düzenleme, çoklu model seçimi ve iş akışının tek bakışta yönetilmesi.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <strong>01</strong>
+            <h3>Terminal merkezli üretim</h3>
+            <p>Komut önerisi ile komut icrası ayrık kalmaz. İstemden sonra süreç, shell çıktısı ve sonraki düzenleme adımı aynı bağlamda devam eder.</p>
+          </article>
+
+          <article class="feature-card">
+            <strong>02</strong>
+            <h3>Dosya ve araç görünürlüğü</h3>
+            <p>Agent neyi okudu, neyi değiştirdi, hangi aracı kullandı soruları arada kaybolmaz. Üretim zinciri açık ve denetlenebilir kalır.</p>
+          </article>
+
+          <article class="feature-card">
+            <strong>03</strong>
+            <h3>Çoklu model stratejisi</h3>
+            <p>Tek modele sıkışmadan farklı maliyet, hız ve doğruluk dengeleri arasında geçiş yapılır. Bu da aynı üründe daha iyi karar verir.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="workflow">
+      <div class="container">
+        <div class="section-head">
+          <div class="pill">Arayüzün kendisi ürün sinyali</div>
+          <h2>Konuşma penceresi değil, operasyon ekranı.</h2>
+          <p>
+            Quake Code arayüzü sohbet etrafında kurulmuş bir demo gibi davranmaz. Sol tarafta çalışma alanı, üstte model ve durum, merkezde aktif oturum, altta üretim girişi bulunur.
+          </p>
+        </div>
+
+        <div class="workflow">
+          <div class="workflow-stage">
+            <div class="workflow-shot">
+              <img src="test-quake-localhost.png" alt="Quake Code çalışma alanı ekran görüntüsü" />
+            </div>
+            <div class="workflow-rail">
+              <article class="rail-item">
+                <span>Q</span>
+                <h4>Yeni oturum</h4>
+                <p>Kontekst temiz başlar, önceki iş parçaları kenarda tutulur.</p>
+              </article>
+              <article class="rail-item">
+                <span>T</span>
+                <h4>Araç akışı</h4>
+                <p>Shell, dosya, web ve görüntü işlemleri cevaplardan ayrı bir yüzeye taşınır.</p>
+              </article>
+              <article class="rail-item">
+                <span>M</span>
+                <h4>Model kontrolü</h4>
+                <p>İşe göre reasoning, hızlı üretim veya düşük maliyet moduna geçilir.</p>
+              </article>
+            </div>
+          </div>
+
+          <div class="workflow-copy">
+            <h3>Akış üç net davranışa indirgenir.</h3>
+            <p>Takım içi kullanımda da bireysel üretimde de hız, en çok bağlam kaybı azaldığında hissedilir. Bu düzen tam olarak onu hedefler.</p>
+
+            <div class="workflow-list">
+              <article class="workflow-point">
+                <strong>İstekten sonuca tek iz</strong>
+                Agent cevabı, kullandığı araçlar ve yaptığı düzenlemeler birbirinden kopmaz.
+              </article>
+              <article class="workflow-point">
+                <strong>Dosya sistemiyle doğrudan ilişki</strong>
+                Çalışma alanı gerçek repo üzerinde işler; üretim sahte sandbox hissi vermez.
+              </article>
+              <article class="workflow-point">
+                <strong>Uzun oturumlarda denge</strong>
+                Geniş kapsamlı görevlerde bile operasyona dönük yoğunluk korunur; arayüz dağılmaz.
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <div class="pill">Net paketler</div>
+          <h2>Küçük ekipten ürün takımına kadar aynı çekirdek deneyim.</h2>
+          <p>Planlar, ihtiyacın olmayan süslü ayrıcalıklara değil; model erişimi, iş hacmi ve takım koordinasyonuna göre ayrılıyor.</p>
+        </div>
+
+        <div class="pricing-grid">
+          <article class="pricing-card">
+            <div class="pricing-tier">
+              <h3>Starter</h3>
+              <span class="tag">Deneme</span>
+            </div>
+            <div class="price">0 <small>TL / 14 gün</small></div>
+            <p>Arayüzü, akışı ve temel ajan deneyimini görmek isteyen bireysel geliştiriciler için.</p>
+            <ul class="pricing-list">
+              <li>Tek kullanıcı workspace</li>
+              <li>Temel model erişimi</li>
+              <li>Sınırlı araç çalıştırma kotası</li>
+            </ul>
+            <a class="btn btn-secondary" href="#cta">Denemeyi aç</a>
+          </article>
+
+          <article class="pricing-card featured">
+            <div class="pricing-tier">
+              <h3>Pro</h3>
+              <span class="tag">En çok seçilen</span>
+            </div>
+            <div class="price">490 <small>TL / ay</small></div>
+            <p>Aktif kod yazan ve aracı günlük üretim rutininin parçası yapan geliştiriciler için ana plan.</p>
+            <ul class="pricing-list">
+              <li>Geniş model seçimi</li>
+              <li>Uzun oturum ve yüksek araç limiti</li>
+              <li>Öncelikli iyileştirme ve sürüm erişimi</li>
+            </ul>
+            <a class="btn btn-primary" href="#cta">Pro ile başla</a>
+          </article>
+
+          <article class="pricing-card">
+            <div class="pricing-tier">
+              <h3>Team</h3>
+              <span class="tag">Birlikte çalışma</span>
+            </div>
+            <div class="price">1490 <small>TL / ay</small></div>
+            <p>Birden fazla geliştiricinin ortak standartla ilerlediği ürün takımları ve iç araç ekipleri için.</p>
+            <ul class="pricing-list">
+              <li>Paylaşılan yapı ve politika ayarları</li>
+              <li>Genişletilmiş kullanım kapasitesi</li>
+              <li>Takım onboarding desteği</li>
+            </ul>
+            <a class="btn btn-secondary" href="#cta">Takım planını incele</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cta">
+      <div class="container">
+        <div class="final-band">
+          <div>
+            <h2>Çalışma alanını konuşma kutusundan çıkarıp üretim ekranına taşı.</h2>
+            <p>Landing page hazır. Bu dosya doğrudan tarayıcıda açılır; ek kurulum gerekmez. İstersen aynı tasarım dilini çok sayfalı bir ürün sitesi ya da React/Vite sürümüne de taşıyabilirim.</p>
+          </div>
+          <a class="btn btn-primary" href="mailto:hello@quakecode.dev">Demo talep et</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-row">
+        <div class="footer-copy">
+          <p>Quake Code, AI destekli geliştirme akışını gerçek repo, gerçek terminal ve görünür araç zinciri etrafında toplar.</p>
+        </div>
+        <div class="footer-links">
+          <a href="#top">Yukarı dön</a>
+          <a href="#features">Özellikler</a>
+          <a href="#pricing">Planlar</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const mobileNav = document.getElementById("mobileNav");
+    const mobileLinks = mobileNav.querySelectorAll("a");
+
+    function closeMenu() {
+      mobileNav.dataset.open = "false";
+      menuToggle.setAttribute("aria-expanded", "false");
+    }
+
+    menuToggle.addEventListener("click", () => {
+      const isOpen = mobileNav.dataset.open === "true";
+      mobileNav.dataset.open = isOpen ? "false" : "true";
+      menuToggle.setAttribute("aria-expanded", String(!isOpen));
+    });
+
+    mobileLinks.forEach((link) => {
+      link.addEventListener("click", closeMenu);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    });
+  </script>
+</body>
+</html>

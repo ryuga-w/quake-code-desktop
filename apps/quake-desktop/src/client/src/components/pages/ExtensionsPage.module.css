@@ -1,0 +1,449 @@
+/* ============================================================
+   Eklentiler — MERKEZ tam-sayfa (Codex "Extensions" birebir)
+   Sekmeler (Eklentiler | Beceriler) + sağ üstte küçük ikonlar.
+   Tüm renkler design token'larından (dark/light otomatik).
+   ============================================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+/* ---- Top bar: sekmeler (sol) + küçük ikon grubu (sağ) ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  flex-shrink: 0;
+}
+
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.tab:hover {
+  color: var(--heading);
+  background: var(--panel-2);
+}
+.tabActive {
+  color: var(--heading);
+  background: var(--panel-2);
+  font-weight: 600;
+}
+
+.topActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.topIconBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.topIconBtn:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+.topAddGroup {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--panel-2);
+  margin-left: 4px;
+}
+.topAddBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.topAddBtn:hover {
+  background: var(--surface);
+  color: var(--heading);
+}
+.topCaretBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.topCaretBtn:hover {
+  background: var(--surface);
+  color: var(--heading);
+}
+
+/* ---- Scroll alanı + ortalanmış içerik kolonu ---- */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 24px 64px;
+}
+
+/* ---- Başlık ---- */
+.heading {
+  margin: 0;
+  color: var(--heading);
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.subhead {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- Arama kutusu ---- */
+.searchBox {
+  position: relative;
+  margin-top: 20px;
+}
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-2);
+  pointer-events: none;
+}
+.searchInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px 12px 40px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  outline: 0;
+}
+.searchInput::placeholder {
+  color: var(--muted-2);
+}
+.searchInput:focus-visible {
+  border-color: var(--border-strong);
+}
+
+/* ---- Kurulu bölümü ---- */
+.installedHead {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.installedTitle {
+  color: var(--heading);
+  font-size: 16px;
+  font-weight: 600;
+}
+.installedGear {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.installedGear:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+
+.installedRow {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.installedIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--heading);
+  flex-shrink: 0;
+}
+.installedIconOk {
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
+}
+.installedEmpty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---- Filtre sekmeleri ---- */
+.filterRow {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filterTabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.filterTab {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.filterTab:hover {
+  color: var(--heading);
+  background: var(--panel-2);
+}
+.filterTabActive {
+  color: var(--heading);
+  background: var(--panel-2);
+  border-color: var(--border);
+  font-weight: 600;
+}
+.filterIconBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.filterIconBtn:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+.filterIconActive { background: var(--panel-2); color: var(--heading); box-shadow: inset 0 0 0 1px var(--border); }
+
+/* ---- Kategori bölümleri ---- */
+.sectionLabel {
+  margin-top: 28px;
+  color: var(--heading);
+  font-size: 16px;
+  font-weight: 600;
+}
+.divider {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Eklenti kartı (satır) ---- */
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 8px;
+  border-radius: var(--radius-md);
+}
+.card:hover {
+  background: var(--panel-2);
+}
+.card:hover .cardActions {
+  opacity: 1;
+}
+
+.cardIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--heading);
+  flex-shrink: 0;
+}
+
+.cardMain {
+  flex: 1;
+  min-width: 0;
+}
+.cardName {
+  color: var(--heading);
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cardDesc {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.tryBtn {
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 540;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tryBtn:hover {
+  background: var(--surface);
+  color: var(--heading);
+  border-color: var(--border-strong);
+}
+.installBtn {
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 540;
+  padding: 7px 18px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.installBtn:hover {
+  background: var(--surface);
+  color: var(--heading);
+  border-color: var(--border-strong);
+}
+.menuBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.menuBtn:hover {
+  background: var(--surface);
+  color: var(--heading);
+}
+.actionMenu, .extensionMenu { position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; width: 190px; padding: 5px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); box-shadow: var(--shadow-card); }
+.actionMenu button, .extensionMenu button { width: 100%; padding: 8px 9px; border: 0; border-radius: 7px; background: transparent; color: var(--text); text-align: left; font-size: 12px; cursor: pointer; }
+.actionMenu button:hover, .extensionMenu button:hover { background: var(--panel-2); color: var(--heading); }
+.extensionMenuWrap { position: relative; }
+.extensionMenu { top: 34px; }
+
+/* ---- Beceriler sekmesi: liste ---- */
+.skillRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 8px;
+  border-radius: var(--radius-md);
+}
+.skillRow:hover {
+  background: var(--panel-2);
+}
+.skillBadge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+/* ---- Durumlar ---- */
+.skeletonWrap {
+  padding: 16px 0;
+}
+.empty {
+  padding: 40px 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ---- Footer ---- */
+.footer {
+  margin-top: 40px;
+  text-align: center;
+  color: var(--muted-2);
+  font-size: 13px;
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "web-research": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["C:\\quake code\\plugins\\web-research\\scripts\\mcp_server.py"]
+    }
+  }
+}

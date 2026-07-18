@@ -1,0 +1,24 @@
+{
+  "name": "web-research",
+  "version": "0.1.0",
+  "description": "Deep web search and content fetching via local AI proxy — search the web with Gemini and fetch page content with Jina Reader or Exa.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Web Research",
+    "shortDescription": "Web search & content fetching for deep research.",
+    "longDescription": "Web Research provides deep web search (via Gemini) and web page content fetching (via Jina Reader or Exa) through a local API proxy. Use it to search the web, fetch article content as markdown, and power deep research workflows directly inside Codex.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": ["web-search", "web-fetch"],
+    "defaultPrompt": [
+      "Search the web and summarize the latest news about a topic.",
+      "Fetch a web page and extract its content as markdown.",
+      "Do deep research: search multiple queries and fetch key pages."
+    ],
+    "brandColor": "#8B5CF6"
+  }
+}

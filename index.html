@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ürün Başlığı — Landing Page</title>
+  <meta name="description" content="Basit, hızlı ve modern bir landing page örneği." />
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#">LOGO</a>
+      <nav class="nav" id="nav">
+        <a href="#features">Özellikler</a>
+        <a href="#pricing">Fiyat</a>
+        <a href="#contact">İletişim</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <h1>Hızlı ve Basit Çözümünüz</h1>
+        <p class="lead">Ürününüzü tanıtan kısa cümle. Dikkat çeken faydayı tek cümlede söyleyin.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="#contact">Hemen Başla</a>
+          <a class="btn ghost" href="#features">Daha Fazla</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features container">
+      <h2>Özellikler</h2>
+      <div class="features-grid">
+        <article>
+          <h3>Kolay Kullanım</h3>
+          <p>Hızlı kurulum, sade arayüz ve düşük öğrenme eğrisi.</p>
+        </article>
+        <article>
+          <h3>Güvenli</h3>
+          <p>Endüstri standartlarında güvenlik ve veri koruma.</p>
+        </article>
+        <article>
+          <h3>Ölçeklenebilir</h3>
+          <p>Küçük ekipten kurumsal ölçeğe kadar esnek altyapı.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="pricing" class="container pricing">
+      <h2>Fiyatlandırma</h2>
+      <div class="pricing-grid">
+        <div class="card">
+          <h3>Başlangıç</h3>
+          <p class="price">Ücretsiz</p>
+          <p>Temel özellikler, küçük projeler için ideal.</p>
+          <a class="btn" href="#contact">Kaydol</a>
+        </div>
+        <div class="card">
+          <h3>Profesyonel</h3>
+          <p class="price">$19/ay</p>
+          <p>Tüm temel özellikler + öncelikli destek.</p>
+          <a class="btn primary" href="#contact">Başla</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="container contact">
+      <h2>İletişim</h2>
+      <form class="contact-form" action="#" onsubmit="event.preventDefault(); alert('Form örnek olarak gönderildi.');">
+        <label>
+          Adınız
+          <input type="text" name="name" required>
+        </label>
+        <label>
+          E-posta
+          <input type="email" name="email" required>
+        </label>
+        <label>
+          Mesaj
+          <textarea name="message" rows="4"></textarea>
+        </label>
+        <div>
+          <button class="btn primary" type="submit">Gönder</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span id="year"></span> Şirketiniz. Tüm hakları saklıdır.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
+

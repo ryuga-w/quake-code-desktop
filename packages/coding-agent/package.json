@@ -1,0 +1,119 @@
+{
+  "name": "@mrquake/quakecode-cli",
+  "version": "1.11.2",
+  "description": "Quake Code is a terminal-first coding assistant with sessions, file tools, shell tools, skills, themes, and multi-provider support.",
+  "type": "module",
+  "piConfig": {
+    "name": "quake-code",
+    "configDir": ".quake-code"
+  },
+  "bin": {
+    "quake-code": "dist/cli.js",
+    "quake": "dist/cli.js",
+    "qd": "dist/cli.js",
+    "qc": "dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./hooks": {
+      "types": "./dist/core/hooks/index.d.ts",
+      "import": "./dist/core/hooks/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "scripts/postinstall.cjs",
+    "README.md",
+    "CHANGELOG.md",
+    "NOTICE"
+  ],
+  "scripts": {
+    "clean": "npx shx rm -rf dist",
+    "dev": "tsgo -p tsconfig.build.json --watch --preserveWatchOutput",
+    "build": "tsgo -p tsconfig.build.json && npx shx chmod +x dist/cli.js && npm run copy-assets",
+    "build:binary": "npm --prefix ../tui run build && npm --prefix ../ai run build && npm --prefix ../agent run build && npm run build && bun build --compile ./dist/bun/cli.js --outfile dist/quake-code && npm run copy-binary-assets",
+    "copy-assets": "npx shx mkdir -p dist/modes/interactive/theme && npx shx cp src/modes/interactive/theme/*.json dist/modes/interactive/theme/ && npx shx mkdir -p dist/core/export-html/vendor && npx shx cp src/core/export-html/template.html src/core/export-html/template.css src/core/export-html/template.js dist/core/export-html/ && npx shx cp src/core/export-html/vendor/*.js dist/core/export-html/vendor/ && npx shx mkdir -p dist/bundled && npx shx cp -r src/bundled/* dist/bundled/",
+    "copy-binary-assets": "npx shx cp package.json dist/ && npx shx cp README.md dist/ && npx shx cp CHANGELOG.md dist/ && npx shx cp NOTICE dist/ && npx shx mkdir -p dist/theme && npx shx cp src/modes/interactive/theme/*.json dist/theme/ && npx shx mkdir -p dist/export-html/vendor && npx shx cp src/core/export-html/template.html dist/export-html/ && npx shx cp src/core/export-html/vendor/*.js dist/export-html/vendor/ && npx shx mkdir -p dist/bundled && npx shx cp -r src/bundled/* dist/bundled/ && npx shx cp -r docs dist/ && npx shx cp -r examples dist/ && npx shx cp ../../node_modules/@silvia-odwyer/photon-node/photon_rs_bg.wasm dist/",
+    "test": "vitest --run",
+    "mouse:smoke": "node scripts/mouse-smoke.mjs",
+    "mouse:osc22-probe": "node scripts/osc22-probe.mjs",
+    "postinstall": "node ./scripts/postinstall.cjs",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "@mrquake/quakecode-jiti": "^1.11.2",
+    "@mrquake/quakecode-agent-core": "^1.11.2",
+    "@mrquake/quakecode-ai": "^1.11.2",
+    "@mrquake/quakecode-tui": "^1.11.2",
+    "@silvia-odwyer/photon-node": "^0.3.4",
+    "@sinclair/typebox": "^0.34.41",
+    "ajv": "^8.17.1",
+    "chalk": "^5.5.0",
+    "cli-highlight": "^2.1.11",
+    "diff": "^8.0.2",
+    "extract-zip": "^2.0.1",
+    "file-type": "^21.1.1",
+    "glob": "^13.0.1",
+    "hosted-git-info": "^9.0.2",
+    "ignore": "^7.0.5",
+    "marked": "^15.0.12",
+    "minimatch": "^10.2.3",
+    "playwright": "^1.54.2",
+    "@openclaw/core": "^2026.4.2",
+    "@openclaw/prism": "^2026.4.2",
+    "@openclaw/driver-win32": "^2026.4.2",
+    "proper-lockfile": "^4.1.2",
+    "strip-ansi": "^7.1.0",
+    "undici": "^7.28.0",
+    "yaml": "^2.8.2"
+  },
+  "overrides": {
+    "rimraf": "6.1.2",
+    "gaxios": {
+      "rimraf": "6.1.2"
+    }
+  },
+  "optionalDependencies": {
+    "@mrquake/quakecode-clipboard": "^1.11.2"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.2",
+    "@types/hosted-git-info": "^3.0.5",
+    "@types/ms": "^2.1.0",
+    "@types/node": "^24.3.0",
+    "@types/proper-lockfile": "^4.1.4",
+    "shx": "^0.4.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4"
+  },
+  "keywords": [
+    "quake-code",
+    "quake",
+    "coding-assistant",
+    "terminal-assistant",
+    "developer-tools",
+    "ai",
+    "llm",
+    "cli",
+    "tui",
+    "terminal",
+    "sessions",
+    "code-review",
+    "code-editing",
+    "productivity"
+  ],
+  "author": "MrQuake",
+  "license": "MIT",
+  "homepage": "https://www.npmjs.com/package/@mrquake/quakecode-cli",
+  "bugs": {
+    "url": "https://www.npmjs.com/package/@mrquake/quakecode-cli"
+  },
+  "engines": {
+    "node": ">=20.6.0"
+  }
+}

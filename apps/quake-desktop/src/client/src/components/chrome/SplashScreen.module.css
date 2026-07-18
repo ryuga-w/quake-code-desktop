@@ -1,0 +1,39 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0a;
+  user-select: none;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+:global(html[data-theme="light"]) .root {
+  background: #f0f0f0;
+}
+
+.fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.logo {
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+:global(html[data-theme="light"]) .logo {
+  filter: brightness(0);
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition: none;
+  }
+}

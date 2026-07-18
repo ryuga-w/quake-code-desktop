@@ -1,0 +1,65 @@
+.statusbar {
+  flex: 0 0 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 12px;
+  background: color-mix(in srgb, var(--paper-soft) 94%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  color: var(--muted);
+  font-size: 11.5px;
+  user-select: none;
+  backdrop-filter: blur(3px);
+}
+.group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.readyDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 2px var(--success-soft);
+}
+.readyLabel { color: var(--text-subtle, var(--muted-2)); }
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 360px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item svg { opacity: 0.65; flex: 0 0 auto; }
+.item:hover { color: var(--text); }
+.plan {
+  color: var(--heading);
+  font-weight: 600;
+}
+.plan svg { opacity: 0.9; }
+
+.goal {
+  color: #ff6b6b;
+  font-weight: 600;
+  animation: goalPulse 2s infinite ease-in-out;
+}
+.goal svg { opacity: 0.9; }
+
+@keyframes goalPulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+@media (max-width: 720px) {
+  .statusbar { gap: 8px; padding-inline: 10px; }
+  .group { gap: 9px; }
+  .item { max-width: 128px; }
+  .readyLabel { display: none; }
+}

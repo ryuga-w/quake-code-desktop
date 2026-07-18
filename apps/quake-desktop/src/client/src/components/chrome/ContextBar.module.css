@@ -1,0 +1,54 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  flex-wrap: nowrap;
+  /* Composer ile birebir ayni genislik (.composer width'i ile eslesir) */
+  width: min(768px, calc(100% - 48px));
+  margin: 2px auto 2px;
+  /* Item kendi 7px padding'i + 9px = 16px -> composer ic padding'i (.composer-input-row 16px) ile sol hiza tutar */
+  padding: 0 9px;
+  color: var(--muted);
+  user-select: none;
+  overflow: hidden;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 320px;
+  padding: 3px 7px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.item:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.item svg {
+  flex: 0 0 auto;
+  opacity: 0.75;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caret {
+  margin-left: -1px;
+  opacity: 0.6 !important;
+}

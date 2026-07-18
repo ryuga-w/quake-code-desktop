@@ -1,0 +1,101 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 5px 8px 5px 12px;
+  border-bottom: 1px solid var(--stroke-subtle, var(--border));
+  background: var(--surface-raised, var(--panel));
+  color: var(--text);
+}
+
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.left { gap: 7px; }
+.right { flex: 0 0 auto; gap: 2px; }
+
+.fileName {
+  max-width: min(32vw, 260px);
+  overflow: hidden;
+  color: var(--heading);
+  font-size: 12.5px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filePath {
+  max-width: min(30vw, 340px);
+  overflow: hidden;
+  color: var(--text-subtle, var(--muted-2));
+  font: 10.5px var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dirty {
+  color: var(--warning);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.readOnly {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.iconBtn,
+.save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted, var(--muted));
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.iconBtn { width: 30px; padding: 0; }
+.iconBtn:hover:not(:disabled),
+.iconBtn.active { background: var(--surface-hover, var(--elev-2)); color: var(--heading); }
+.iconBtn:focus-visible,
+.save:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 1px; }
+.iconBtn:disabled,
+.save:disabled { opacity: .34; cursor: default; }
+
+.separator { width: 1px; height: 18px; margin: 0 4px; background: var(--border); }
+
+.save {
+  gap: 6px;
+  width: auto;
+  padding: 0 10px;
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--heading);
+  font-size: 11.5px;
+  font-weight: 650;
+}
+.save:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.close { margin-left: 2px; }
+
+@container (max-width: 620px) {
+  .filePath { display: none; }
+  .save span { display: none; }
+  .save { width: 30px; padding: 0; }
+}

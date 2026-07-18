@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sourceRoot":"","sources":["index.ts"],"names":[],"mappings":"AAAA,cAAc,oBAAoB,CAAC;AACnC,OAAO,EAAE,OAAO,EAAE,MAAM,oBAAoB,CAAC","sourcesContent":["export * from \"@mariozechner/jiti\";\nexport { default } from \"@mariozechner/jiti\";\n"]}

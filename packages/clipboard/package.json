@@ -1,0 +1,21 @@
+{
+  "name": "@mrquake/quakecode-clipboard",
+  "version": "1.11.2",
+  "description": "Quake Code wrapper for native clipboard access",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "scripts": {
+    "prepublishOnly": "node -e \"console.log('clipboard wrapper ready')\""
+  },
+  "dependencies": {
+    "@mariozechner/clipboard": "^0.3.2"
+  },
+  "author": "MrQuake",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

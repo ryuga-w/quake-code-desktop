@@ -1,0 +1,600 @@
+.navrail {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  padding: 10px 7px 0;
+  background: var(--surface-navigation, #201e20);
+  border-right: 1px solid var(--stroke-navigation, #343134);
+  color: #d9d6d9;
+  overflow: hidden;
+  user-select: none;
+  box-sizing: border-box;
+  opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    opacity 200ms var(--ease-panel, ease),
+    transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+    visibility 0s linear 0s;
+  will-change: opacity, transform;
+}
+
+.navrail button {
+  border: 0 !important;
+  box-shadow: none !important;
+  font: inherit;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  padding: 0 6px;
+  flex: 0 0 auto;
+}
+
+.brandMark {
+  min-width: 0;
+  color: #f0edf0;
+  line-height: 1;
+}
+
+.brandMark b {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+
+.brandMark b span {
+  color: #b06cf5;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #969196;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: #302d30;
+  color: var(--text-navigation, #ddd9dd);
+}
+
+.primaryBlock {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 5px 0 0;
+}
+
+.newChat,
+.navItem {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 7px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #d8d5d8 !important;
+  font-size: var(--font-navigation, 14.5px) !important;
+  font-weight: 450 !important;
+  text-align: left;
+  cursor: pointer;
+}
+
+.newChat:hover,
+.navItem:hover,
+.navItemActive {
+  background: #302d30 !important;
+  color: #f1eef1 !important;
+  transform: none !important;
+}
+
+.newChat svg,
+.navItem svg {
+  flex: 0 0 auto;
+  color: #aaa5aa;
+}
+
+.newChat span,
+.navItem span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.navItemRow {
+  position: relative;
+  width: 100%;
+}
+
+.navItemRow > .navItem {
+  padding-right: 34px !important;
+}
+
+.navItemRow:hover > .navItem {
+  background: #302d30 !important;
+  color: #f1eef1 !important;
+}
+
+.navItemTrailing {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #aaa5aa;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease, background 100ms ease, color 100ms ease;
+}
+
+.navItemRow:hover .navItemTrailing,
+.navItemRow:focus-within .navItemTrailing {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.navItemTrailing:hover {
+  background: #454145;
+  color: #f1eef1;
+}
+
+.navItemTrailing:focus-visible {
+  outline: 2px solid color-mix(in srgb, #8fb4ff 72%, transparent);
+  outline-offset: 1px;
+}
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  margin-top: 13px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #454145 transparent;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: #454145;
+}
+
+.section {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100%;
+  min-height: 0;
+}
+
+.sectionHead {
+  height: 23px;
+  padding: 3px 5px 4px;
+  color: #777277;
+  font-size: var(--font-navigation-section, 12.5px);
+  font-weight: 650;
+  line-height: 16px;
+}
+
+.threads {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.threadsOpen {
+  display: flex;
+}
+
+.empty {
+  padding: 6px 7px;
+  color: #777277;
+  font-size: var(--font-navigation, 14.5px);
+}
+
+.thread {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: transparent;
+  color: #d2cfd2;
+  font-size: 12.5px;
+  line-height: 1;
+  transition: background 100ms ease, color 100ms ease;
+}
+
+.threadFlat {
+  padding-left: 7px;
+}
+
+.thread:hover {
+  background: #2b292b;
+  color: #f0edf0;
+}
+
+.threadActive {
+  background: #363336;
+  color: #fff;
+}
+
+.threadMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex !important;
+  align-items: center;
+  height: 100%;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit !important;
+  font-weight: 450 !important;
+  text-align: left;
+  cursor: pointer;
+}
+
+.threadMain:hover,
+.threadMain:active {
+  background: transparent !important;
+  transform: none !important;
+}
+
+.threadName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.renameForm {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 23px;
+  margin: 0;
+}
+.renameForm input {
+  width: 100%;
+  height: 23px;
+  border: 1px solid #555055;
+  border-radius: 4px;
+  padding: 0 6px;
+  background: #252325;
+  color: #f2eff2;
+  font: inherit;
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #3b82f6 18%, transparent);
+}
+.renameForm input:focus {
+  border-color: #6b86b8;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #3b82f6 22%, transparent);
+}
+
+.threadMeta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 6px;
+  color: #777277;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.generatingDots {
+  width: 17px;
+  height: 10px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.generatingDots > span {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: generatingDot 1.05s ease-in-out infinite;
+}
+
+.generatingDots > span:nth-child(2) { animation-delay: 0.12s; }
+.generatingDots > span:nth-child(3) { animation-delay: 0.24s; }
+
+.unreadDot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #3b82f6;
+}
+
+@keyframes generatingDot {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(1px); }
+  30% { opacity: 1; transform: translateY(-1px); }
+}
+
+.threadActions {
+  display: none;
+  align-items: center;
+  gap: 1px;
+}
+
+.thread:hover .threadActions {
+  display: flex;
+}
+
+.threadAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #8d888d;
+  cursor: pointer;
+}
+
+.threadAction:hover {
+  background: #454145;
+  color: #eee;
+}
+
+.showMore {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  height: 29px;
+  padding: 0 7px !important;
+  border-radius: 6px;
+  background: transparent;
+  color: #918c91;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.showMore:hover {
+  background: #2b292b;
+  color: #ddd9dd;
+}
+
+.showMore svg {
+  transition: transform 140ms ease;
+}
+
+.showMoreOpen {
+  transform: rotate(180deg);
+}
+
+.showMoreCount {
+  margin-left: auto;
+  color: #6f6a6f;
+  font-size: 10px;
+}
+
+.threadHoverCard {
+  position: fixed;
+  z-index: 100020;
+  width: 228px;
+  min-height: 86px;
+  padding: 13px 13px 12px;
+  border: 1px solid #3b383b;
+  border-radius: 13px;
+  background: #2b292b;
+  color: #eee;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  animation: hoverCardIn 110ms ease-out;
+}
+
+.hoverCardHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.hoverCardHead strong {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: #f2eff2;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hoverCardHead > span {
+  flex: 0 0 auto;
+  color: #898489;
+  font-size: 10px;
+}
+
+.hoverCardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hoverCardMeta > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  overflow: hidden;
+  color: #d5d1d5;
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hoverCardMeta svg {
+  flex: 0 0 auto;
+  color: #8f8a8f;
+}
+
+@keyframes hoverCardIn {
+  from { opacity: 0; transform: translateX(-3px) scale(0.985); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.bottom {
+  flex: 0 0 auto;
+  margin: 0 -7px;
+  padding: 5px 7px;
+  border-top: 1px solid var(--stroke-navigation, #343134);
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 5px;
+  background: transparent;
+  color: #ddd9dd;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settingsRow:hover {
+  background: var(--surface-navigation-hover, #302d30);
+  color: var(--text-navigation, #ddd9dd);
+}
+
+.settingsRow svg {
+  flex: 0 0 auto;
+  color: var(--text-navigation-muted, #aaa5aa);
+}
+
+.settingsText {
+  min-width: 0;
+}
+
+.settingsLabel {
+  font-size: var(--font-navigation, 14.5px);
+  font-weight: 450;
+}
+
+/* Existing project tree helpers remain available for compatibility. */
+.projectTree,
+.projectGroup {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.projectRow { display: flex; align-items: center; width: 100%; }
+.project { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 7px !important; background: transparent !important; color: inherit !important; }
+.projectChevron { width: 14px; }
+.projectName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projectRemove { display: none; }
+.projectActive { color: #fff !important; }
+
+.collapsed {
+  opacity: 0;
+  transform: translateX(-20px);
+  visibility: hidden;
+  pointer-events: none;
+  border-right-color: transparent;
+  transition:
+    opacity 180ms var(--ease-panel, ease),
+    transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+    visibility 0s linear var(--duration-panel, 280ms);
+}
+
+:global([data-theme="light"]) .navrail {
+  background: var(--surface-navigation, #f1eff1);
+  border-right-color: var(--stroke-navigation, #d7d3d7);
+  color: #2c292c;
+}
+:global([data-theme="light"]) .brandMark { color: #1e1b1e; }
+:global([data-theme="light"]) .newChat,
+:global([data-theme="light"]) .navItem,
+:global([data-theme="light"]) .thread,
+:global([data-theme="light"]) .settingsRow { color: #302d30 !important; }
+:global([data-theme="light"]) .settingsRow:hover {
+  background: var(--surface-navigation-hover, #e5e2e5);
+  color: var(--text-navigation, #2c292c) !important;
+}
+:global([data-theme="light"]) .settingsRow svg { color: var(--text-navigation-muted, #716c71); }
+:global([data-theme="light"]) .newChat:hover,
+:global([data-theme="light"]) .navItem:hover,
+:global([data-theme="light"]) .navItemActive,
+:global([data-theme="light"]) .navItemRow:hover > .navItem,
+:global([data-theme="light"]) .thread:hover { background: #e5e2e5 !important; }
+:global([data-theme="light"]) .navItemTrailing { color: #716c71; }
+:global([data-theme="light"]) .navItemTrailing:hover { background: #d5d1d5; color: #242124; }
+:global([data-theme="light"]) .threadActive { background: #dad7da; color: #111 !important; }
+:global([data-theme="light"]) .renameForm input { background: #fff; border-color: #aaa5aa; color: #222; }
+:global([data-theme="light"]) .bottom { border-top-color: #d7d3d7; }
+:global([data-theme="light"]) .threadHoverCard { background: #f7f5f7; border-color: #d8d4d8; color: #242124; }
+:global([data-theme="light"]) .hoverCardHead strong,
+:global([data-theme="light"]) .hoverCardMeta > span { color: #242124; }
+
+@media (prefers-reduced-motion: reduce) {
+  .navrail,
+  .collapsed {
+    transition: none;
+  }
+
+  .generatingDots > span {
+    animation: none;
+    opacity: 0.8;
+    transform: none;
+  }
+}

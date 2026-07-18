@@ -1,0 +1,54 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cardBg" x1="400" y1="0" x2="400" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#111113"/>
+      <stop offset="100%" stop-color="#0a0a0b"/>
+    </linearGradient>
+    <linearGradient id="iconGrad" x1="400" y1="180" x2="400" y2="280" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#14b8a6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card background -->
+  <rect width="800" height="600" rx="32" fill="url(#cardBg)"/>
+  <rect width="800" height="600" rx="32" fill="#ffffff" fill-opacity="0.015"/>
+  
+  <!-- Border -->
+  <rect x="1" y="1" width="798" height="598" rx="32" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+
+  <!-- Icon circle -->
+  <circle cx="400" cy="220" r="52" fill="#ffffff" fill-opacity="0.04"/>
+  <circle cx="400" cy="220" r="38" fill="url(#iconGrad)" fill-opacity="0.15"/>
+  
+  <!-- Brain / AI icon (simplified) -->
+  <path d="M 365 200 Q 400 185 435 200" stroke="#67e8f9" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 365 240 Q 400 255 435 240" stroke="#14b8a6" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Center node -->
+  <circle cx="400" cy="220" r="9" fill="#67e8f9"/>
+  <circle cx="400" cy="220" r="4" fill="#0a0a0b"/>
+
+  <!-- Connecting lines -->
+  <line x1="365" y1="200" x2="335" y2="170" stroke="#67e8f9" stroke-width="2" stroke-opacity="0.6"/>
+  <line x1="435" y1="200" x2="465" y2="170" stroke="#14b8a6" stroke-width="2" stroke-opacity="0.6"/>
+  <line x1="365" y1="240" x2="335" y2="270" stroke="#67e8f9" stroke-width="2" stroke-opacity="0.6"/>
+  <line x1="435" y1="240" x2="465" y2="270" stroke="#14b8a6" stroke-width="2" stroke-opacity="0.6"/>
+
+  <!-- Small nodes -->
+  <circle cx="335" cy="170" r="4" fill="#67e8f9"/>
+  <circle cx="465" cy="170" r="4" fill="#14b8a6"/>
+  <circle cx="335" cy="270" r="4" fill="#67e8f9"/>
+  <circle cx="465" cy="270" r="4" fill="#14b8a6"/>
+
+  <!-- Title placeholder -->
+  <rect x="220" y="340" width="360" height="22" rx="4" fill="#ffffff" fill-opacity="0.08"/>
+  
+  <!-- Description lines -->
+  <rect x="180" y="390" width="440" height="12" rx="3" fill="#ffffff" fill-opacity="0.05"/>
+  <rect x="180" y="410" width="380" height="12" rx="3" fill="#ffffff" fill-opacity="0.05"/>
+  <rect x="180" y="430" width="420" height="12" rx="3" fill="#ffffff" fill-opacity="0.05"/>
+
+  <!-- Bottom accent -->
+  <rect x="300" y="510" width="200" height="3" rx="2" fill="#67e8f9" fill-opacity="0.3"/>
+</svg>

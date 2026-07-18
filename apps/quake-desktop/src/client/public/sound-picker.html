@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quake Code — Bildirim sesi seçici</title>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --panel: #141414;
+        --panel2: #1a1a1a;
+        --border: #2a2a2a;
+        --text: #f0f0f0;
+        --muted: #9a9a9a;
+        --accent: #7c6cff;
+        --accent2: #3dd68c;
+        --danger: #ff6b6b;
+        --warn: #f5c542;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: radial-gradient(1200px 600px at 10% -10%, #1a1530 0%, transparent 50%),
+          radial-gradient(900px 500px at 100% 0%, #0d2418 0%, transparent 45%),
+          var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(12px);
+        background: rgba(10, 10, 10, 0.85);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 24px;
+      }
+      .header-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 20px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 650;
+        letter-spacing: 0.02em;
+      }
+      h1 span { color: var(--accent); font-weight: 500; }
+      .sub {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        max-width: 520px;
+        line-height: 1.4;
+      }
+      .picks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .pick-chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .pick-chip b { color: var(--muted); font-weight: 500; }
+      .pick-chip code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        color: var(--accent2);
+      }
+      .pick-chip button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0 2px;
+      }
+      .pick-chip button:hover { color: var(--text); }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 24px 80px;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      .toolbar input[type="search"] {
+        flex: 1;
+        min-width: 200px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+      .toolbar input:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .btn {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 9px 14px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .btn:hover { border-color: #444; }
+      .btn.primary {
+        background: linear-gradient(180deg, #8b7dff, #6a5af0);
+        border-color: transparent;
+        color: white;
+        font-weight: 600;
+      }
+      .btn.primary:hover { filter: brightness(1.06); }
+      .hint {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 22px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .hint strong { color: var(--text); }
+      .cat {
+        margin-bottom: 28px;
+      }
+      .cat-head {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin: 0 0 12px;
+      }
+      .cat-head h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 650;
+      }
+      .cat-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 10px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .card:hover { border-color: #3a3a3a; }
+      .card.playing {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(124, 108, 255, 0.35);
+      }
+      .card.picked {
+        border-color: rgba(61, 214, 140, 0.5);
+      }
+      .card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .card-title {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .card-id {
+        font-size: 11px;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        margin-top: 2px;
+      }
+      .play {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 0;
+        background: #222;
+        color: var(--text);
+        cursor: pointer;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+      }
+      .play:hover { background: #2c2c2c; }
+      .card.playing .play {
+        background: var(--accent);
+        color: white;
+      }
+      .roles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .role {
+        font-size: 11px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        padding: 4px 9px;
+        cursor: pointer;
+      }
+      .role:hover { color: var(--text); border-color: #444; }
+      .role.active-agent {
+        background: rgba(124, 108, 255, 0.15);
+        border-color: var(--accent);
+        color: #c8c0ff;
+      }
+      .role.active-error {
+        background: rgba(255, 107, 107, 0.12);
+        border-color: var(--danger);
+        color: #ffb3b3;
+      }
+      .role.active-op {
+        background: rgba(61, 214, 140, 0.12);
+        border-color: var(--accent2);
+        color: #9ff0c8;
+      }
+      footer.export {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 10, 0.92);
+        border-top: 1px solid var(--border);
+        backdrop-filter: blur(10px);
+        padding: 12px 24px;
+      }
+      .export-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .export pre {
+        margin: 0;
+        font-size: 11px;
+        color: var(--accent2);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-width: 100%;
+      }
+      .toast {
+        position: fixed;
+        top: 72px;
+        right: 20px;
+        background: #1e1e1e;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 50;
+      }
+      .toast.show { opacity: 1; }
+      @media (max-width: 640px) {
+        header, main, footer.export { padding-left: 14px; padding-right: 14px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>Quake Code <span>· bildirim sesi seçici</span></h1>
+          <p class="sub">
+            Sesleri dinle, her rol için bir tane seç. Bitince alttaki JSON’u kopyala veya bana
+            ID’leri yaz — ayarlara ve varsayılanlara koyarım.
+          </p>
+        </div>
+        <div class="picks" id="picks"></div>
+      </div>
+    </header>
+
+    <main>
+      <div class="hint">
+        <strong>Nasıl seçilir:</strong>
+        ▶ ile dinle → kartta <em>Ajan</em> / <em>Hata</em> / <em>İşlem</em> bas.
+        QuakeCode masaüstüyle aynı kütüphane (alert, bip-bop, staplebops, nope, yup).
+        Sayfa: <code style="color:var(--accent2)">http://127.0.0.1:5173/sound-picker.html</code>
+      </div>
+
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="Ara: alert, yup, nope…" autocomplete="off" />
+        <button type="button" class="btn" id="stopAll">Durdur</button>
+        <button type="button" class="btn" id="clearPicks">Seçimleri temizle</button>
+        <button type="button" class="btn primary" id="copyJson">JSON kopyala</button>
+      </div>
+
+      <div id="cats"></div>
+    </main>
+
+    <footer class="export">
+      <div class="export-inner">
+        <pre id="exportJson">{}</pre>
+        <button type="button" class="btn primary" id="copyJson2">Seçimi kopyala</button>
+      </div>
+    </footer>
+    <div class="toast" id="toast">Kopyalandı</div>
+
+    <script>
+      const CATEGORIES = [
+        {
+          id: "alert",
+          title: "Alert",
+          desc: "Kısa uyarı / dikkat çekici",
+          items: ["alert-01","alert-02","alert-03","alert-04","alert-05","alert-06","alert-07","alert-08","alert-09","alert-10"],
+        },
+        {
+          id: "bip",
+          title: "Bip Bop",
+          desc: "Yumuşak dijital tık / bip",
+          items: ["bip-bop-01","bip-bop-02","bip-bop-03","bip-bop-04","bip-bop-05","bip-bop-06","bip-bop-07","bip-bop-08","bip-bop-09","bip-bop-10"],
+        },
+        {
+          id: "staple",
+          title: "Staplebops",
+          desc: "Tamamlama için popüler",
+          items: ["staplebops-01","staplebops-02","staplebops-03","staplebops-04","staplebops-05","staplebops-06","staplebops-07"],
+        },
+        {
+          id: "yup",
+          title: "Yup",
+          desc: "Olumlu / başarı (uygulama ajan varsayılanı: yup-03)",
+          items: ["yup-01","yup-02","yup-03","yup-04","yup-05","yup-06"],
+        },
+        {
+          id: "nope",
+          title: "Nope",
+          desc: "Hata / engel",
+          items: ["nope-01","nope-02","nope-03","nope-04","nope-05","nope-06","nope-07","nope-08","nope-09","nope-10","nope-11","nope-12"],
+        },
+      ];
+
+      const ROLE_LABEL = { agent: "Ajan", error: "Hata", operation: "İşlem" };
+      // App defaults (user pick from sound gallery)
+      const picks = { agent: "yup-03", error: "alert-08", operation: "bip-bop-09" };
+      let currentAudio = null;
+      let playingId = null;
+
+      const $cats = document.getElementById("cats");
+      const $picks = document.getElementById("picks");
+      const $export = document.getElementById("exportJson");
+      const $q = document.getElementById("q");
+      const $toast = document.getElementById("toast");
+
+      function labelFor(id) {
+        return id
+          .split("-")
+          .map((p) => (p.length <= 2 && /^\d+$/.test(p) ? p.padStart(2, "0") : p.charAt(0).toUpperCase() + p.slice(1)))
+          .join(" ");
+      }
+
+      function stopAudio() {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentAudio = null;
+        }
+        playingId = null;
+        document.querySelectorAll(".card.playing").forEach((el) => el.classList.remove("playing"));
+      }
+
+      function play(id) {
+        stopAudio();
+        const audio = new Audio("/audio/" + id + ".mp3");
+        audio.volume = 0.65;
+        currentAudio = audio;
+        playingId = id;
+        const card = document.querySelector('[data-id="' + id + '"]');
+        if (card) card.classList.add("playing");
+        audio.play().catch(() => {});
+        audio.onended = () => {
+          if (playingId === id) stopAudio();
+        };
+      }
+
+      function setPick(role, id) {
+        picks[role] = id;
+        renderPicks();
+        renderExport();
+        document.querySelectorAll(".role").forEach((btn) => {
+          const r = btn.dataset.role;
+          const sid = btn.dataset.id;
+          btn.classList.toggle("active-agent", r === "agent" && sid === picks.agent);
+          btn.classList.toggle("active-error", r === "error" && sid === picks.error);
+          btn.classList.toggle("active-op", r === "operation" && sid === picks.operation);
+        });
+        document.querySelectorAll(".card").forEach((card) => {
+          const id = card.dataset.id;
+          const used = id === picks.agent || id === picks.error || id === picks.operation;
+          card.classList.toggle("picked", used);
+        });
+        try {
+          localStorage.setItem("quake-sound-picker-picks", JSON.stringify(picks));
+        } catch (_) {}
+      }
+
+      function renderPicks() {
+        $picks.innerHTML = ["agent", "error", "operation"]
+          .map((role) => {
+            const id = picks[role];
+            return (
+              '<div class="pick-chip">' +
+              "<b>" +
+              ROLE_LABEL[role] +
+              "</b>" +
+              "<code>" +
+              (id || "—") +
+              "</code>" +
+              (id
+                ? '<button type="button" data-preview="' +
+                  id +
+                  '" title="Dinle">▶</button>'
+                : "") +
+              "</div>"
+            );
+          })
+          .join("");
+        $picks.querySelectorAll("[data-preview]").forEach((btn) => {
+          btn.addEventListener("click", () => play(btn.dataset.preview));
+        });
+      }
+
+      function renderExport() {
+        const payload = {
+          agent: picks.agent || null,
+          error: picks.error || null,
+          operation: picks.operation || null,
+          note: "Bu JSON'u bana yapıştır veya ID'leri yaz",
+        };
+        $export.textContent = JSON.stringify(payload, null, 2);
+      }
+
+      function renderGrid(filter) {
+        const q = (filter || "").trim().toLowerCase();
+        $cats.innerHTML = "";
+        for (const cat of CATEGORIES) {
+          const items = cat.items.filter((id) => !q || id.includes(q) || labelFor(id).toLowerCase().includes(q));
+          if (!items.length) continue;
+          const section = document.createElement("section");
+          section.className = "cat";
+          section.innerHTML =
+            '<div class="cat-head"><h2>' +
+            cat.title +
+            "</h2><p>" +
+            cat.desc +
+            " · " +
+            items.length +
+            " ses</p></div>";
+          const grid = document.createElement("div");
+          grid.className = "grid";
+          for (const id of items) {
+            const used = id === picks.agent || id === picks.error || id === picks.operation;
+            const card = document.createElement("article");
+            card.className = "card" + (used ? " picked" : "") + (playingId === id ? " playing" : "");
+            card.dataset.id = id;
+            card.innerHTML =
+              '<div class="card-top">' +
+              '<div><div class="card-title">' +
+              labelFor(id) +
+              '</div><div class="card-id">' +
+              id +
+              "</div></div>" +
+              '<button type="button" class="play" data-play="' +
+              id +
+              '" aria-label="Çal">▶</button>' +
+              "</div>" +
+              '<div class="roles">' +
+              '<button type="button" class="role' +
+              (picks.agent === id ? " active-agent" : "") +
+              '" data-role="agent" data-id="' +
+              id +
+              '">Ajan</button>' +
+              '<button type="button" class="role' +
+              (picks.error === id ? " active-error" : "") +
+              '" data-role="error" data-id="' +
+              id +
+              '">Hata</button>' +
+              '<button type="button" class="role' +
+              (picks.operation === id ? " active-op" : "") +
+              '" data-role="operation" data-id="' +
+              id +
+              '">İşlem</button>' +
+              "</div>";
+            grid.appendChild(card);
+          }
+          section.appendChild(grid);
+          $cats.appendChild(section);
+        }
+
+        $cats.querySelectorAll("[data-play]").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            play(btn.dataset.play);
+          });
+        });
+        $cats.querySelectorAll(".role").forEach((btn) => {
+          btn.addEventListener("click", () => setPick(btn.dataset.role, btn.dataset.id));
+        });
+      }
+
+      function toast(msg) {
+        $toast.textContent = msg;
+        $toast.classList.add("show");
+        setTimeout(() => $toast.classList.remove("show"), 1600);
+      }
+
+      function copyJson() {
+        const text = $export.textContent || "";
+        navigator.clipboard.writeText(text).then(
+          () => toast("Seçim panoya kopyalandı"),
+          () => toast("Kopyalanamadı — alttaki JSON’u elle seç"),
+        );
+      }
+
+      try {
+        const saved = JSON.parse(localStorage.getItem("quake-sound-picker-picks") || "null");
+        if (saved && typeof saved === "object") {
+          if (saved.agent) picks.agent = saved.agent;
+          if (saved.error) picks.error = saved.error;
+          if (saved.operation) picks.operation = saved.operation;
+        }
+      } catch (_) {}
+
+      renderPicks();
+      renderExport();
+      renderGrid("");
+
+      $q.addEventListener("input", () => renderGrid($q.value));
+      document.getElementById("stopAll").addEventListener("click", stopAudio);
+      document.getElementById("clearPicks").addEventListener("click", () => {
+        picks.agent = null;
+        picks.error = null;
+        picks.operation = null;
+        renderPicks();
+        renderExport();
+        renderGrid($q.value);
+        try {
+          localStorage.removeItem("quake-sound-picker-picks");
+        } catch (_) {}
+      });
+      document.getElementById("copyJson").addEventListener("click", copyJson);
+      document.getElementById("copyJson2").addEventListener("click", copyJson);
+    </script>
+  </body>
+</html>

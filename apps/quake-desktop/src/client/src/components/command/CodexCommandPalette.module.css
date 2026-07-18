@@ -1,0 +1,149 @@
+/* ============================================================
+   Codex "Arama" — cmdk komut paleti (ortalı modal overlay)
+   Görsel: codecodex-ref/arama.png. Renkler yalnız design token'larından.
+   ============================================================ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: start center;
+  padding: 14vh 24px 24px;
+  background: rgba(0, 0, 0, 0.54);
+  backdrop-filter: blur(10px);
+}
+
+.palette {
+  width: min(640px, 94vw);
+  max-height: min(560px, 72vh);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+/* ---- Input satırı ---- */
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+.searchIcon {
+  flex: none;
+  color: var(--muted);
+}
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--heading);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+.input::placeholder {
+  color: var(--muted);
+}
+.input:focus {
+  box-shadow: none;
+}
+
+/* ---- Liste gövdesi ---- */
+.list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px;
+}
+
+.empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+/* ---- Grup başlığı (gri uppercase küçük) ---- */
+.group :global([cmdk-group-heading]) {
+  padding: 12px 12px 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---- Satır ---- */
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.item:hover,
+.item[data-selected="true"] {
+  background: var(--accent-soft);
+  border-color: var(--border);
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.itemIcon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+}
+
+.itemLabel {
+  color: var(--heading);
+  font-size: 13.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemMeta {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.itemProject {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* ---- Kısayol kbd ---- */
+.kbd {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}

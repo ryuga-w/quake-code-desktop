@@ -1,0 +1,1833 @@
+.message {
+  display: grid;
+  gap: 7px;
+}
+
+.text p {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.text h2,
+.text h3,
+.text h4 {
+  margin: 12px 0 7px;
+  color: var(--heading);
+  letter-spacing: -0.025em;
+}
+.text h2 { font-size: 21px; }
+.text h3 { font-size: 17px; }
+.text h4 { font-size: 14px; }
+.text a { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
+.text blockquote {
+  margin: 10px 0;
+  padding: 9px 12px;
+  border-left: 3px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--paper-soft);
+  color: var(--muted);
+}
+.text blockquote p:last-child { margin-bottom: 0; }
+
+.codeBlock {
+  overflow: hidden;
+  border: 1px solid var(--code-border, color-mix(in srgb, var(--heading) 14%, transparent));
+  border-radius: 10px;
+  background: var(--code-bg, #101010);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 260px;
+}
+.codeHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--code-border, color-mix(in srgb, var(--heading) 10%, transparent));
+  background: var(--code-header-bg, #242424);
+}
+.codeHead span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-family: var(--font-mono);
+}
+.codeHead button { padding: 5px 9px; font-size: 12px; }
+.codeBlock pre {
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  background: var(--code-bg, #101010);
+  color: var(--code-fg, #e8e8e8);
+  font-family: var(--font-mono);
+}
+.codeBlock code { color: var(--code-fg, #e8e8e8); font-family: var(--font-mono); }
+.codeLine {
+  display: block;
+  min-height: 1.52em;
+  white-space: pre;
+}
+.codeLineNumbered {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 12px;
+}
+.codeLineNo {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+}
+.codeLineBody {
+  min-width: 0;
+}
+.syntaxLinePrefix {
+  color: #6f6f6f;
+  user-select: none;
+}
+.syntaxComment { color: #777; font-style: italic; }
+.syntaxKeyword { color: #ff7b72; }
+.syntaxString { color: #a5d6ff; }
+.syntaxNumber { color: #d2a8ff; }
+.syntaxTag { color: #7ee787; }
+.syntaxAttr { color: #ffa657; }
+.syntaxFunction { color: #d2a8ff; }
+.syntaxDiffAdd { color: #b7f5c8; background: rgba(46, 160, 67, 0.10); }
+.syntaxDiffDel { color: #ffb3b8; background: rgba(248, 81, 73, 0.10); }
+.syntaxDiffAdd .syntaxLinePrefix { color: #57d781; }
+.syntaxDiffDel .syntaxLinePrefix { color: #ff7b72; }
+
+/* Past-task work disclosure: "1m 51s boyunca çalıştı" — collapsed by default */
+.turnWork {
+  display: block;
+  width: min(780px, 100%);
+  max-width: 100%;
+  margin: 0 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.turnWorkSummary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 22px;
+  max-width: 100%;
+  padding: 1px 0 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  border-radius: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  user-select: none;
+  transition: color 140ms ease;
+}
+.turnWorkSummary::-webkit-details-marker { display: none; }
+.turnWorkSummary::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  margin-top: -1px;
+  border-right: 1.35px solid currentColor;
+  border-bottom: 1.35px solid currentColor;
+  opacity: 0.55;
+  transform: rotate(-45deg);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease;
+}
+.turnWork[open] > .turnWorkSummary::after {
+  opacity: 0.85;
+  transform: rotate(45deg);
+}
+.turnWorkSummary:hover,
+.turnWorkSummary:focus-visible {
+  color: var(--heading);
+}
+.turnWorkLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.turnWorkBody {
+  display: grid;
+  gap: 6px;
+  margin-top: 0;
+  padding: 10px 0 2px;
+  border-top: 0;
+}
+
+/* Immediate post-send + live thought — selected S06 Twin Signal shimmer. */
+.streamingThink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin: 2px 0 4px;
+  color: var(--thinking-fg, var(--muted));
+  user-select: none;
+}
+.streamingThinkShimmer,
+.toolSemanticThoughtShimmer {
+  display: inline-block;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--muted) 88%, transparent) 0%,
+    color-mix(in srgb, var(--muted) 88%, transparent) 25%,
+    color-mix(in srgb, var(--heading) 58%, var(--muted)) 31%,
+    color-mix(in srgb, var(--heading) 92%, var(--muted)) 35%,
+    color-mix(in srgb, var(--heading) 58%, var(--muted)) 39%,
+    color-mix(in srgb, var(--muted) 88%, transparent) 46%,
+    color-mix(in srgb, var(--muted) 88%, transparent) 57%,
+    color-mix(in srgb, var(--heading) 58%, var(--muted)) 64%,
+    color-mix(in srgb, var(--heading) 92%, var(--muted)) 68%,
+    color-mix(in srgb, var(--heading) 58%, var(--muted)) 72%,
+    color-mix(in srgb, var(--muted) 88%, transparent) 79%,
+    color-mix(in srgb, var(--muted) 88%, transparent) 100%
+  );
+  background-size: 270% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--heading) 8%, transparent));
+  will-change: background-position;
+  animation: twinSignalShimmer 2.7s linear infinite;
+}
+@keyframes twinSignalShimmer {
+  from { background-position: 135% 0; }
+  to { background-position: -35% 0; }
+}
+:global([data-theme="light"]) .streamingThinkShimmer,
+:global([data-theme="light"]) .toolSemanticThoughtShimmer {
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.06));
+}
+
+/* Acilir tool kartlarinin icerigini yumusak ac/kapat.
+   ::details-content destekleyen tarayicilarda (Chrome) yukseklik 0<->auto anime olur
+   (interpolate-size sayesinde); desteklemeyenlerde native <details> gizleme gecerli. */
+.turnWork::details-content,
+.toolNotice::details-content,
+.toolRun::details-content,
+.fileMutationRun::details-content,
+.fileMutationCard::details-content {
+  block-size: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: block-size 340ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease, content-visibility 340ms allow-discrete;
+}
+.turnWork[open]::details-content,
+.toolNotice[open]::details-content,
+.toolRun[open]::details-content,
+.fileMutationRun[open]::details-content,
+.fileMutationCard[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+/* ::details-content desteklemeyen tarayicilar icin: kapaliyken iceriği gizle. */
+@supports not selector(::details-content) {
+  .turnWork:not([open]) > :not(summary),
+  .toolNotice:not([open]) > :not(summary),
+  .toolRun:not([open]) > :not(summary),
+  .fileMutationRun:not([open]) > :not(summary),
+  .fileMutationCard:not([open]) > :not(summary) {
+    display: none !important;
+  }
+}
+
+.turnSemanticFlow {
+  display: flex;
+  align-items: center;
+  width: min(780px, 100%);
+  min-height: 22px;
+  gap: 0;
+  margin: 0 0 4px;
+  color: var(--muted);
+}
+
+.toolNotice {
+  --activity-rail: color-mix(in srgb, var(--heading) 9%, transparent);
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  width: min(780px, 100%);
+  max-width: 100%;
+  margin: 0 0 6px;
+  padding: 0 0 0 20px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.inlineActivityNotice {
+  padding-left: 0;
+}
+.toolNotice.inlineActivityNotice > summary {
+  margin-left: 0;
+}
+
+.toolNotice > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 25px;
+  gap: 7px;
+  margin-left: -20px;
+  padding: 2px 6px 2px 0;
+  border-radius: 7px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  font-family: var(--font-display);
+  user-select: none;
+  transition: background 120ms ease;
+}
+.toolNotice > summary:hover { background: color-mix(in srgb, var(--heading) 4%, transparent); }
+.toolNotice > summary::-webkit-details-marker { display: none; }
+.toolNotice > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  margin-right: 3px;
+  border-right: 1.4px solid var(--muted);
+  border-bottom: 1.4px solid var(--muted);
+  opacity: 0.45;
+  transform: rotate(45deg);
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+.toolNotice > summary:hover::after,
+.toolNotice:focus-within > summary::after { opacity: 1; }
+.toolNotice[open] > summary::after { transform: rotate(225deg); opacity: 1; }
+.toolNotice > summary:hover,
+.toolNotice > summary:hover strong { color: var(--heading); }
+.toolNoticeDetailsOnly {
+  margin-top: 0;
+}
+.toolNoticeDetailsOnly > .toolDetailsSummary {
+  min-height: 24px;
+  color: var(--muted-2, var(--muted));
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+.toolDetailsSummary > span {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.toolStatusIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  font: 650 10px/1 var(--font-sans);
+}
+.toolStatusDone,
+.toolStatusError {
+  position: relative;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--heading);
+}
+.toolStatusDone { color: var(--heading); }
+.toolStatusError { color: var(--heading); }
+.toolStatusRunning {
+  position: relative;
+  background: transparent;
+  color: var(--heading);
+}
+.toolStatusOuterRing,
+.toolStatusInnerRing,
+.toolStatusFinalRing {
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+.toolStatusOuterRing {
+  inset: 1px;
+  border: 1px solid transparent;
+  border-top-color: currentColor;
+  border-bottom-color: color-mix(in srgb, currentColor 38%, transparent);
+}
+.toolStatusInnerRing {
+  inset: 5px;
+  border: 1px solid transparent;
+  border-right-color: color-mix(in srgb, currentColor 72%, transparent);
+  border-left-color: color-mix(in srgb, currentColor 30%, transparent);
+}
+.toolStatusRunning .toolStatusOuterRing { animation: toolStatusRingClockwise 1s linear infinite; }
+.toolStatusRunning .toolStatusInnerRing { animation: toolStatusRingCounterClockwise .72s linear infinite; }
+.toolStatusFinalRing {
+  inset: 1px;
+  border: 1px solid currentColor;
+  opacity: 0;
+  transform: scale(.76);
+}
+.toolStatusDone .toolStatusOuterRing,
+.toolStatusDone .toolStatusInnerRing,
+.toolStatusError .toolStatusOuterRing,
+.toolStatusError .toolStatusInnerRing {
+  animation: toolStatusMorphAway 180ms ease-out both;
+}
+.toolStatusDone .toolStatusFinalRing,
+.toolStatusError .toolStatusFinalRing {
+  animation: toolStatusFinalRingIn 260ms cubic-bezier(.16, 1, .3, 1) 70ms both;
+}
+.toolStatusSummaryCore {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .62;
+  animation: toolStatusSummaryCoreIn 260ms cubic-bezier(.16, 1, .3, 1) 110ms both;
+}
+.toolStatusResultSymbol {
+  position: absolute;
+  inset: 3px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.toolStatusResultSymbol path {
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  animation: toolStatusResultDraw 300ms cubic-bezier(.2, .8, .2, 1) 190ms forwards;
+}
+.toolStatusResultSymbol .toolStatusResultDot { animation-delay: 280ms; }
+@keyframes toolStatusRingClockwise { to { transform: rotate(360deg); } }
+@keyframes toolStatusRingCounterClockwise { to { transform: rotate(-360deg); } }
+@keyframes toolStatusMorphAway { to { opacity: 0; transform: scale(.78); } }
+@keyframes toolStatusFinalRingIn { to { opacity: 1; transform: scale(1); } }
+@keyframes toolStatusSummaryCoreIn {
+  from { opacity: 0; transform: scale(.45); }
+  to { opacity: .62; transform: scale(1); }
+}
+@keyframes toolStatusResultDraw { to { stroke-dashoffset: 0; opacity: 1; } }
+.toolTitleRow {
+  display: inline-flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: 0;
+}
+.toolTitleRow::before { display: none; }
+.toolNotice > summary.toolNoticeSummarySemantic::after { display: block; }
+.toolSemanticHeadline {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 20px;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+/* Unified type: same size + color for verb / subject / meta (no loud heading). */
+.toolSemanticUnified .toolSemanticVerb,
+.toolSemanticUnified .toolSemanticSubject,
+.toolSemanticUnified .toolSemanticMeta,
+.toolSemanticSettled .toolSemanticLine {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+.toolSemanticVerb {
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: visible;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.toolSemanticSubject {
+  max-width: min(520px, 58vw);
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+.toolNoticeMutationFileButton {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.toolNoticeMutationFileButton:hover,
+.toolNoticeMutationFileButton:focus-visible {
+  color: var(--heading);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.toolSemanticMeta {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.toolSemanticLine {
+  display: inline-block;
+  max-width: min(560px, 64vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolSemanticSettled {
+  width: min(560px, 100%);
+  max-width: 100%;
+}
+.toolSemanticLiveThought {
+  width: min(610px, 100%);
+  max-width: 100%;
+}
+.toolSemanticLiveThought .toolSemanticVerb {
+  color: var(--muted);
+  font-weight: 500;
+}
+.toolSemanticLiveThought .toolSemanticSubject {
+  max-width: min(500px, 58vw);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.toolSemanticLeaving {
+  animation: toolSemanticLeave 240ms cubic-bezier(.4, 0, 1, 1) forwards;
+}
+.toolSemanticEntering {
+  animation: toolSemanticEnter 480ms cubic-bezier(.16, 1, .3, 1) forwards;
+}
+.toolSemanticLiveThought.toolSemanticLeaving {
+  animation-duration: 110ms;
+}
+.toolSemanticLiveThought.toolSemanticEntering {
+  animation-duration: 220ms;
+}
+@keyframes toolSemanticLeave {
+  to { opacity: 0; filter: blur(4px); transform: translateY(-7px); }
+}
+@keyframes toolSemanticEnter {
+  from { opacity: 0; filter: blur(4px); transform: translateY(8px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+@keyframes liveThoughtShimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -70% 0; }
+}
+/* twinSignalShimmer is shared with the immediate streaming indicator above. */
+.toolStatusSemanticCore {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .38;
+  transition: transform 320ms cubic-bezier(.16, 1, .3, 1), border-radius 320ms ease, opacity 240ms ease;
+}
+.toolStatusSemantic[data-kind="thinking"] .toolStatusSemanticCore { animation: toolSemanticCoreBreathe 1.6s ease-in-out infinite; }
+.toolStatusSemantic[data-kind="search"] .toolStatusSemanticCore { background: transparent; border: 1px solid currentColor; transform: translate(-1px, -1px); }
+.toolStatusSemantic[data-kind="edit"] .toolStatusSemanticCore { border-radius: 1px; transform: rotate(45deg); }
+.toolStatusSemantic[data-kind="command"] .toolStatusSemanticCore { border-radius: 1px; transform: scaleX(1.7); }
+.toolStatusSemantic[data-kind="browser"] .toolStatusSemanticCore { background: transparent; border: 1px solid currentColor; }
+@keyframes toolSemanticCoreBreathe { 50% { opacity: .78; transform: scale(1.28); } }
+.toolTitleRowStaged {
+  position: relative;
+}
+.toolTitleRowStaged .toolHeadlineWord {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(3px);
+  transform: translateY(6px);
+  animation: toolHeadlineWordIn 440ms cubic-bezier(.16, 1, .3, 1) forwards;
+  animation-delay: calc(var(--word-index) * 55ms);
+}
+@keyframes toolHeadlineWordIn {
+  0% { opacity: 0; filter: blur(3px); transform: translateY(6px); }
+  100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+.toolNotice > summary.toolNoticeSummaryMutation {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 26px;
+  gap: 4px;
+  padding-right: 3px;
+}
+.toolNotice > summary.toolNoticeSummaryMutation::after {
+  display: block;
+  margin-right: 1px;
+  margin-left: 4px;
+}
+.toolNoticeMutationSummary {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 520;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.toolNoticeMutationIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  margin-right: 6px;
+  color: var(--muted);
+  opacity: 0.95;
+  flex: 0 0 auto;
+}
+.toolNoticeMutationIcon svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.toolNoticeMutationFile {
+  max-width: min(340px, 42vw);
+  margin-left: 5px;
+  overflow: hidden;
+  color: var(--accent-2, #2563eb);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 520;
+  text-overflow: ellipsis;
+}
+.toolNoticeMutationDelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 3px;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.toolNoticeMutationAdded {
+  color: #24d38a;
+  font-size: 13px;
+  font-weight: 540;
+  font-variant-numeric: tabular-nums;
+}
+.toolNoticeMutationRemoved {
+  color: #ff5c55;
+  font-size: 13px;
+  font-weight: 540;
+  font-variant-numeric: tabular-nums;
+}
+.toolNoticeMutationZero {
+  color: var(--muted-2, var(--muted));
+  opacity: .72;
+}
+.toolNoticeMutationState {
+  margin-left: -1px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 430;
+}
+.toolNoticeMutationStateLive {
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--muted) 70%, transparent) 0%,
+    var(--heading) 48%,
+    color-mix(in srgb, var(--muted) 70%, transparent) 100%
+  );
+  background-size: 210% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: toolNoticeMutationStateSweep 2.1s linear infinite;
+}
+.fileMutationRunList {
+  --tool-run-row: 120px;
+  --tool-run-gap: 8px;
+  --tool-run-visible: 3;
+  display: grid;
+  box-sizing: border-box;
+  width: min(650px, 100%);
+  max-width: 100%;
+  max-height: calc(
+    (var(--tool-run-row) * var(--tool-run-visible))
+    + (var(--tool-run-gap) * (var(--tool-run-visible) - 1))
+  );
+  gap: var(--tool-run-gap);
+  margin: 1px 0 3px;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--heading) 18%, transparent) transparent;
+}
+.fileMutationRunList::-webkit-scrollbar {
+  width: 6px;
+}
+.fileMutationRunList::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--heading) 16%, transparent);
+}
+.fileMutationRunList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Premium scroll-edge fade: soft multi-stop mask, edges only when content overflows */
+.toolRunScrollBody {
+  --tool-fade-top: 0px;
+  --tool-fade-bottom: 0px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, 0.18) calc(var(--tool-fade-top) * 0.28),
+    rgba(0, 0, 0, 0.62) calc(var(--tool-fade-top) * 0.62),
+    #000 var(--tool-fade-top),
+    #000 calc(100% - var(--tool-fade-bottom)),
+    rgba(0, 0, 0, 0.62) calc(100% - var(--tool-fade-bottom) * 0.62),
+    rgba(0, 0, 0, 0.18) calc(100% - var(--tool-fade-bottom) * 0.28),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, 0.18) calc(var(--tool-fade-top) * 0.28),
+    rgba(0, 0, 0, 0.62) calc(var(--tool-fade-top) * 0.62),
+    #000 var(--tool-fade-top),
+    #000 calc(100% - var(--tool-fade-bottom)),
+    rgba(0, 0, 0, 0.62) calc(100% - var(--tool-fade-bottom) * 0.62),
+    rgba(0, 0, 0, 0.18) calc(100% - var(--tool-fade-bottom) * 0.28),
+    transparent 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transition: --tool-fade-top 160ms ease, --tool-fade-bottom 160ms ease;
+}
+.toolRunScrollBody:not(.toolRunScrollCanScroll) {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .toolRunScrollBody {
+    transition: none;
+  }
+}
+/* File edit/create/delete activity card — live and settled verbs share one family. */
+.fileMutationCard {
+  display: block;
+  min-width: 0;
+  width: min(640px, 100%);
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--heading) 9%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 88%, #121214);
+  color: var(--text);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+.fileMutationCardLive {
+  border-color: color-mix(in srgb, var(--heading) 14%, transparent);
+}
+.fileMutationCardError {
+  border-color: color-mix(in srgb, var(--error, #ff5c55) 34%, transparent);
+}
+.fileMutationCardSummary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  user-select: none;
+}
+.fileMutationCardSummary::-webkit-details-marker { display: none; }
+.fileMutationCardSummary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  border-right: 1.4px solid currentColor;
+  border-bottom: 1.4px solid currentColor;
+  opacity: 0.5;
+  transform: rotate(45deg);
+  transition: transform 220ms ease, opacity 160ms ease;
+}
+.fileMutationCard[open] > .fileMutationCardSummary::after {
+  opacity: 0.85;
+  transform: rotate(225deg);
+}
+.fileMutationCardSummary:hover {
+  color: var(--heading);
+  background: color-mix(in srgb, var(--heading) 3.5%, transparent);
+}
+.fileMutationCard .toolNoticeMutationIcon {
+  width: 18px;
+  height: 18px;
+  margin-right: 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--heading) 7%, transparent);
+  color: var(--heading);
+  opacity: 1;
+}
+.fileMutationCard .toolNoticeMutationIcon svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fileMutationCardTitle {
+  color: var(--heading);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+.fileMutationCardLive .fileMutationCardTitle {
+  color: transparent;
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--muted) 80%, transparent) 0%,
+    var(--heading) 48%,
+    color-mix(in srgb, var(--muted) 80%, transparent) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: toolNoticeMutationStateSweep 2.1s linear infinite;
+}
+.fileMutationCardBody {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--heading) 7%, transparent);
+}
+.fileMutationCardFileRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 12px;
+  background: color-mix(in srgb, var(--heading) 2.5%, transparent);
+}
+.fileMutationCardFileName {
+  display: block;
+  min-width: 0;
+  max-width: min(420px, 58vw);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--heading);
+  box-shadow: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 520;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.fileMutationCardFileName:hover {
+  color: var(--accent-2, #7aa2ff);
+  transform: none;
+}
+.fileMutationCardFileRow .toolNoticeMutationDelta {
+  margin-left: 0;
+}
+.fileMutationCardOpen {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 7px;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  opacity: 0.72;
+  cursor: pointer;
+}
+.fileMutationCardOpen svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fileMutationCardOpen:hover {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+  color: var(--heading);
+  opacity: 1;
+  transform: none;
+}
+.fileMutationCardDiff {
+  margin: 0;
+  overflow: hidden;
+  padding: 6px 8px 8px;
+  border-top: 1px solid color-mix(in srgb, var(--heading) 6%, transparent);
+  background: color-mix(in srgb, #0c0c0e 92%, var(--panel));
+}
+.fileMutationCardDiff .syntaxDiffAdd {
+  display: block;
+  margin: 0 -12px;
+  padding: 0 12px 0 10px;
+  border-left: 2px solid color-mix(in srgb, #3fb950 78%, transparent);
+  background: rgba(46, 160, 67, 0.12);
+  color: #b7f5c8;
+}
+.fileMutationCardDiff .syntaxDiffDel {
+  display: block;
+  margin: 0 -12px;
+  padding: 0 12px 0 10px;
+  border-left: 2px solid color-mix(in srgb, #f85149 78%, transparent);
+  background: rgba(248, 81, 73, 0.10);
+  color: #ffb3b8;
+}
+.fileMutationCardPending {
+  padding: 10px 12px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 480;
+}
+.fileMutationAction {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 480;
+  white-space: nowrap;
+}
+.fileMutationPath {
+  display: block;
+  min-width: 0;
+  max-width: min(390px, 45vw);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 48%, transparent);
+  text-underline-offset: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fileMutationPath:hover {
+  background: transparent;
+  color: var(--heading);
+  box-shadow: none;
+  text-decoration-color: currentColor;
+  transform: none;
+}
+:global([data-theme="light"]) .fileMutationCard {
+  border-color: rgba(22, 22, 26, 0.08);
+  background: #f4f4f6;
+  box-shadow: 0 8px 20px rgba(25, 25, 28, 0.08);
+}
+:global([data-theme="light"]) .fileMutationCardDiff {
+  background: #ececef;
+  color: #1c1c1e;
+}
+:global([data-theme="light"]) .fileMutationCardDiff .syntaxDiffAdd {
+  background: rgba(22, 163, 74, 0.10);
+  color: #166534;
+  border-left-color: #22c55e;
+}
+:global([data-theme="light"]) .fileMutationCardDiff .syntaxDiffDel {
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border-left-color: #ef4444;
+}
+.fileMutationLiveDot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  margin-left: 1px;
+  border-radius: 50%;
+  background: var(--accent-2, #3186ff);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-2, #3186ff) 13%, transparent);
+  animation: fileMutationDotPulse 1.55s ease-in-out infinite;
+}
+.fileMutationResultMark {
+  display: inline-grid;
+  place-items: center;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  margin-left: 1px;
+  color: var(--muted-2, var(--muted));
+  font: 600 9px/1 var(--font-sans);
+}
+.fileMutationResultError {
+  color: var(--danger, #ff5c55);
+}
+@keyframes fileMutationDotPulse {
+  50% { opacity: .55; transform: scale(.82); }
+}
+.toolNoticeCommandSummary {
+  display: inline-flex;
+  min-width: 0;
+  max-width: min(610px, 64vw);
+  align-items: center;
+}
+.toolNoticeCommandText {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolNotice strong {
+  display: block;
+  max-width: min(610px, 64vw);
+  overflow: hidden;
+  color: var(--heading);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 560;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Tool-title shimmer: tek parlak tepe, koyu ara-stop YOK, opacity throb YOK
+   (sadece pozisyon -> daha akici), linear, color-mix ile tema-uyumlu. */
+.textShimmer {
+  color: transparent !important;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--heading) 42%, transparent) 0%,
+    var(--heading) 50%,
+    color-mix(in srgb, var(--heading) 42%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: textShimmerSweep 2.2s linear infinite;
+}
+@keyframes textShimmerSweep {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+@keyframes toolNoticeMutationStateSweep {
+  from { background-position: 145% 0; }
+  to { background-position: -55% 0; }
+}
+.toolDetail {
+  display: block;
+  max-width: min(740px, 78vw);
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolList {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0 0 21px;
+  padding-left: 12px;
+  border-left: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+}
+.toolRunList {
+  --tool-run-row: 24px;
+  --tool-run-gap: 4px;
+  --tool-run-visible: 6;
+  position: relative;
+  display: grid;
+  gap: var(--tool-run-gap);
+  box-sizing: border-box;
+  min-width: 0;
+  width: min(650px, 100%);
+  max-width: 100%;
+  max-height: calc(
+    (var(--tool-run-row) * var(--tool-run-visible))
+    + (var(--tool-run-gap) * (var(--tool-run-visible) - 1))
+    + 4px
+  );
+  margin: 2px 0 0;
+  padding: 2px 0 2px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--heading) 18%, transparent) transparent;
+}
+.toolRunList::-webkit-scrollbar {
+  width: 6px;
+}
+.toolRunList::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--heading) 16%, transparent);
+}
+.toolRunList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.toolRunList::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 8px;
+  left: -17px;
+  width: 1px;
+  background: var(--activity-rail);
+  pointer-events: none;
+}
+.toolRun {
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+.toolRunLoading {
+  margin: 4px 0 2px;
+  padding: 4px 2px;
+  color: color-mix(in srgb, var(--heading) 48%, transparent);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.toolRunVirtual {
+  /* The host is auto-height (up to each list's max-height). `contain: strict`
+     includes size containment, collapsing the opened detail list to 0px before
+     the virtualizer can measure it. Keep layout/paint isolation without size. */
+  contain: layout paint style;
+}
+
+.toolRunVirtualInner {
+  position: relative;
+  width: 100%;
+}
+
+.toolRunVirtualRow {
+  box-sizing: border-box;
+  padding-bottom: 2px;
+}
+
+.toolRunShowMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 28px;
+  margin: 2px 0 0;
+  padding: 4px 10px;
+  border: 1px dashed color-mix(in srgb, var(--heading) 12%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--heading) 3%, transparent);
+  color: color-mix(in srgb, var(--heading) 62%, transparent);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.toolRunShowMore:hover {
+  border-color: color-mix(in srgb, var(--heading) 20%, transparent);
+  background: color-mix(in srgb, var(--heading) 6%, transparent);
+  color: var(--heading);
+}
+.fileMutationCardPathHint {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--heading) 48%, transparent);
+  font-size: 11.5px;
+  font-weight: 450;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolRun summary {
+  display: inline-flex;
+  align-items: center;
+  max-width: min(760px, 84vw);
+  min-height: 20px;
+  gap: 7px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  font-family: var(--font-display);
+}
+.toolRun summary::-webkit-details-marker { display: none; }
+.toolRun summary::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-right: 1.3px solid var(--muted);
+  border-bottom: 1.3px solid var(--muted);
+  opacity: 0.7;
+  transform: rotate(45deg);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.toolRun[open] summary::after { transform: rotate(225deg); }
+.toolRun summary:hover .toolRunAction,
+.toolRun summary:hover .toolRunSubject,
+.toolRun summary:hover .toolRunSubjectLink { color: var(--heading); }
+/* +/- same color as path text by default; green/red only on row hover */
+.toolRun .lineStatPill.added,
+.toolRun .lineStatPill.removed {
+  color: color-mix(in srgb, var(--heading) 88%, transparent);
+  opacity: 1;
+  filter: none;
+  transition: color 120ms ease;
+}
+.toolRun .lineStats {
+  gap: 0;
+  height: auto;
+  min-height: 0;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.toolRun .lineStatPill {
+  min-height: 0;
+  height: auto;
+  line-height: 1.2;
+}
+.toolRun .lineStatPill b {
+  height: auto;
+  min-height: 0;
+  font-size: 11px;
+  font-weight: 560;
+  line-height: 1.2;
+  animation: none;
+}
+.toolRun .lineStatPill + .lineStatPill::before {
+  margin: 0 5px;
+  height: auto;
+  line-height: 1.2;
+  font-size: 10px;
+}
+.toolRun summary:hover .lineStatPill.added,
+.toolRun:focus-within .lineStatPill.added {
+  color: var(--success, #16a34a);
+}
+.toolRun summary:hover .lineStatPill.removed,
+.toolRun:focus-within .lineStatPill.removed {
+  color: var(--danger, #dc2626);
+}
+.compactCommandRun summary {
+  max-width: 100%;
+  min-height: 20px;
+  gap: 5px;
+}
+.compactMutationRun summary {
+  gap: 6px;
+}
+.toolRunSubjectLink {
+  appearance: none;
+  border: 0;
+  /* Keep the live text-shimmer background-image intact. The `background`
+     shorthand reset made active file names fully transparent. */
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.toolRunSubjectLink:hover {
+  color: var(--accent, var(--heading));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.lineStatsPending {
+  opacity: 0.7;
+}
+.lineStatsPending .lineStatPill b {
+  min-width: 0.65em;
+  opacity: 0.85;
+}
+.compactCommandRun summary::after {
+  display: none;
+}
+.compactCommandIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin-right: 2px;
+  color: var(--muted);
+  opacity: .82;
+}
+.compactCommandIcon svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.compactCommandRun .toolRunAction {
+  font-weight: 480;
+}
+.compactCommandRun .toolRunSubject {
+  max-width: min(520px, 56vw);
+}
+.compactCommandRun .toolExecutionCard {
+  width: calc(100% - 20px);
+  margin-left: 20px;
+}
+.toolRunAction {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 520;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.toolRunSubject {
+  display: block;
+  min-width: 0;
+  max-width: min(620px, 64vw);
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 480;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolExecutionCard {
+  display: grid;
+  gap: 8px;
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 4px 0 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  border-radius: 9px;
+  padding: 9px 0 7px;
+  background: color-mix(in srgb, var(--tool-card-bg, var(--surface-raised, var(--panel))) 78%, transparent);
+  box-shadow: none;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
+}
+.toolExecutionCard:not([data-mutation-snippet="true"]) {
+  gap: 0;
+  padding: 0 0 5px;
+}
+.toolExecutionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 34px;
+  gap: 10px;
+  padding: 4px 10px;
+  color: var(--tool-card-fg, var(--heading));
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.toolExecutionIdentity {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.toolExecutionIdentity > span {
+  flex: 0 0 auto;
+  color: var(--heading);
+}
+.toolExecutionHeader small {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 480;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolExecutionActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.toolExecutionCard:hover .toolExecutionActions,
+.toolExecutionCard:focus-within .toolExecutionActions { opacity: 1; }
+.toolExecutionActions button {
+  min-height: 26px;
+  padding: 3px 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  font-size: 10.5px;
+}
+.toolExecutionActions button:hover { background: color-mix(in srgb, var(--heading) 7%, transparent); color: var(--heading); transform: none; }
+.lineStats {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  align-self: center;
+  gap: 0;
+  min-width: 0;
+  height: 20px;
+  padding: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.lineStats::before {
+  content: "";
+  width: 1px;
+  height: 12px;
+  margin-right: 9px;
+  background: color-mix(in srgb, var(--heading) 10%, transparent);
+}
+.lineStatPill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-display);
+  line-height: 20px;
+  vertical-align: middle;
+  box-shadow: none;
+}
+.lineStatPill + .lineStatPill::before {
+  content: "·";
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  margin: 0 8px;
+  color: var(--muted);
+  line-height: 20px;
+}
+.lineStatPill::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  transform: translateX(-120%);
+  opacity: 0;
+}
+.lineStatsLive .lineStatPill::after {
+  animation: lineStatSweep 1.45s ease-in-out infinite;
+}
+.lineStatPill b {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  height: 20px;
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  font-weight: 680;
+  line-height: 20px;
+  animation: lineStatPop 420ms cubic-bezier(.2, .9, .2, 1);
+}
+.lineStatPill small {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  color: var(--muted);
+  font-size: 10.8px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.lineStatPill.added {
+  color: var(--success, #16a34a);
+}
+.lineStatPill.removed {
+  color: var(--danger, #dc2626);
+}
+.lineStatPill.neutral {
+  color: var(--muted);
+}
+@keyframes lineStatSweep {
+  0% { opacity: 0; transform: translateX(-120%); }
+  32% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateX(120%); }
+}
+@keyframes lineStatPop {
+  0% { transform: translateY(4px); opacity: 0.35; }
+  60% { transform: translateY(-1px); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.toolPreviewDetails,
+.toolRawOutput { min-width: 0; border-top: 1px solid color-mix(in srgb, var(--heading) 6%, transparent); }
+.toolPreviewDetails > summary,
+.toolRawOutput > summary {
+  padding: 6px 12px 3px;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+  font-size: 10.5px;
+  font-weight: 560;
+}
+.toolPreviewDetails > summary::-webkit-details-marker,
+.toolRawOutput > summary::-webkit-details-marker { display: none; }
+.toolExecutionPre {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: min(520px, 58vh);
+  margin: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 5px 12px 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.52;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--heading) 16%, transparent) transparent;
+}
+.toolRawOutput pre {
+  max-height: min(480px, 52vh);
+  margin: 0;
+  overflow: auto;
+  padding: 6px 12px 10px;
+  color: var(--muted);
+  font: 11px/1.5 var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+}
+.toolExecutionStatus {
+  justify-self: end;
+  padding: 0 12px;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 560;
+}
+.toolExecutionStatus.error { color: var(--danger, #dc2626); }
+.toolExecutionStatus.notice { color: var(--muted); }
+.toolPreview {
+  max-width: min(820px, 84vw);
+  max-height: 132px;
+  margin: 6px 0 1px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--code-bg, var(--panel-2));
+  color: var(--code-fg, var(--text));
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre;
+}
+.toolNotice small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 450;
+  white-space: nowrap;
+}
+
+/* Light theme: ensure tool cards stay readable on pale surfaces */
+:global([data-theme="light"]) .toolExecutionCard {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+:global([data-theme="light"]) .toolExecutionHeader {
+  color: #1c1c1e;
+}
+:global([data-theme="light"]) .toolExecutionHeader small {
+  color: #5c5c62;
+}
+:global([data-theme="light"]) .toolExecutionPre {
+  color: #2c2c30;
+}
+:global([data-theme="light"]) .toolExecutionStatus {
+  color: #4a4a50;
+}
+:global([data-theme="light"]) .toolRunAction,
+:global([data-theme="light"]) .toolNotice {
+  color: #4a4a50;
+}
+:global([data-theme="light"]) .toolRunSubject,
+:global([data-theme="light"]) .toolNoticeCommandText {
+  color: #1c1c1e;
+}
+:global([data-theme="light"]) .toolNotice strong {
+  color: #1c1c1e;
+}
+:global([data-theme="light"]) .toolNoticeMutationFile {
+  color: #1d4ed8;
+}
+:global([data-theme="light"]) .fileMutationPath {
+  color: #232326;
+}
+:global([data-theme="light"]) .lineStatPill.added {
+  color: #15803d;
+}
+:global([data-theme="light"]) .lineStatPill.removed {
+  color: #b91c1c;
+}
+:global([data-theme="light"]) .syntaxComment { color: #6b7280; }
+:global([data-theme="light"]) .syntaxKeyword { color: #b91c1c; }
+:global([data-theme="light"]) .syntaxString { color: #0369a1; }
+:global([data-theme="light"]) .syntaxNumber { color: #7c3aed; }
+:global([data-theme="light"]) .syntaxTag { color: #047857; }
+:global([data-theme="light"]) .syntaxAttr { color: #c2410c; }
+:global([data-theme="light"]) .syntaxFunction { color: #6d28d9; }
+:global([data-theme="light"]) .codeLineNo { color: #9ca3af; }
+
+.tableWrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 14px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 160px;
+}
+.tableWrap table { width: 100%; border-collapse: separate; border-spacing: 0; background: transparent; }
+.tableWrap th,
+.tableWrap td {
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--panel);
+}
+.tableWrap th {
+  color: var(--heading);
+  background: var(--panel-2);
+  font-size: 13px;
+  font-weight: 650;
+  text-transform: none;
+  letter-spacing: normal;
+  border-bottom: 1px solid var(--border-strong);
+}
+.tableWrap tr:nth-child(even) td { background: var(--paper); }
+.tableWrap tr:last-child td { border-bottom: 0; }
+.tableWrap td code {
+  display: inline-block;
+  padding: 2px 6px;
+  background: var(--code-inline-bg, var(--accent-soft));
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--code-inline-fg, var(--heading));
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.listItem { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 4px; margin: 4px 0; }
+.listItem > span:first-child { color: var(--accent); font-weight: 700; }
+.inlineCode {
+  border: 1px solid var(--border) !important;
+  border-radius: 5px;
+  padding: 1px 5px;
+  background: var(--code-inline-bg, var(--panel-2)) !important;
+  color: var(--code-inline-fg, var(--heading)) !important;
+  box-shadow: none !important;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.fileLink {
+  display: inline;
+  border: 0 !important;
+  border-radius: 0;
+  padding: 0;
+  background: transparent !important;
+  color: var(--accent-2) !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.fileLink:hover { transform: none; text-decoration: underline; box-shadow: none; }
+.toolRef { border-color: color-mix(in srgb, var(--accent-2) 28%, var(--border)); color: var(--accent-2); }
+
+.toolImages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  justify-content: center;
+  background: #1a1a1a;
+  border-radius: 8px;
+  margin: 4px 8px;
+}
+.toolGeneratedImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolNotice > summary::after {
+    transition: none;
+  }
+
+  .streamingThinkShimmer,
+  .toolSemanticLeaving,
+  .toolSemanticEntering,
+  .toolSemanticThoughtShimmer,
+  .toolStatusSemanticCore,
+  .toolTitleRowStaged .toolHeadlineWord,
+  .toolStatusOuterRing,
+  .toolStatusInnerRing,
+  .toolStatusFinalRing,
+  .toolStatusResultSymbol path,
+  .textShimmer,
+  .toolNoticeMutationStateLive,
+  .fileMutationLiveDot,
+  .lineStatsLive .lineStatPill::after,
+  .lineStatPill b {
+    animation: none !important;
+  }
+
+  .streamingThinkShimmer,
+  .toolSemanticThoughtShimmer {
+    color: var(--muted) !important;
+    -webkit-text-fill-color: var(--muted) !important;
+    background: none !important;
+    filter: none !important;
+  }
+
+  .toolSemanticLeaving { display: none; }
+
+  .toolSemanticEntering {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .toolStatusSemanticCore {
+    animation: none !important;
+  }
+
+  .toolTitleRowStaged .toolHeadlineWord {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .toolStatusDone .toolStatusOuterRing,
+  .toolStatusDone .toolStatusInnerRing,
+  .toolStatusError .toolStatusOuterRing,
+  .toolStatusError .toolStatusInnerRing {
+    opacity: 0;
+  }
+
+  .toolStatusDone .toolStatusFinalRing,
+  .toolStatusError .toolStatusFinalRing {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .toolStatusResultSymbol path {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  .textShimmer {
+    color: var(--text) !important;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+  }
+
+  .toolSemanticThoughtShimmer {
+    color: var(--muted) !important;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+  }
+}

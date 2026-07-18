@@ -1,0 +1,231 @@
+/*
+ * QuickLauncher.module.css — sag-kenar hizli baslatici tetikleyici + popover.
+ *
+ * Tum renkler/olculer tasarim token'lariyla (CSS custom properties) tanimli,
+ * boylece aydinlik/karanlik tema otomatik calisir. Token kaynagi: styles.css :root.
+ */
+
+/* Tetikleyici dugmeyi sag-orta kenara sabitleyen konteyner. */
+.root {
+  position: fixed;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  z-index: 9000;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+.trigger:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+  border-color: var(--accent);
+}
+.trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.triggerActive {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* --- Portal'a basilan popover (document.body altinda) --- */
+.popover {
+  position: fixed;
+  top: 50%;
+  right: 64px;
+  transform: translateY(-50%);
+  z-index: 9001;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 220px;
+  padding: 6px;
+  background: var(--elev-1, var(--panel));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+  font-family: var(--font-sans);
+  outline: none;
+  animation: quickLauncherIn 120ms ease;
+}
+
+@keyframes quickLauncherIn {
+  from {
+    opacity: 0;
+    transform: translate(6px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+.head {
+  padding: 4px 10px 6px;
+  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.item:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+.item:focus-visible {
+  outline: none;
+  background: var(--accent-soft);
+  color: var(--heading);
+}
+
+.itemIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+.item:hover .itemIcon,
+.item:focus-visible .itemIcon {
+  color: var(--accent);
+}
+
+.itemLabel {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kbd {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* ============================================================
+ * "panel" varyanti — bos sag dock icine gomulu dikey liste.
+ * Codex'in bos sag panel gorseline birebir uyar: liste dock'un
+ * alt-orta/sag bolgesinde ferah durur.
+ * ============================================================ */
+.panel {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 0 32px 1.5vh;
+  font-family: var(--font-sans);
+}
+
+.panelList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(376px, 100%);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panelItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 1px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary, var(--heading));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 450;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.panelItem:hover {
+  background: color-mix(in srgb, var(--heading) 5%, transparent);
+  color: var(--heading);
+}
+.panelItem:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--heading) 22%, transparent);
+  outline-offset: 2px;
+  background: color-mix(in srgb, var(--heading) 5%, transparent);
+  color: var(--heading);
+}
+
+.panelItemIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  color: var(--text-muted, var(--muted));
+}
+.panelItemIcon svg { width: 15px; height: 15px; }
+.panelItem:hover .panelItemIcon,
+.panelItem:focus-visible .panelItemIcon {
+  color: var(--heading);
+}
+
+.panelItemLabel {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Codex referansindaki sessiz, cercevesiz kisayol kapsulu. */
+.panelItem .kbd {
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--heading) 7%, transparent);
+  color: var(--text-muted, var(--muted));
+  font-size: 10px;
+  line-height: 1.35;
+}

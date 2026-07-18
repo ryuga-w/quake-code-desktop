@@ -1,0 +1,101 @@
+appId: com.mrquake.quake-desktop
+productName: Quake Code
+copyright: Copyright © 2026 Quake Code
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - dist/**/*
+  - "!dist/**/*.map"
+  - "!node_modules/**/*.map"
+  - "!node_modules/**/*.d.ts"
+  - "!node_modules/@mrquake/quakecode-cli/dist/quake-code.exe"
+  - "!node_modules/@mrquake/quakecode-cli/dist/bun/**/*"
+  - "!node_modules/koffi/build/koffi/{darwin_*,freebsd_*,linux_*,musl_*,openbsd_*,win32_arm64,win32_ia32}/**/*"
+  - "!node_modules/koffi/{doc,lib,src,vendor}/**/*"
+
+extraResources:
+  - from: resources
+    to: resources
+    filter:
+      - icon.ico
+      - icon.png
+      - icon-128.png
+      - quake-code-q.png
+
+asar:
+  smartUnpack: true
+asarUnpack:
+  - node_modules/node-pty/**/*
+  - node_modules/koffi/build/koffi/win32_x64/**/*
+  - node_modules/@mariozechner/clipboard*/**/*
+  - node_modules/@silvia-odwyer/photon-node/**/*
+
+npmRebuild: false
+buildDependenciesFromSource: false
+
+electronLanguages:
+  - en-US
+  - tr
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+  executableName: QuakeCode
+  artifactName: Quake-Code-Setup-${version}-${arch}.${ext}
+  signAndEditExecutable: true
+
+nsis:
+  oneClick: false
+  perMachine: false
+  selectPerMachineByDefault: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Quake Code
+  uninstallDisplayName: Quake Code
+  runAfterFinish: true
+  installerLanguages:
+    - tr_TR
+    - en_US
+  multiLanguageInstaller: true
+  displayLanguageSelector: false
+
+# ── S-PUB.2 auto-update / publish (optional) ──────────────────────────────
+# Leave `publish` unset for unsigned local package and ship-gate CI.
+# electron-updater only activates when a feed is configured at runtime:
+#   1. QUAKE_UPDATE_FEED_URL=https://releases.example.com/quake-desktop  (env, highest priority)
+#   2. Settings → Hakkında → Feed URL (userData/auto-update.json → updateFeedUrl)
+#   3. Packaged app-update.yml when one of the publish blocks below is enabled at package time
+# Enable checks with QUAKE_AUTO_UPDATE=1 or Settings → Hakkında → Otomatik güncelleme.
+#
+# Generic static host (recommended for private mirrors):
+# publish:
+#   provider: generic
+#   url: https://releases.example.com/quake-desktop
+#   # channel: latest
+#
+# GitHub Releases — only when you intentionally publish; never required for ship-gate.
+# Optional: set GH_TOKEN in the environment for private repos / upload on --publish.
+# publish:
+#   provider: github
+#   owner: your-org
+#   repo: quake-code
+#   releaseType: release
+#
+# Publish on package (opt-in; needs publish config above + credentials):
+#   # PowerShell
+#   $env:GH_TOKEN = "<pat-with-repo-scope>"   # only if using github provider
+#   npx electron-builder --config electron-builder.yml --win nsis --x64 --publish always
+#
+# Without GH_TOKEN / publish config, `npm run desktop:package:win` still produces an
+# unsigned (or CSC-signed) installer and does not upload anything.
+#
+# See docs/windows-signing.md for CSC_* / Azure Trusted Signing + update path.
+

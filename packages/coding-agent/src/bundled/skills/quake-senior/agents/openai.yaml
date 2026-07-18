@@ -1,0 +1,4 @@
+interface:
+  display_name: "Quake Senior"
+  short_description: "Refine code with elite senior engineering judgment"
+  default_prompt: "Use $quake-senior to inspect this implementation and rewrite it with stronger naming, safer structure, clearer callsites, and elite senior-grade maintainability with strict-finish discipline, no unnecessary abstraction, and no unfinished gaps."

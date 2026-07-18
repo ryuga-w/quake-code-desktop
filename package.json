@@ -1,0 +1,89 @@
+{
+  "name": "quake-code-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "clean": "npm run clean --workspaces",
+    "build": "cd packages/tui && npm run build && cd ../ai && npm run build && cd ../agent && npm run build && cd ../coding-agent && npm run build && cd ../mom && npm run build && cd ../pods && npm run build",
+    "dev": "concurrently --names \"ai,agent,coding-agent,mom,tui\" --prefix-colors \"cyan,yellow,red,white,magenta\" \"cd packages/ai && npm run dev\" \"cd packages/agent && npm run dev\" \"cd packages/coding-agent && npm run dev\" \"cd packages/mom && npm run dev\" \"cd packages/tui && npm run dev\"",
+    "dev:desktop": "npm --workspace @mrquake/quake-desktop run desktop:dev",
+    "start:desktop": "npm --workspace @mrquake/quake-desktop run start",
+    "dev:desktop:stack": "npm --workspace @mrquake/quake-desktop run dev:stack",
+    "dev:grok-premium": "npm --workspace @mrquake/grok-premium run dev",
+    "dev:grok-premium:stable": "npm --workspace @mrquake/grok-premium run dev:stable",
+    "dev:grok-premium:full": "npm --workspace @mrquake/grok-premium run dev:full",
+    "build:grok-premium": "npm --workspace @mrquake/grok-premium run build",
+    "build:web": "npm --workspace @mrquake/quake-desktop run build",
+    "build:desktop": "npm --workspace @mrquake/quake-desktop run build",
+    "package:desktop:win": "npm --workspace @mrquake/quake-desktop run desktop:package:win",
+    "smoke:web": "npm --workspace @mrquake/quake-desktop run smoke",
+    "smoke:desktop": "npm --workspace @mrquake/quake-desktop run smoke",
+    "e2e:web": "npm --workspace @mrquake/quake-desktop run e2e",
+    "e2e:desktop": "npm --workspace @mrquake/quake-desktop run e2e",
+    "e2e:grok-premium": "npm --workspace @mrquake/grok-premium run e2e",
+    "dev:mobile": "npm --workspace @mrquake/quakecode-mobile run start",
+    "android:mobile": "npm --workspace @mrquake/quakecode-mobile run android",
+    "ios:mobile": "npm --workspace @mrquake/quakecode-mobile run ios",
+    "web:mobile": "npm --workspace @mrquake/quakecode-mobile run web",
+    "typecheck:mobile": "npm --workspace @mrquake/quakecode-mobile run typecheck",
+    "smoke:mobile": "npm --workspace @mrquake/quakecode-mobile run smoke",
+    "live:mobile": "npm --workspace @mrquake/quakecode-mobile run live",
+    "dev:tsc": "concurrently --names \"ai\" --prefix-colors \"cyan\" \"cd packages/ai && npm run dev:tsc\"",
+    "check": "biome check --error-on-warnings . && tsgo --noEmit && node scripts/check-browser-smoke.mjs && node scripts/check-mouse-smoke.mjs && node scripts/check-architecture-debt.mjs",
+    "check:fix": "biome check --write --error-on-warnings .",
+    "check:browser-smoke": "node scripts/check-browser-smoke.mjs",
+    "smoke:mouse": "node scripts/check-mouse-smoke.mjs",
+    "profile:tui": "node scripts/profile-coding-agent-node.mjs --mode tui",
+    "profile:rpc": "node scripts/profile-coding-agent-node.mjs --mode rpc",
+    "test": "npm run test --workspaces --if-present",
+    "version:patch": "npm version patch -ws --no-git-tag-version && node scripts/sync-versions.js && shx rm -rf node_modules packages/*/node_modules package-lock.json && npm install",
+    "version:minor": "npm version minor -ws --no-git-tag-version && node scripts/sync-versions.js && shx rm -rf node_modules packages/*/node_modules package-lock.json && npm install",
+    "version:major": "npm version major -ws --no-git-tag-version && node scripts/sync-versions.js && shx rm -rf node_modules packages/*/node_modules package-lock.json && npm install",
+    "version:set": "npm version -ws",
+    "refresh-lockfiles": "shx rm -rf node_modules packages/*/node_modules package-lock.json bun.lock && npm install && bun install --frozen-lockfile=false",
+    "prepublishOnly": "npm run clean && npm run build && npm run check",
+    "publish": "npm run prepublishOnly && npm publish -ws --access public",
+    "publish:dry": "npm run prepublishOnly && npm publish -ws --access public --dry-run",
+    "release:patch": "node scripts/release.mjs patch",
+    "release:minor": "node scripts/release.mjs minor",
+    "release:major": "node scripts/release.mjs major",
+    "release:quake-cli-checklist": "node -e \"console.log('Quake-only CLI release checklist'); console.log('1. Finish de-upstreaming blockers before publish: quakecode-agent-core must build without @mariozechner/pi-ai, and quakecode-jiti / quakecode-clipboard must stop depending on @mariozechner/* wrappers.'); console.log('2. Refresh lockfiles: npm run refresh-lockfiles, then confirm bun.lock and package-lock.json no longer contain upstream deps for @mrquake/quakecode-cli.'); console.log('3. Verify manifests/tarballs in dependency order with npm pack --json from each package dir: packages/ai -> packages/agent -> packages/tui -> packages/jiti -> packages/clipboard -> packages/coding-agent. Inspect name, version, files, dependencies, and optionalDependencies before publishing.'); console.log('4. Publish in dependency order only after each package passes pack validation: @mrquake/quakecode-ai, @mrquake/quakecode-agent-core, @mrquake/quakecode-tui, @mrquake/quakecode-jiti, @mrquake/quakecode-clipboard, @mrquake/quakecode-cli.'); console.log('5. After each publish, verify npm registry metadata with npm view <pkg> version dependencies optionalDependencies and stop if any upstream @mariozechner entries remain.'); console.log('6. After CLI publish, check npm dependency pages for @mrquake/quakecode-cli and its direct Quake packages to ensure only Quake-scoped deps appear, then smoke-test install/update from the published tarball or registry package.');\""
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.5",
+    "@types/node": "^22.10.5",
+    "@typescript/native-preview": "7.0.0-dev.20260120.1",
+    "concurrently": "^9.2.1",
+    "shx": "^0.4.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "version": "1.11.2",
+  "optionalDependencies": {
+    "@typescript/native-preview-linux-x64": "^7.0.0-dev.20260624.1"
+  },
+  "dependencies": {
+    "@mrquake/quakecode-cli": "^1.11.2",
+    "@mrquake/quakecode-jiti": "^1.11.2",
+    "get-east-asian-width": "^1.4.0"
+  },
+  "overrides": {
+    "rimraf": "6.1.2",
+    "fast-xml-parser": "5.5.10",
+    "form-data": "4.0.6",
+    "shell-quote": "1.8.4",
+    "protobufjs": "7.6.5",
+    "undici": "7.28.0",
+    "vite": "7.3.6",
+    "gaxios": {
+      "rimraf": "6.1.2"
+    }
+  }
+}

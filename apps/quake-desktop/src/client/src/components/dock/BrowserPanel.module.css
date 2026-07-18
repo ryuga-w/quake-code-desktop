@@ -1,0 +1,297 @@
+/* Embedded browser chrome. The native WebContentsView remains live during inspection;
+   element-selection UI is injected into that page rather than simulated over a screenshot. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface-browser-chrome, var(--panel));
+  color: var(--text-browser, var(--text));
+  font-family: var(--font-sans);
+  container-type: inline-size;
+}
+
+.toolbar {
+  display: grid;
+  flex: 0 0 40px;
+  grid-template-columns: minmax(86px, 1fr) minmax(100px, 2fr) minmax(86px, 1fr);
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--stroke-browser, var(--border));
+  background: var(--surface-browser-chrome, var(--paper-soft));
+}
+
+.navGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 2px;
+}
+
+.actionGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  justify-self: end;
+  width: 54px;
+  min-width: 54px;
+  gap: 2px;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+}
+
+.iconBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-browser-muted, var(--muted));
+  cursor: pointer;
+}
+
+.iconBtn:hover:not(:disabled) {
+  background: var(--surface-browser-hover, var(--panel-2));
+  color: var(--text-browser, var(--heading));
+}
+
+.iconBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.spin {
+  animation: browser-spin 0.8s linear infinite;
+}
+
+@keyframes browser-spin {
+  to { transform: rotate(360deg); }
+}
+
+.addressForm {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 30px;
+  width: 100%;
+  margin-inline: 0;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  transition:
+    background var(--duration-fast, 120ms) var(--ease-standard, ease),
+    border-color var(--duration-fast, 120ms) var(--ease-standard, ease);
+}
+
+.addressForm:focus-within {
+  border-color: transparent;
+  background: transparent;
+}
+
+.addressIcon {
+  display: none;
+}
+
+.address {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-browser, var(--text));
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 450;
+  text-align: center;
+}
+
+/* The app-wide input focus ring is intentionally replaced here: browser
+   address chrome stays visually flat while the caret/selection shows focus. */
+.address:focus,
+.address:focus-visible {
+  border-color: transparent;
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.address::placeholder {
+  color: var(--muted-2);
+}
+
+.inspectorToggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  overflow: hidden;
+  padding: 0 5px;
+  white-space: nowrap;
+  transform-origin: right center;
+  transition:
+    width 240ms var(--ease-panel, cubic-bezier(.22, 1, .36, 1)),
+    gap 200ms var(--ease-panel, ease),
+    padding 200ms var(--ease-panel, ease),
+    background 160ms var(--ease-standard, ease),
+    color 160ms var(--ease-standard, ease);
+}
+
+.inspectorToggle svg {
+  flex: 0 0 auto;
+}
+
+.inspectorLabel {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  color: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  transform: translateX(4px);
+  transition:
+    max-width 240ms var(--ease-panel, ease),
+    opacity 120ms ease,
+    transform 200ms var(--ease-panel, ease);
+}
+
+.inspectorToggleActive {
+  width: 110px;
+  height: 28px;
+  gap: 6px;
+  padding: 0 10px;
+  border-color: transparent;
+  border-radius: 9px;
+  background: var(--surface-browser-note, #fbe7ff);
+  color: var(--text-browser-note, #cf2bd8);
+}
+
+.inspectorToggleActive .inspectorLabel {
+  max-width: 72px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.inspectorToggleActive:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface-browser-note, #fbe7ff) 88%, var(--text-browser-note, #cf2bd8));
+  color: var(--text-browser-note, #cf2bd8);
+}
+
+.inspectorError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--error) 28%, var(--border));
+  background: color-mix(in srgb, var(--error) 10%, var(--panel));
+  color: var(--error);
+  font-size: 11.5px;
+}
+
+.inspectorError span {
+  flex: 1;
+  min-width: 0;
+}
+
+.inspectorError button {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+}
+
+.inspectorError button:hover {
+  background: color-mix(in srgb, var(--error) 14%, transparent);
+}
+
+.viewport {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-timeline, var(--surface));
+}
+
+.viewportInspector {
+  cursor: crosshair;
+}
+
+.frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--surface);
+}
+
+.placeholder {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted-2);
+}
+
+.placeholderText {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--paper-soft);
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.hint svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--warning);
+}
+
+@container (max-width: 620px) {
+  .toolbar {
+    grid-template-columns: minmax(80px, 1fr) minmax(88px, 2fr) minmax(60px, 1fr);
+    gap: 2px;
+    padding-inline: 6px;
+  }
+
+  .navGroup { gap: 0; }
+  .iconBtn { width: 25px; height: 26px; }
+  .addressForm { height: 29px; margin-inline: 2px; padding-inline: 6px; }
+}
+
+@container (max-width: 420px) {
+  .navGroup .iconBtn:nth-child(2) { display: none; }
+  .address { font-size: 12px; }
+}

@@ -1,0 +1,184 @@
+# T3.C / S-PUB — Quake Desktop Windows CI / ship-gate (unsigned first)
+#
+# PR / push: install → ship-gate (typecheck/vitest) → production build → Playwright smoke
+# workflow_dispatch with package=true: also electron-builder NSIS + artifacts
+# workflow_dispatch with package_signed=true: optional signed package when CSC_* secrets exist
+# workflow_dispatch with run_e2e=true: also SHIP_GATE_E2E=1 inside ship-gate (smoke)
+#
+# Signing / publish secrets are OPTIONAL and must NOT be required for this workflow to pass.
+# Do not require secrets for the default package step. package_signed skips cleanly if empty.
+#
+# Optional signed-release secrets (used only when package_signed=true):
+#   Classic PFX:        CSC_LINK, CSC_KEY_PASSWORD  (or WIN_CSC_LINK / WIN_CSC_KEY_PASSWORD)
+#   Azure Trusted Signing (future full wiring — see windows-signing.md):
+#     AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET (or OIDC),
+#     AZURE_TRUSTED_SIGNING_ENDPOINT, AZURE_TRUSTED_SIGNING_ACCOUNT,
+#     AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE
+#   GitHub publish:     GH_TOKEN (only if electron-builder --publish + github provider)
+#   Update feed test:   QUAKE_UPDATE_FEED_URL, QUAKE_AUTO_UPDATE (runtime; not needed for CI package)
+# See apps/quake-desktop/docs/windows-signing.md
+#
+# Default package path: CSC_IDENTITY_AUTO_DISCOVERY=false (unsigned).
+
+name: desktop-windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Run electron-builder NSIS package + upload installer artifacts (unsigned)"
+        type: boolean
+        default: true
+      package_signed:
+        description: "Optional signed NSIS when CSC_LINK/CSC_KEY_PASSWORD secrets exist; skips cleanly if missing (never required)"
+        type: boolean
+        default: false
+      run_e2e:
+        description: "Also run Playwright smoke inside ship-gate (SHIP_GATE_E2E=1). PR/push always run smoke after build."
+        type: boolean
+        default: false
+  push:
+    paths:
+      - "apps/quake-desktop/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/desktop-windows.yml"
+  pull_request:
+    paths:
+      - "apps/quake-desktop/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/desktop-windows.yml"
+
+concurrency:
+  group: desktop-windows-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: ship-gate + build
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Root package.json engines: node >=20
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ship-gate (typecheck, token regression, vitest)
+        working-directory: apps/quake-desktop
+        env:
+          # Optional smoke inside ship-gate on manual dispatch; PR/push use post-build smoke step.
+          SHIP_GATE_E2E: ${{ github.event_name == 'workflow_dispatch' && inputs.run_e2e && '1' || '0' }}
+          # Skip nested production build inside ship-gate; CI runs it as a dedicated step.
+          SHIP_GATE_SKIP_BUILD: "1"
+        run: npm run ship-gate
+
+      - name: Production build (runtime packages + client/server + electron main)
+        working-directory: apps/quake-desktop
+        run: npm run desktop:build:production
+
+      # Smoke is light (~1 test / ~30s) and needs dist/ from the production build above.
+      # Enabled on every push/PR; dispatch always gets it too after build.
+      - name: Install Playwright Chromium
+        working-directory: apps/quake-desktop
+        run: npx playwright install chromium
+
+      - name: Playwright smoke (S-PUB.1)
+        working-directory: apps/quake-desktop
+        env:
+          # Config also forces auth off via webServer.env; keep explicit for clarity.
+          QUAKE_WEB_AUTH: "0"
+        run: npm run test:e2e:smoke
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-smoke-report-${{ github.run_number }}
+          path: |
+            apps/quake-desktop/playwright-report/**
+            apps/quake-desktop/test-results/**
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Package Windows NSIS (unsigned)
+        if: github.event_name == 'workflow_dispatch' && inputs.package
+        working-directory: apps/quake-desktop
+        env:
+          # Explicit unsigned path — no signing secrets in this workflow.
+          # Opt-in signed path is the package_signed step below; never fail here if secrets empty.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # Avoid interactive winCodeSign download prompts on CI when possible.
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+          # publish: leave unset (electron-builder.yml has publish commented). No GH_TOKEN required.
+        run: |
+          npx electron-builder --config electron-builder.yml --win nsis --x64
+          node scripts/finalize-windows-release.mjs
+
+      - name: Upload Windows installer artifacts
+        if: github.event_name == 'workflow_dispatch' && inputs.package
+        uses: actions/upload-artifact@v4
+        with:
+          name: quake-desktop-windows-${{ github.run_number }}
+          path: |
+            apps/quake-desktop/release/Quake-Code-Setup-*-x64.exe
+            apps/quake-desktop/release/Quake-Code-Setup-*-x64.exe.blockmap
+            apps/quake-desktop/release/SHA256SUMS.txt
+            apps/quake-desktop/release/KURULUM.md
+            apps/quake-desktop/release/KUR-QUAKE-CODE.bat
+            apps/quake-desktop/release/win-unpacked/**
+          if-no-files-found: error
+          retention-days: 14
+
+      # Optional signed package — secrets never required. Empty CSC_* → exit 0 skip.
+      - name: Package Windows NSIS (signed, optional)
+        id: package_signed
+        if: github.event_name == 'workflow_dispatch' && inputs.package_signed
+        working-directory: apps/quake-desktop
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+          # Do NOT set CSC_IDENTITY_AUTO_DISCOVERY=false here — allow discovery when material exists.
+        run: |
+          $hasCsc = -not [string]::IsNullOrWhiteSpace($env:CSC_LINK) -or -not [string]::IsNullOrWhiteSpace($env:WIN_CSC_LINK)
+          if (-not $hasCsc) {
+            Write-Host "package_signed=true but CSC_LINK/WIN_CSC_LINK secrets are empty — skipping signed package (unsigned path remains default)."
+            "built=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            exit 0
+          }
+          Write-Host "Signing material detected; building signed NSIS (no publish / GH_TOKEN required)."
+          npx electron-builder --config electron-builder.yml --win nsis --x64
+          node scripts/finalize-windows-release.mjs
+          "built=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload signed Windows installer artifacts
+        if: github.event_name == 'workflow_dispatch' && inputs.package_signed && steps.package_signed.outputs.built == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: quake-desktop-windows-signed-${{ github.run_number }}
+          path: |
+            apps/quake-desktop/release/Quake-Code-Setup-*-x64.exe
+            apps/quake-desktop/release/Quake-Code-Setup-*-x64.exe.blockmap
+            apps/quake-desktop/release/SHA256SUMS.txt
+            apps/quake-desktop/release/KURULUM.md
+            apps/quake-desktop/release/KUR-QUAKE-CODE.bat
+          if-no-files-found: error
+          retention-days: 14

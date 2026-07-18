@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMINA • Elite Muses Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        .title-font { font-family: 'Playfair Display', serif; }
+        .hero-bg {
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(17,17,17,0.95));
+        }
+        .model-card {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .model-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 30px 60px -15px rgb(0 0 0 / 0.5);
+        }
+        .gallery-img {
+            transition: all 0.4s ease;
+            cursor: zoom-in;
+        }
+        .gallery-img:hover {
+            transform: scale(1.08);
+            filter: brightness(1.15);
+        }
+
+        /* Lightbox Modal */
+        #lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.97);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        #lightbox.active {
+            display: flex;
+        }
+        #lightbox img {
+            max-width: 92%;
+            max-height: 90vh;
+            border-radius: 16px;
+            box-shadow: 0 30px 70px -15px rgb(0 0 0);
+        }
+        .close-btn {
+            position: absolute;
+            top: 35px;
+            right: 45px;
+            font-size: 42px;
+            color: #ddd;
+            cursor: pointer;
+            z-index: 1010;
+            line-height: 1;
+        }
+        .close-btn:hover {
+            color: #fbbf24;
+            transform: rotate(90deg);
+        }
+        .modal-caption {
+            position: absolute;
+            bottom: 50px;
+            color: #ccc;
+            font-size: 1.05rem;
+            text-align: center;
+            width: 100%;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full bg-black/90 backdrop-blur-lg z-50 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-10 py-6 flex justify-between items-center">
+            <div class="text-3xl title-font tracking-widest text-amber-100">LUMINA</div>
+            <div class="flex gap-10 text-sm uppercase tracking-[2px] font-medium">
+                <a href="#" class="hover:text-amber-400 transition-colors">Muses</a>
+                <a href="#" class="hover:text-amber-400 transition-colors">Gallery</a>
+                <a href="#" class="hover:text-amber-400 transition-colors">Journal</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="h-screen flex items-center justify-center hero-bg relative">
+        <div class="text-center z-10">
+            <h1 class="text-7xl md:text-8xl title-font tracking-widest mb-6">ELITE MUSES</h1>
+            <p class="text-2xl text-amber-300 tracking-widest">Diverse • Elegant • Timeless</p>
+            <p class="mt-8 text-zinc-400 max-w-md mx-auto">10 exceptional women from different cultures, captured in refined elegance.</p>
+        </div>
+        <div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center text-xs tracking-widest">
+            <div>SCROLL TO EXPLORE THE COLLECTION</div>
+            <i class="fas fa-chevron-down mt-4 animate-bounce text-amber-400"></i>
+        </div>
+    </header>
+
+    <!-- Gallery Grid -->
+    <section class="max-w-7xl mx-auto px-8 py-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+
+            <!-- Card 1 - Yuna (Asian) -->
+            <div class="model-card bg-zinc-900 rounded-3xl overflow-hidden border border-white/5">
+                <div class="h-96 overflow-hidden">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-8c91b912-83a0-94cf-ae34-07f6852a00f8-d63c7d7e.jpeg" 
+                         class="w-full h-full object-cover gallery-img" alt="Yuna Takahashi">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Yuna Takahashi</h3>
+                    <p class="text-amber-400 text-sm">Tokyo • 24 • Asian Muse</p>
+                    <p class="mt-4 text-zinc-400 text-sm leading-relaxed">Zarif ve gizemli Doğu güzelliği.</p>
+                </div>
+            </div>
+
+            <!-- Card 2 - Elena (Russian) -->
+            <div class="model-card bg-zinc-900 rounded-3xl overflow-hidden border border-white/5">
+                <div class="h-96 overflow-hidden">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-8b8365b8-1cdf-96a8-b8d5-979733c860a0-576cd5bb.jpeg" 
+                         class="w-full h-full object-cover gallery-img" alt="Elena Volkov">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Elena Volkov</h3>
+                    <p class="text-amber-400 text-sm">Moscow • 24 • Slavic Muse</p>
+                    <p class="mt-4 text-zinc-400 text-sm leading-relaxed">Buz mavisi gözlerle Kuzey'in tutkusu.</p>
+                </div>
+            </div>
+
+            <!-- Card 3 - Turkish Eşarp -->
+            <div class="model-card bg-zinc-900 rounded-3xl overflow-hidden border border-white/5">
+                <div class="h-96 overflow-hidden">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-f51fb1a7-d933-959e-9005-0660a62115c1-eb3f5467.jpeg" 
+                         class="w-full h-full object-cover gallery-img" alt="Zeynep Kaya">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Zeynep Kaya</h3>
+                    <p class="text-amber-400 text-sm">Istanbul • 25 • Eşarplı Muse</p>
+                    <p class="mt-4 text-zinc-400 text-sm leading-relaxed">İpek eşarp ile zarif Anadolu çekiciliği.</p>
+                </div>
+            </div>
+
+            <!-- Card 4 - Arab -->
+            <div class="model-card bg-zinc-900 rounded-3xl overflow-hidden border border-white/5">
+                <div class="h-96 overflow-hidden">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-4b3c504f-1f02-93c9-afa9-c64b484fe194-d8e4a223.jpeg" 
+                         class="w-full h-full object-cover gallery-img" alt="Layla Al-Sayed">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Layla Al-Sayed</h3>
+                    <p class="text-amber-400 text-sm">Dubai • 24 • Arabian Muse</p>
+                    <p class="mt-4 text-zinc-400 text-sm leading-relaxed">Gizemli bakışlar ve lüks hijab stili.</p>
+                </div>
+            </div>
+
+            <!-- Card 5 - Persian -->
+            <div class="model-card bg-zinc-900 rounded-3xl overflow-hidden border border-white/5">
+                <div class="h-96 overflow-hidden">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-c4aeace0-6adc-9c89-9e82-a8c3a9daf70a-55da9fb2.jpeg" 
+                         class="w-full h-full object-cover gallery-img" alt="Soraya Nazari">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Soraya Nazari</h3>
+                    <p class="text-amber-400 text-sm">Tehran • 26 • Persian Muse</p>
+                    <p class="mt-4 text-zinc-400 text-sm leading-relaxed">Geleneksel zarafetle modern çekicilik.</p>
+                </div>
+            </div>
+
+            <!-- Card 6 - Brazilian -->
+            <div class="model-card bg-zinc-900 rounded-3xl overflow-hidden border border-white/5">
+                <div class="h-96 overflow-hidden">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-66e8ac7d-9e20-9eb8-8be0-41ca6cb091b3-93bd8af9.jpeg" 
+                         class="w-full h-full object-cover gallery-img" alt="Isabella Costa">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Isabella Costa</h3>
+                    <p class="text-amber-400 text-sm">Rio • 24 • Latin Muse</p>
+                    <p class="mt-4 text-zinc-400 text-sm leading-relaxed">Sıcak enerji ve ipek eşarp detayı.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Additional Gallery -->
+        <div class="mt-20">
+            <h2 class="text-4xl title-font text-center mb-10 text-amber-200">MORE MUSES</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-08216c5c-1db6-9e7e-a812-16de22869c8c-7f1e1a95.jpeg" class="rounded-2xl gallery-img h-64 object-cover" alt="Asian Scarf">
+                <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-60b4badc-6b58-96cf-a1a0-26168629468c-ed489ada.jpeg" class="rounded-2xl gallery-img h-64 object-cover" alt="Russian Scarf">
+                <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-4706f0f3-f1a2-9426-855b-ec105d869901-1864d722.jpeg" class="rounded-2xl gallery-img h-64 object-cover" alt="Elegant Muse">
+                <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-ce25c530-f4b3-916f-908e-39fd4f109d16-fde43bf9.jpeg" class="rounded-2xl gallery-img h-64 object-cover" alt="Soft Muse">
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox">
+        <div class="relative max-w-[95vw]">
+            <span onclick="closeLightbox()" class="close-btn">✕</span>
+            <img id="lightbox-img" src="" alt="" onclick="event.stopImmediatePropagation()">
+            <div id="lightbox-caption" class="modal-caption"></div>
+        </div>
+    </div>
+
+    <footer class="bg-black py-12 text-center text-zinc-500 text-sm border-t border-white/10">
+        <p>LUMINA • Exclusive Muse Collection • 2026</p>
+        <p class="text-xs mt-3 text-zinc-600">Tüm görseller sanatsal ve tanıtım amaçlı üretilmiştir • Görsellere tıklayarak büyütebilirsiniz (ESC ile kapatılır)</p>
+    </footer>
+
+    <script>
+        tailwind.config = { content: [], theme: { extend: {} } }
+
+        function openLightbox(src, caption = '') {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const captionEl = document.getElementById('lightbox-caption');
+            
+            img.src = src;
+            captionEl.textContent = caption;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = 'visible';
+        }
+
+        // Close with ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        // Make all images clickable
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.gallery-img').forEach(img => {
+                img.style.cursor = 'zoom-in';
+                img.addEventListener('click', () => {
+                    openLightbox(img.src, img.alt || 'LUMINA Muse');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

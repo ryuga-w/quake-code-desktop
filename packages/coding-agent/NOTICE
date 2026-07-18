@@ -1,0 +1,10 @@
+Quake Code includes portions derived from OpenAI Codex.
+
+OpenAI Codex
+Copyright 2025 OpenAI
+
+The derived portions are licensed under the Apache License, Version 2.0.
+Source project: https://github.com/openai/codex
+
+Quake Code remains distributed under its existing MIT license. The Apache-2.0
+license terms continue to apply to the portions derived from OpenAI Codex.

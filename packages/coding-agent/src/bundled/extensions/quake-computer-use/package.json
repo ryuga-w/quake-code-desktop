@@ -1,0 +1,11 @@
+{
+  "name": "quake-computer-use",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.41"
+  },
+  "optionalDependencies": {
+    "@nut-tree/nut-js": "^4.2.0"
+  }
+}

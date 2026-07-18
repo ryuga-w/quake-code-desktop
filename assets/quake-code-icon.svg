@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <!-- Dark rounded background -->
+  <rect width="512" height="512" rx="112" fill="#181818"/>
+  
+  <!-- Outer green diamond (quake symbol) -->
+  <path d="M256 104 L400 248 L256 392 L112 248 Z" fill="#19c37d"/>
+  
+  <!-- Inner black cutout diamond -->
+  <path d="M256 176 L312 248 L256 320 L200 248 Z" fill="#181818"/>
+</svg>

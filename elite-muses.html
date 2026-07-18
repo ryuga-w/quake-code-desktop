@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELVET • Elite Muses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --velvet: #e11d48;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #050505;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .title-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(5,5,5,0.9)), 
+                        url('https://imgen.x.ai/xai-imgen/xai-tmp-imgen-f51fb1a7-d933-959e-9005-0660a62115c1-eb3f5467.jpeg') center/cover no-repeat;
+            position: relative;
+        }
+
+        .neon-text {
+            text-shadow: 
+                0 0 10px #e11d48,
+                0 0 20px #e11d48,
+                0 0 40px #e11d48;
+        }
+
+        .model-card {
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .model-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent, rgba(225, 29, 72, 0.15));
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: 1;
+        }
+
+        .model-card:hover::before {
+            opacity: 1;
+        }
+
+        .model-card:hover {
+            transform: scale(1.04);
+            z-index: 10;
+        }
+
+        .gallery-img {
+            transition: all 0.5s ease;
+            cursor: zoom-in;
+        }
+
+        .gallery-img:hover {
+            transform: scale(1.12);
+            filter: brightness(1.3) contrast(1.1);
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .close {
+            position: absolute;
+            top: 40px;
+            right: 50px;
+            font-size: 3rem;
+            color: #ddd;
+            cursor: pointer;
+            z-index: 10000;
+            transition: all 0.3s;
+        }
+
+        .close:hover {
+            color: #e11d48;
+            transform: rotate(90deg);
+        }
+
+        .premium-badge {
+            background: linear-gradient(90deg, #e11d48, #f43f5e);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 bg-black/90 backdrop-blur-xl z-50 border-b border-rose-900">
+        <div class="max-w-7xl mx-auto px-10 py-5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-4xl title-font tracking-tighter text-rose-500">VELVET</span>
+            </div>
+            <div class="flex items-center gap-8 text-sm uppercase tracking-widest font-medium">
+                <a href="#" class="hover:text-rose-400 transition">Discover</a>
+                <a href="#" class="hover:text-rose-400 transition">Muses</a>
+                <a href="#" class="hover:text-rose-400 transition">Live</a>
+                <a href="#" class="bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-full transition">Subscribe Now</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO with background video feel -->
+    <header class="hero flex items-center justify-center text-center relative">
+        <div class="absolute inset-0 bg-[radial-gradient(at_center,#e11d4820_0%,transparent_70%)]"></div>
+        
+        <div class="relative z-10 max-w-4xl px-6">
+            <div class="premium-badge text-white text-xs tracking-[3px] inline-block px-8 py-3 rounded-full mb-6 font-bold">EXCLUSIVE • PREMIUM</div>
+            <h1 class="text-7xl md:text-8xl title-font neon-text tracking-tighter leading-none mb-4">
+                VELVET MUSES
+            </h1>
+            <p class="text-2xl text-rose-200 mb-10 max-w-lg mx-auto">
+                The most exclusive & seductive collection of 2026
+            </p>
+            <button onclick="document.getElementById('muses').scrollIntoView({ behavior: 'smooth' })" 
+                    class="bg-white text-black px-10 py-4 rounded-full font-semibold hover:scale-105 transition text-lg">
+                EXPLORE THE COLLECTION
+            </button>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-xs tracking-widest flex flex-col items-center text-rose-300">
+            <div>SCROLL FOR MORE</div>
+            <i class="fas fa-chevron-down animate-bounce mt-3 text-2xl"></i>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <section id="muses" class="max-w-7xl mx-auto px-8 py-20">
+        <div class="text-center mb-16">
+            <h2 class="text-5xl title-font tracking-tight mb-3">OUR EXCLUSIVE MUSES</h2>
+            <p class="text-rose-400 text-lg">Only the most beautiful. Only for you.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <!-- Cards -->
+            <div class="model-card bg-zinc-950 border border-rose-900/30 rounded-3xl overflow-hidden group">
+                <div class="h-[520px] overflow-hidden relative">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-f51fb1a7-d933-959e-9005-0660a62115c1-eb3f5467.jpeg" 
+                         class="gallery-img w-full h-full object-cover" alt="Zeynep • Turkish Elegance">
+                </div>
+                <div class="p-8">
+                    <div class="flex justify-between">
+                        <div>
+                            <h3 class="text-3xl title-font">Zeynep Kaya</h3>
+                            <p class="text-rose-400">Istanbul • Eşarplı Goddess</p>
+                        </div>
+                        <span class="text-xs bg-black px-4 h-fit py-2 rounded-full border border-rose-500 text-rose-400">4.9k Fans</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-card bg-zinc-950 border border-rose-900/30 rounded-3xl overflow-hidden group">
+                <div class="h-[520px] overflow-hidden relative">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-8c91b912-83a0-94cf-ae34-07f6852a00f8-d63c7d7e.jpeg" 
+                         class="gallery-img w-full h-full object-cover" alt="Yuna Takahashi">
+                </div>
+                <div class="p-8">
+                    <div class="flex justify-between">
+                        <div>
+                            <h3 class="text-3xl title-font">Yuna Takahashi</h3>
+                            <p class="text-rose-400">Tokyo • Silk Muse</p>
+                        </div>
+                        <span class="text-xs bg-black px-4 h-fit py-2 rounded-full border border-rose-500 text-rose-400">6.2k Fans</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-card bg-zinc-950 border border-rose-900/30 rounded-3xl overflow-hidden group">
+                <div class="h-[520px] overflow-hidden relative">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-8b8365b8-1cdf-96a8-b8d5-979733c860a0-576cd5bb.jpeg" 
+                         class="gallery-img w-full h-full object-cover" alt="Elena Volkov">
+                </div>
+                <div class="p-8">
+                    <div class="flex justify-between">
+                        <div>
+                            <h3 class="text-3xl title-font">Elena Volkov</h3>
+                            <p class="text-rose-400">Moscow • Ice Queen</p>
+                        </div>
+                        <span class="text-xs bg-black px-4 h-fit py-2 rounded-full border border-rose-500 text-rose-400">8.1k Fans</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diğer modeller -->
+            <div class="model-card bg-zinc-950 border border-rose-900/30 rounded-3xl overflow-hidden group">
+                <div class="h-[520px] overflow-hidden relative">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-4b3c504f-1f02-93c9-afa9-c64b484fe194-d8e4a223.jpeg" 
+                         class="gallery-img w-full h-full object-cover" alt="Layla">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Layla Al-Sayed</h3>
+                    <p class="text-rose-400">Dubai • Arabian Rose</p>
+                </div>
+            </div>
+
+            <div class="model-card bg-zinc-950 border border-rose-900/30 rounded-3xl overflow-hidden group">
+                <div class="h-[520px] overflow-hidden relative">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-c4aeace0-6adc-9c89-9e82-a8c3a9daf70a-55da9fb2.jpeg" 
+                         class="gallery-img w-full h-full object-cover" alt="Soraya">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Soraya Nazari</h3>
+                    <p class="text-rose-400">Tehran • Persian Fire</p>
+                </div>
+            </div>
+
+            <div class="model-card bg-zinc-950 border border-rose-900/30 rounded-3xl overflow-hidden group">
+                <div class="h-[520px] overflow-hidden relative">
+                    <img src="https://imgen.x.ai/xai-imgen/xai-tmp-imgen-66e8ac7d-9e20-9eb8-8be0-41ca6cb091b3-93bd8af9.jpeg" 
+                         class="gallery-img w-full h-full object-cover" alt="Isabella">
+                </div>
+                <div class="p-8">
+                    <h3 class="text-3xl title-font">Isabella Costa</h3>
+                    <p class="text-rose-400">Rio • Latin Flame</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox" onclick="if(event.target.id==='lightbox') closeLightbox()">
+        <span onclick="closeLightbox()" class="close">✕</span>
+        <img id="lightbox-img" class="max-h-[88vh] rounded-2xl shadow-2xl" onclick="event.stopImmediatePropagation()">
+        <div id="lightbox-caption" class="absolute bottom-12 text-rose-200 text-xl"></div>
+    </div>
+
+    <footer class="bg-black py-16 text-center border-t border-rose-900">
+        <p class="text-rose-400 text-sm tracking-widest">VELVET • PRIVATE COLLECTION 2026</p>
+        <p class="text-xs text-zinc-600 mt-4">This is a fictional artistic presentation. All images are AI generated.</p>
+    </footer>
+
+    <script>
+        function openLightbox(src, caption) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-caption').textContent = caption || '';
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = 'visible';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") closeLightbox();
+        });
+
+        window.onload = () => {
+            document.querySelectorAll('.gallery-img').forEach(img => {
+                img.addEventListener('click', () => {
+                    openLightbox(img.src, img.alt);
+                });
+            });
+        };
+
+        // Tailwind script
+        tailwind.config = {
+            content: [],
+            theme: {
+                extend: {
+                    colors: {
+                        velvet: '#e11d48'
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

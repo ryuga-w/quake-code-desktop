@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veritas — Bağımsız Yeni Nesil Gazetecilik</title>
+  <!-- Google Fonts: Playfair Display & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-paper: #fcfbf9; /* Sıcak gazete kağıdı beyazı */
+      --text-dark: #111111;
+      --text-muted: #555558;
+      --accent-red: #e11d48; /* Canlı kırmızı */
+      --border-color: #e4e4e7;
+      --border-dark: #111111;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-paper);
+      color: var(--text-dark);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 4px double var(--border-dark);
+      padding: 20px 0;
+      background-color: var(--bg-paper);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .logo-wrapper {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-size: clamp(38px, 6vw, 64px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: var(--text-dark);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    /* Navigation */
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      border-top: 1px solid var(--border-dark);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 12px 0;
+      margin-top: 15px;
+    }
+
+    nav a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: color 0.2s ease;
+    }
+
+    nav a:hover {
+      color: var(--accent-red);
+    }
+
+    /* Breaking News Ticker */
+    .ticker-bar {
+      background-color: var(--text-dark);
+      color: var(--bg-paper);
+      padding: 10px 0;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 40px;
+    }
+
+    .ticker-content {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .ticker-badge {
+      background-color: var(--accent-red);
+      padding: 2px 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Layout Grid */
+    .news-grid {
+      display: grid;
+      grid-template-columns: 3fr 1.2fr;
+      gap: 40px;
+    }
+
+    @media (max-width: 968px) {
+      .news-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Hero News Block */
+    .hero-article {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 40px;
+      margin-bottom: 40px;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .category {
+      color: var(--accent-red);
+    }
+
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--text-dark);
+      letter-spacing: -0.01em;
+    }
+
+    .hero-image-wrapper {
+      width: 100%;
+      height: 480px;
+      background-color: #ddd;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .hero-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hero-article:hover .hero-image {
+      transform: scale(1.03);
+    }
+
+    .article-lead {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Secondary Grid (Two Columns) */
+    .secondary-articles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 40px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 640px) {
+      .secondary-articles {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sub-article {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sub-image-wrapper {
+      width: 100%;
+      height: 200px;
+      background-color: #eee;
+      overflow: hidden;
+    }
+
+    .sub-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .sub-article:hover .sub-image {
+      transform: scale(1.05);
+    }
+
+    .sub-title {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text-dark);
+    }
+
+    /* Trending Cards Section */
+    .trending-header {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      border-bottom: 2px solid var(--border-dark);
+      padding-bottom: 8px;
+      margin-bottom: 24px;
+    }
+
+    .trending-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .trending-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .trending-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 20px;
+    }
+
+    .trending-img-wrapper {
+      width: 100%;
+      height: 140px;
+      overflow: hidden;
+      background-color: #f0f0f0;
+      border: 1px solid var(--border-color);
+    }
+
+    .trending-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .trending-card:hover .trending-img {
+      transform: scale(1.04);
+    }
+
+    .trending-title {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--text-dark);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .trending-title:hover {
+      color: var(--accent-red);
+    }
+
+    /* Sidebar / Opinion Section */
+    .sidebar {
+      border-left: 1px solid var(--border-color);
+      padding-left: 40px;
+    }
+
+    @media (max-width: 968px) {
+      .sidebar {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid var(--border-color);
+        padding-top: 40px;
+      }
+    }
+
+    .sidebar-section-title {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      border-bottom: 2px solid var(--border-dark);
+      padding-bottom: 8px;
+      margin-bottom: 24px;
+    }
+
+    .opinion-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .opinion-card:first-child {
+      padding-top: 0;
+    }
+
+    .author {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-dark);
+    }
+
+    .opinion-title {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--text-dark);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .opinion-title:hover {
+      color: var(--accent-red);
+    }
+
+    /* Newsletter Box */
+    .newsletter-box {
+      background-color: #111;
+      color: #fff;
+      padding: 30px;
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .newsletter-box h4 {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .newsletter-box p {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+
+    .newsletter-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    .newsletter-form input {
+      flex: 1;
+      padding: 10px 14px;
+      background: #222;
+      border: 1px solid #333;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .newsletter-form button {
+      background-color: var(--accent-red);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 12px;
+      transition: opacity 0.2s ease;
+    }
+
+    .newsletter-form button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="container">
+    <div class="header-top">
+      <div>PAZARTESİ, 6 TEMMUZ 2026</div>
+      <div style="color: var(--accent-red); font-weight: 800;">CANLI YAYIN</div>
+    </div>
+    <div class="logo-wrapper">
+      <a href="#" class="logo">V E R I T A S</a>
+    </div>
+    <nav>
+      <a href="#">POLİTİKA</a>
+      <a href="#">TEKNOLOJİ</a>
+      <a href="#">EKONOMİ</a>
+      <a href="#">KÜLTÜR</a>
+      <a href="#">BİLİM</a>
+    </nav>
+  </header>
+
+  <!-- Breaking News Ticker -->
+  <div class="ticker-bar">
+    <div class="container ticker-content">
+      <span class="ticker-badge">Son Dakika</span>
+      <marquee behavior="scroll" direction="left" scrollamount="5">
+        Yapay Zeka yasası mecliste kabul edildi • Küresel sıcaklıklar rekor seviyeye ulaştı • Borsada tarihi hacim artışı
+      </marquee>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <main class="container news-grid">
+    
+    <!-- Main News Column -->
+    <section>
+      <!-- Hero Article -->
+      <article class="hero-article">
+        <div class="article-meta">
+          <span class="category">Teknoloji</span>
+          <span class="date">2 saat önce</span>
+        </div>
+        <h2 class="hero-title">Yapay Zeka Tabanlı İş Akışları Yazılım Sektörünü Yeniden Şekillendiriyor</h2>
+        <div class="hero-image-wrapper">
+          <svg class="hero-image" viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="800" height="480" fill="#1c1c1f"/>
+            <circle cx="400" cy="240" r="160" stroke="#e11d48" stroke-width="2" stroke-dasharray="10 15"/>
+            <path d="M200 240H600" stroke="#3f3f46" stroke-width="2"/>
+            <path d="M400 40V440" stroke="#3f3f46" stroke-width="2"/>
+            <rect x="350" y="190" width="100" height="100" rx="8" fill="#1c1c1f" stroke="#e11d48" stroke-width="2"/>
+            <text x="400" y="248" fill="#ffffff" font-family="monospace" font-size="24" text-anchor="middle" font-weight="bold">&lt;Q&gt;</text>
+          </svg>
+        </div>
+        <p class="article-lead">Yapay zeka asistanlarının sadece kod yazmakla kalmayıp, tüm geliştirme ve test süreçlerini otonom olarak yönetmeye başlaması yazılımcıların rolünü değiştiriyor. Uzmanlar, kod tabanına entegre otonom sistemlerin yeni standart olacağı konusunda hemfikir.</p>
+      </article>
+
+      <!-- Secondary Articles Grid -->
+      <div class="secondary-articles">
+        <!-- Sub Article 1 -->
+        <article class="sub-article">
+          <div class="sub-image-wrapper">
+            <svg class="sub-image" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="200" fill="#18181b"/>
+              <path d="M50 150 L150 70 L250 110 L350 30" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="350" cy="30" r="6" fill="#10b981"/>
+            </svg>
+          </div>
+          <div class="article-meta">
+            <span class="category">Ekonomi</span>
+            <span class="date">4 saat önce</span>
+          </div>
+          <h3 class="sub-title">Bilişim Endüstrisinde Büyüme Hızı Yıllık %24 ile Rekor Kırdı</h3>
+        </article>
+
+        <!-- Sub Article 2 -->
+        <article class="sub-article">
+          <div class="sub-image-wrapper">
+            <svg class="sub-image" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="200" fill="#18181b"/>
+              <circle cx="200" cy="100" r="60" fill="#27272a"/>
+              <circle cx="200" cy="100" r="40" fill="#3f3f46"/>
+              <circle cx="200" cy="100" r="20" fill="#e11d48"/>
+            </svg>
+          </div>
+          <div class="article-meta">
+            <span class="category">Bilim</span>
+            <span class="date">6 saat önce</span>
+          </div>
+          <h3 class="sub-title">Optik İletişimde Yeni Keşif: Saniyede 1 PetaBit Hızına Ulaşıldı</h3>
+        </article>
+      </div>
+
+      <!-- Trending/Gündem News Cards -->
+      <h3 class="trending-header">Gündemdeki Diğer Gelişmeler</h3>
+      <div class="trending-grid">
+        <!-- Trending Card 1 -->
+        <article class="trending-card">
+          <div class="trending-img-wrapper">
+            <svg class="trending-img" viewBox="0 0 300 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="300" height="140" fill="#18181b"/>
+              <path d="M50 110 C 100 20, 200 20, 250 110" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="150" cy="55" r="10" fill="#ef4444" opacity="0.6"/>
+            </svg>
+          </div>
+          <div class="article-meta">
+            <span class="category">Çevre</span>
+            <span class="date">3 saat önce</span>
+          </div>
+          <a href="#" class="trending-title">Küresel Sıcaklık Artışı Akdeniz Havzasını Tehdit Ediyor</a>
+        </article>
+
+        <!-- Trending Card 2 -->
+        <article class="trending-card">
+          <div class="trending-img-wrapper">
+            <svg class="trending-img" viewBox="0 0 300 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="300" height="140" fill="#18181b"/>
+              <circle cx="150" cy="70" r="30" stroke="#f59e0b" stroke-width="1.5"/>
+              <circle cx="230" cy="50" r="8" fill="#a1a1aa"/>
+              <line x1="150" y1="10" x2="150" y2="130" stroke="#3f3f46" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="article-meta">
+            <span class="category">Uzay</span>
+            <span class="date">5 saat önce</span>
+          </div>
+          <a href="#" class="trending-title">James Webb Teleskobu Yaşanabilir Yeni Bir Ötegezegen Keşfetti</a>
+        </article>
+
+        <!-- Trending Card 3 -->
+        <article class="trending-card">
+          <div class="trending-img-wrapper">
+            <svg class="trending-img" viewBox="0 0 300 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="300" height="140" fill="#18181b"/>
+              <rect x="60" y="30" width="80" height="80" stroke="#3b82f6" stroke-width="2" fill="none"/>
+              <rect x="160" y="30" width="80" height="80" stroke="#e11d48" stroke-width="2" fill="none"/>
+              <path d="M140 70 L180 70" stroke="#ffffff" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="article-meta">
+            <span class="category">Kültür</span>
+            <span class="date">1 gün önce</span>
+          </div>
+          <a href="#" class="trending-title">Dijital Sanat Bienali Kapılarını Sanatseverlere Açtı</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- Sidebar Column -->
+    <aside class="sidebar">
+      <h3 class="sidebar-section-title">KÖŞE YAZILARI</h3>
+      
+      <div class="opinion-card">
+        <span class="author">Ahmet Yılmaz</span>
+        <a href="#" class="opinion-title">Kod Yazmanın Ötesi: Yazılım Mimarı Olarak Yapay Zeka</a>
+      </div>
+
+      <div class="opinion-card">
+        <span class="author">Elif Kaya</span>
+        <a href="#" class="opinion-title">Veri Gizliliği Çağında Yerel Dil Modellerinin Önemi</a>
+      </div>
+
+      <div class="opinion-card">
+        <span class="author">Can Demir</span>
+        <a href="#" class="opinion-title">Klasik Terminalden Akıllı Ajan Arayüzlerine Geçiş</a>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="newsletter-box">
+        <h4>Bültene Katılın</h4>
+        <p>En son bağımsız teknoloji haberlerini doğrudan e-postanıza alın.</p>
+        <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Kayıt başarılı!');">
+          <input type="email" placeholder="E-posta adresiniz" required>
+          <button type="submit">KAYDOL</button>
+        </form>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="border-top: 1px solid var(--border-color); margin-top: 80px; padding-top: 40px; text-align: center; font-size: 13px; color: var(--text-muted);">
+    <p>© 2026 Veritas Gazetesi. Tüm Hakları Saklıdır.</p>
+  </footer>
+
+</body>
+</html>

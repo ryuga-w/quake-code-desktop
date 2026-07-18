@@ -1,0 +1,234 @@
+/* Codex-style file mutation snippet — filename +N -M · line numbers · green body */
+
+.card {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: min(720px, 100%);
+  margin: 6px 0 4px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--heading) 9%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, #1a1a1c 96%, var(--panel));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 8px 10px 8px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--heading) 7%, transparent);
+  background: color-mix(in srgb, #222226 94%, transparent);
+}
+
+.fileName {
+  appearance: none;
+  display: block;
+  min-width: 0;
+  max-width: min(420px, 52vw);
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--heading) 88%, transparent);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 12.5px;
+  font-weight: 560;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.fileName:hover {
+  color: var(--heading);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+  /* Slightly smaller than filename so +/− stay proportional to the path text */
+  font-size: 11px;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  opacity: 0.92;
+}
+
+/* Default: same muted tone as filename; green/red only on card hover */
+.add,
+.del,
+.zero {
+  color: color-mix(in srgb, var(--heading) 88%, transparent);
+  transition: color 120ms ease;
+}
+
+.card:hover .add,
+.card:focus-within .add {
+  color: #3dd68c;
+}
+
+.card:hover .del,
+.card:focus-within .del {
+  color: #ff6b66;
+}
+
+.card:hover .zero,
+.card:focus-within .zero {
+  color: color-mix(in srgb, var(--heading) 42%, transparent);
+}
+
+.openBtn {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--heading) 48%, transparent);
+  cursor: pointer;
+}
+
+.openBtn:hover {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+  color: var(--heading);
+}
+
+.body {
+  --gutter-ch: 3ch;
+  /* Taller so multi-line edits (e.g. +16) fit without feeling "cut off" */
+  max-height: min(560px, 62vh);
+  overflow: auto;
+  margin: 0;
+  padding: 8px 0 10px;
+  background: #0f1a14;
+  scrollbar-width: thin;
+}
+
+.lineCount {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--heading) 42%, transparent);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.truncatedNote {
+  padding: 8px 12px 4px;
+  color: color-mix(in srgb, #9ab0a0 75%, transparent);
+  font-family: var(--font-ui, inherit);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.line {
+  display: grid;
+  /* Line number column always visible — matches Codex 951 / 952 gutter */
+  grid-template-columns: calc(var(--gutter-ch) + 20px) minmax(0, 1fr);
+  align-items: start;
+  min-height: 20px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.gutter {
+  box-sizing: border-box;
+  min-width: calc(var(--gutter-ch) + 12px);
+  padding: 0 10px 0 8px;
+  color: #6b8570;
+  text-align: right;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  line-height: 1.55;
+  opacity: 1;
+}
+
+.code {
+  min-width: 0;
+  padding-right: 14px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: #c8e6c9;
+}
+
+/* Green left strip on added block — like the screenshot */
+.lineAdd {
+  background: rgba(46, 160, 67, 0.14);
+  box-shadow: inset 3px 0 0 #3fb950;
+}
+
+.lineAdd .code {
+  color: #b7f5c8;
+}
+
+.lineAdd .gutter {
+  color: #7a9a80;
+}
+
+.lineDel {
+  background: rgba(248, 81, 73, 0.12);
+  box-shadow: inset 3px 0 0 #f85149;
+}
+
+.lineDel .code {
+  color: #ffb3b8;
+}
+
+.lineDel .gutter {
+  color: #a87878;
+}
+
+.lineCtx .code {
+  color: color-mix(in srgb, #d7e8d9 78%, transparent);
+}
+
+.lineCtx .gutter {
+  color: #5f7564;
+}
+
+:global([data-theme="light"]) .card {
+  background: #f6f7f6;
+  border-color: color-mix(in srgb, #000 10%, transparent);
+}
+
+:global([data-theme="light"]) .head {
+  background: #ecefec;
+}
+
+:global([data-theme="light"]) .body {
+  background: #eef6f0;
+}
+
+:global([data-theme="light"]) .gutter {
+  color: #6a8070;
+}
+
+:global([data-theme="light"]) .code {
+  color: #1f3d28;
+}
+
+:global([data-theme="light"]) .lineAdd .code {
+  color: #0d5c2e;
+}
+
+:global([data-theme="light"]) .lineDel .code {
+  color: #9b1c1c;
+}

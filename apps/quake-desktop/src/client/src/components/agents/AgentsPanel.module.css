@@ -1,0 +1,548 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-panel, var(--bg, #0f1115));
+  color: var(--fg, #e8eaed);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent, #6ea8fe) 18%, transparent);
+  color: var(--accent, #9ec1ff);
+}
+
+.desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted, #9aa3b2);
+}
+
+.filters {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px 0;
+}
+
+.filterBtn {
+  appearance: none;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  background: transparent;
+  color: var(--muted, #9aa3b2);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.filterBtn[data-active="true"] {
+  border-color: color-mix(in srgb, var(--accent, #6ea8fe) 50%, transparent);
+  color: var(--fg, #e8eaed);
+  background: color-mix(in srgb, var(--accent, #6ea8fe) 12%, transparent);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.body:has(.activityPane) .list {
+  flex: 0 1 38%;
+  max-height: 38%;
+  padding-bottom: 10px;
+}
+
+.conflictBanner {
+  margin: 10px 12px 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, #f07178 42%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, #f07178 10%, var(--bg-elevated, #161a22));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conflictHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.conflictHead strong {
+  color: #f07178;
+  font-weight: 650;
+}
+
+.conflictList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 120px;
+  overflow: auto;
+}
+
+.conflictItem {
+  margin: 0;
+}
+
+.conflictPathBtn {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--fg, #e8eaed);
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.conflictPathBtn:hover {
+  border-color: color-mix(in srgb, #f07178 35%, transparent);
+  background: color-mix(in srgb, #f07178 12%, transparent);
+}
+
+.conflictEmpty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted, #9aa3b2);
+  line-height: 1.4;
+}
+
+.conflictActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.empty {
+  margin: 24px 12px;
+  padding: 18px;
+  border: 1px dashed var(--border-subtle, rgba(255, 255, 255, 0.12));
+  border-radius: 12px;
+  text-align: center;
+  color: var(--muted, #9aa3b2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.empty strong {
+  display: block;
+  color: var(--fg, #e8eaed);
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.card {
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--bg-elevated, #161a22) 90%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--accent, #6ea8fe) 28%, transparent);
+}
+
+.card:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent, #6ea8fe) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.card[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--accent, #6ea8fe) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #6ea8fe) 25%, transparent);
+  background: color-mix(in srgb, var(--accent, #6ea8fe) 8%, var(--bg-elevated, #161a22));
+}
+
+.card[data-conflict="true"] {
+  border-color: color-mix(in srgb, #f07178 45%, transparent);
+}
+
+.card[data-status="running"],
+.card[data-status="queued"],
+.card[data-status="pending_init"] {
+  border-color: color-mix(in srgb, var(--accent, #6ea8fe) 35%, transparent);
+}
+
+.card[data-status="completed"],
+.card[data-status="done"],
+.card[data-status="steered"] {
+  border-color: color-mix(in srgb, #3dd68c 28%, transparent);
+}
+
+.card[data-status="error"],
+.card[data-status="aborted"],
+.card[data-status="stopped"],
+.card[data-status="shutdown"] {
+  border-color: color-mix(in srgb, #f07178 30%, transparent);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardName {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.pill {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted, #9aa3b2);
+}
+
+.pillOk {
+  background: color-mix(in srgb, #3dd68c 18%, transparent);
+  color: #7ddea5;
+}
+
+.pillRun {
+  background: color-mix(in srgb, var(--accent, #6ea8fe) 18%, transparent);
+  color: #9ec1ff;
+}
+
+.pillWarn {
+  background: color-mix(in srgb, #f0c674 18%, transparent);
+  color: #e6c07b;
+}
+
+.pillErr {
+  background: color-mix(in srgb, #f07178 18%, transparent);
+  color: #f07178;
+}
+
+.cardBody {
+  font-size: 12px;
+  color: var(--muted, #9aa3b2);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--fg-secondary, #c5cbd5);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.actionBtn {
+  appearance: none;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: transparent;
+  color: var(--fg, #e8eaed);
+  font-size: 11px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.actionBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.actionPrimary {
+  border-color: color-mix(in srgb, var(--accent, #6ea8fe) 45%, transparent);
+  background: color-mix(in srgb, var(--accent, #6ea8fe) 12%, transparent);
+}
+
+.activityPane {
+  flex: 1 1 62%;
+  min-height: 220px;
+  max-height: 62%;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent, #6ea8fe) 5%, transparent), transparent 48px),
+    color-mix(in srgb, var(--bg, #0f1115) 94%, #000);
+}
+
+.activityHead {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.activityTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.activityTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.threadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #9ec1ff;
+  background: color-mix(in srgb, var(--accent, #6ea8fe) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #6ea8fe) 28%, transparent);
+}
+
+.activityAgentName {
+  font-weight: 500;
+  color: var(--accent, #9ec1ff);
+}
+
+.activityClose {
+  appearance: none;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: transparent;
+  color: var(--muted, #9aa3b2);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.activityClose:hover {
+  color: var(--fg, #e8eaed);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.activityMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted, #9aa3b2);
+}
+
+.activityList {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.activityEmpty {
+  margin: 18px 8px;
+  padding: 16px;
+  border: 1px dashed var(--border-subtle, rgba(255, 255, 255, 0.12));
+  border-radius: 10px;
+  text-align: center;
+  color: var(--muted, #9aa3b2);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.activityLine {
+  display: grid;
+  grid-template-columns: auto auto minmax(4em, auto) auto 1fr;
+  gap: 6px 8px;
+  align-items: baseline;
+  padding: 7px 9px;
+  border-radius: 9px;
+  color: var(--fg-secondary, #c5cbd5);
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.activityLine:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.roleUser {
+  border-color: color-mix(in srgb, #c792ea 22%, transparent);
+  background: color-mix(in srgb, #c792ea 7%, transparent);
+}
+
+.roleAssistant {
+  border-color: color-mix(in srgb, #3dd68c 20%, transparent);
+  background: color-mix(in srgb, #3dd68c 6%, transparent);
+}
+
+.roleTool {
+  border-color: color-mix(in srgb, var(--accent, #6ea8fe) 16%, transparent);
+}
+
+.activityTime {
+  color: var(--muted, #9aa3b2);
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+}
+
+.activityRole {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted, #9aa3b2);
+}
+
+.roleUser .activityRole {
+  color: #d4a8f0;
+}
+
+.roleAssistant .activityRole {
+  color: #7ddea5;
+}
+
+.roleTool .activityRole {
+  color: #9ec1ff;
+}
+
+.activityTool {
+  color: var(--accent, #9ec1ff);
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  max-width: 10em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activityToolMuted {
+  color: var(--muted, #9aa3b2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+.activityStatus {
+  font-size: 9px;
+  padding: 1px 5px;
+  max-width: 8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activityStatusSpacer {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.activityText {
+  color: var(--fg, #e8eaed);
+  word-break: break-word;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.roleUser .activityText {
+  color: #f0e6fa;
+}
+
+.roleAssistant .activityText {
+  color: #e6f7ee;
+}
+
+.footer {
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  font-size: 11px;
+  color: var(--muted, #9aa3b2);
+  line-height: 1.4;
+}
