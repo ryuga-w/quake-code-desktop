@@ -259,6 +259,7 @@ export type AppShellProps = {
   userMessageQueue: QueuedUserMessage[];
   isComposerStreaming: boolean;
   isPromptPending: boolean;
+  isCompacting: boolean;
   contextUsage?: WebContextUsage;
   planEnabled: boolean;
   goalModePref: boolean;
@@ -475,6 +476,7 @@ export function AppShell(props: AppShellProps) {
     userMessageQueue,
     isComposerStreaming,
     isPromptPending,
+    isCompacting,
     contextUsage,
     planEnabled,
     goalModePref,
@@ -1050,6 +1052,7 @@ export function AppShell(props: AppShellProps) {
           localQueue={userMessageQueue}
           agentBusy={isComposerStreaming}
           promptPending={isPromptPending}
+          isCompacting={isCompacting}
           contextUsage={contextUsage}
           planActive={planEnabled}
           plan={sessionPlan}

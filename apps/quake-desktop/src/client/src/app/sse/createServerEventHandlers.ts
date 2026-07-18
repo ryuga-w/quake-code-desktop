@@ -524,6 +524,19 @@ export function createServerEventHandlers(ctx: ServerEventHandlerContext): Serve
         followUp: normalizeQueuedTexts(event.followUp),
       });
     }
+    if (event?.type === "compaction_start") {
+      ctx.patchSessionState({ isCompacting: true });
+    }
+    if (event?.type === "compaction_end") {
+      ctx.patchSessionState({ isCompacting: false });
+      if (event.errorMessage) {
+        ctx.showToast(String(event.errorMessage), "error");
+      } else if (event.aborted) {
+        ctx.showToast("Bağlam sıkıştırma iptal edildi.", "info");
+      } else if (event.result) {
+        void Promise.resolve(ctx.refreshSessionState({ quiet: true, settleIfIdle: false })).catch(() => undefined);
+      }
+    }
     if (event?.type === "agent_start") {
       ensureAgentTurn();
       ctx.agentLifecycleActiveRef.current = true;

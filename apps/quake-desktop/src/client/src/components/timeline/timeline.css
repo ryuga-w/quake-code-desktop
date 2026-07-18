@@ -39,6 +39,28 @@
 .turn-work-entry-message .message.assistant {
   padding-top: 0;
 }
+.timeline-compaction-event {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 7px 2px;
+  border-top: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  color: var(--text-muted, var(--muted));
+}
+.timeline-compaction-icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-subtle, var(--muted-2));
+}
+.timeline-compaction-icon svg { width: 15px; height: 15px; }
+.timeline-compaction-copy { display: grid; min-width: 0; gap: 3px; }
+.timeline-compaction-copy strong { color: var(--text-secondary, var(--text)); font-size: 11.5px; font-weight: 620; }
+.timeline-compaction-copy small { overflow: hidden; color: var(--text-subtle, var(--muted-2)); font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+.timeline-compaction-meta { color: var(--text-subtle, var(--muted-2)); font: 10px var(--font-mono); white-space: nowrap; }
 .timeline-jump-bottom:hover {
   background: var(--panel-2, var(--panel));
   border-color: color-mix(in srgb, var(--heading) 22%, transparent);

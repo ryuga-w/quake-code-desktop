@@ -29,6 +29,14 @@ describe("Vite workspace configuration", () => {
     expect(quakeManualChunk("C:/repo/node_modules/@streamdown/mermaid/dist/index.js")).toBe("markdown-diagrams");
   });
 
+  it("includes the landing and account portal as independent page entries", () => {
+    const input = viteConfig.build?.rollupOptions?.input as Record<string, string> | undefined;
+
+    expect(input).toBeDefined();
+    expect(Object.keys(input ?? {})).toEqual(expect.arrayContaining(["main", "landing", "auth"]));
+    expect(input?.auth.replaceAll("\\", "/")).toMatch(/src\/client\/auth\.html$/);
+  });
+
   it("preserves Shiki and Mermaid lazy module boundaries", () => {
     const output = viteConfig.build?.rollupOptions?.output;
 

@@ -30,6 +30,8 @@ import { WebRuntimeController } from "./runtime.js";
 import { WebFileService } from "./files.js";
 import { WebTerminalService } from "./terminal.js";
 import { WebAuth } from "./auth.js";
+import { AccountAuthService } from "./account-auth.js";
+import { AccountHttpController, isAccountApiPath } from "./account-http.js";
 import { AsyncLock, SingleFlight } from "./locks.js";
 import { parseWorkspaceAllowlist, validateWebSecurity } from "./security.js";
 import { TerminalPolicy, parseTerminalPolicyMode } from "./terminal-policy.js";
@@ -151,6 +153,8 @@ for (const candidate of parseWorkspaceRootsJson(process.env.QUAKE_WEB_WORKSPACE_
 }
 let currentWorkspaceCwd = workspaceCwd;
 const auth = new WebAuth(workspaceCwd);
+const accountAuth = new AccountAuthService();
+const accountHttp = new AccountHttpController(accountAuth);
 process.env.QUAKE_MOBILE_API_BASE = `http://127.0.0.1:${port}`;
 process.env.QUAKE_MOBILE_API_TOKEN = auth.token;
 const initialWebSettingsService = new WebSettingsService(workspaceCwd);
@@ -694,12 +698,18 @@ async function resolveNoProjectDir(): Promise<string> {
   return dir;
 }
 
-function sendJson(res: ServerResponse, status: number, body: unknown): void {
+function sendJson(
+  res: ServerResponse,
+  status: number,
+  body: unknown,
+  headers: Record<string, string | string[]> = {},
+): void {
   const text = JSON.stringify(body);
   res.writeHead(status, {
     ...securityHeaders(),
     "Content-Type": "application/json; charset=utf-8",
     "Content-Length": Buffer.byteLength(text),
+    ...headers,
   });
   res.end(text);
 }
@@ -1007,6 +1017,13 @@ const mimeTypes: Record<string, string> = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".mp4": "video/mp4",
+  ".woff2": "font/woff2",
 };
 
 async function serveStatic(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -1034,6 +1051,12 @@ async function serveStatic(req: IncomingMessage, res: ServerResponse): Promise<v
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", `http://${host}:${port}`);
   try {
+    // Public account endpoints authenticate with their own HttpOnly session
+    // cookie. They intentionally do not require the local workspace token.
+    if (isAccountApiPath(url.pathname)) {
+      await accountHttp.handle(req, res, url, sendJson);
+      return;
+    }
     if (url.pathname.startsWith("/api/") && !auth.isAuthorized(req, url)) {
       auth.reject(res);
       return;

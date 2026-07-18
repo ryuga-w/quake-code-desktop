@@ -79,8 +79,9 @@ function Navigation(): React.JSX.Element {
         <a href="#product" onClick={close}>Product</a>
         <a href="#surfaces" onClick={close}>Surfaces</a>
         <a href="#principles" onClick={close}>Principles</a>
-        <a className="nav-cta" href="#install" onClick={close}>
-          Get Quake Code <ArrowRight aria-hidden="true" />
+        <a className="nav-signin" href="/auth.html?mode=login" onClick={close}>Sign in</a>
+        <a className="nav-cta" href="/auth.html?mode=signup" onClick={close}>
+          Create account <ArrowRight aria-hidden="true" />
         </a>
       </nav>
     </header>
@@ -160,7 +161,7 @@ function Hero(): React.JSX.Element {
             verified change—across terminal, desktop, and mobile.
           </p>
           <div className="hero-actions">
-            <a className="button button-primary" href="#install">
+            <a className="button button-primary" href="/auth.html?mode=signup">
               Start building <ArrowRight aria-hidden="true" />
             </a>
             <a className="button button-quiet" href="#product">See the system</a>

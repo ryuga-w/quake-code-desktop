@@ -15,7 +15,7 @@ Installer, `SHA256SUMS.txt` ve `KUR-QUAKE-CODE.bat` aynı klasördeyken `KUR-QUA
 2. Çalışan Quake Code Desktop sürecini kapatır.
 3. Güncel sürümü mevcut Windows kullanıcısına sessizce kurar.
 4. Desktop'a özel `%APPDATA%\Quake Code\agent` ayar dizisini oluşturur.
-5. GPT-5.6 SOL sağlayıcısını mevcut Desktop modellerini bozmadan ekler ve gerekirse Azure API anahtarını güvenli giriş alanında ister.
+5. GPT-5.6 SOL sağlayıcısını 1.050.000 token bağlam ve 128.000 token azami çıktı metadata’sıyla mevcut Desktop modellerini bozmadan ekler; gerekirse Azure API anahtarını güvenli giriş alanında ister.
 6. Kurulumu doğrulayıp Quake Code'u başlatır.
 
 Paketli Desktop kendi gömülü `@mrquake/quakecode-cli` motorunu ve kendine ait ayar dizinini kullanır. Bilgisayardaki eski/global Quake CLI kurulumu değiştirilmez; onun `~\.grok\agent` veya `~\.quake-code\agent` ayarları Desktop motoru olarak kullanılmaz.

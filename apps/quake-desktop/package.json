@@ -12,6 +12,7 @@
     "dev:server": "tsx src/server/index.ts",
     "dev:server:grok": "cross-env QUAKE_CODE_CODING_AGENT_DIR=%USERPROFILE%\\.grok\\agent tsx src/server/index.ts",
     "dev:client": "vite --config vite.config.ts --host 127.0.0.1 --port 5173",
+    "account:provision-admin": "tsx scripts/provision-admin.mts",
     "build": "tsgo -p tsconfig.json && vite build --config vite.config.ts",
     "typecheck": "tsgo -p tsconfig.json --noEmit && tsc -p tsconfig.web.json --noEmit",
     "start": "node dist/server/index.js",

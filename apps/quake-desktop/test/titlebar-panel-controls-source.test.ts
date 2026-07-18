@@ -38,9 +38,12 @@ describe("titlebar panel controls", () => {
     expect(titlebarStyles).not.toContain("backdrop-filter:");
     expect(titlebarStyles).not.toContain("border-bottom:");
     expect(navStyles).toContain("background: var(--surface-navigation, #201e20)");
+    expect(foundation).toContain("--surface-navigation: #151617");
+    expect(foundation).toContain("--surface-navigation-hover: #202224");
+    expect(foundation).toContain("--surface-navigation-active: #2a2c2f");
     expect(foundation).toContain("--surface-navigation: #f1eff1");
     expect(foundation).toContain("--font-navigation: 14.5px");
-    expect(appSettings).toContain('setOverlay?.("#201e20", "#e8e8ea")');
+    expect(appSettings).toContain('setOverlay?.("#151617", "#e8e8ea")');
     expect(appSettings).toContain('setOverlay?.("#f1eff1", "#1a1a1a")');
   });
 });

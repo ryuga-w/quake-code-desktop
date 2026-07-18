@@ -241,6 +241,21 @@ export class WebRuntimeController {
           messageId: entry.id,
           timestamp: new Date(entry.timestamp).getTime(),
         });
+        continue;
+      }
+      if (entry.type === "compaction") {
+        messages.push({
+          role: "custom",
+          customType: "context-compaction",
+          content: "Bağlam sıkıştırıldı",
+          display: true,
+          details: {
+            tokensBefore: entry.tokensBefore,
+            fromExtension: entry.fromHook === true,
+          },
+          messageId: entry.id,
+          timestamp: new Date(entry.timestamp).getTime(),
+        });
       }
     }
     return messages;

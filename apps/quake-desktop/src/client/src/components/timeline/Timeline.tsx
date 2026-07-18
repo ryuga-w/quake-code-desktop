@@ -360,6 +360,30 @@ export function TimelineInner({
       return <article className="message custom clean-assistant"><div className="message-body"><CreatedPlanCard title={title} markdown={markdown} onOpen={onOpenPlan} onOpenFile={onOpenFile} /></div></article>;
     }
 
+    if (item.message.customType === "context-compaction") {
+      const tokensBefore = Number(item.message.details?.tokensBefore);
+      const hasTokenCount = Number.isFinite(tokensBefore) && tokensBefore > 0;
+      const tokenLabel = hasTokenCount ? `${Math.round(tokensBefore).toLocaleString("tr-TR")} token` : "";
+      return (
+        <article
+          className="timeline-compaction-event"
+          role="status"
+          aria-label={`Bağlam sıkıştırıldı${tokenLabel ? `, ${tokenLabel}` : ""}`}
+        >
+          <span className="timeline-compaction-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 3v4h4M16 17v-4h-4M8 7 3.5 2.5M12 13l4.5 4.5" />
+            </svg>
+          </span>
+          <span className="timeline-compaction-copy">
+            <strong>Bağlam sıkıştırıldı</strong>
+            <small>Eski içerik özetlendi; tam timeline korunuyor.</small>
+          </span>
+          {tokenLabel ? <span className="timeline-compaction-meta">{tokenLabel}</span> : null}
+        </article>
+      );
+    }
+
     const isAbortedAssistant = isAbortedAssistantMessage(item.message);
     const legacyAbortPlaceholder = isAbortedAssistant && /^_?\(Yanıt durduruldu\)_?$/i.test(text.trim());
     if (legacyAbortPlaceholder) text = "";

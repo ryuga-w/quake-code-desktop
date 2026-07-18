@@ -67,7 +67,7 @@
 }
 
 .iconBtn:hover {
-  background: #302d30;
+  background: var(--surface-navigation-hover, #302d30);
   color: var(--text-navigation, #ddd9dd);
 }
 
@@ -100,7 +100,7 @@
 .newChat:hover,
 .navItem:hover,
 .navItemActive {
-  background: #302d30 !important;
+  background: var(--surface-navigation-hover, #302d30) !important;
   color: #f1eef1 !important;
   transform: none !important;
 }
@@ -135,7 +135,7 @@
 }
 
 .navItemRow:hover > .navItem {
-  background: #302d30 !important;
+  background: var(--surface-navigation-hover, #302d30) !important;
   color: #f1eef1 !important;
 }
 
@@ -165,7 +165,7 @@
 }
 
 .navItemTrailing:hover {
-  background: #454145;
+  background: var(--surface-navigation-active, #454145);
   color: #f1eef1;
 }
 
@@ -182,7 +182,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #454145 transparent;
+  scrollbar-color: var(--stroke-navigation, #454145) transparent;
 }
 
 .scroll::-webkit-scrollbar {
@@ -191,7 +191,7 @@
 
 .scroll::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background: #454145;
+  background: var(--stroke-navigation, #454145);
 }
 
 .section {
@@ -249,12 +249,12 @@
 }
 
 .thread:hover {
-  background: #2b292b;
+  background: var(--surface-navigation-hover, #2b292b);
   color: #f0edf0;
 }
 
 .threadActive {
-  background: #363336;
+  background: var(--surface-navigation-active, #363336);
   color: #fff;
 }
 
@@ -300,7 +300,7 @@
   border: 1px solid #555055;
   border-radius: 4px;
   padding: 0 6px;
-  background: #252325;
+  background: var(--surface-navigation-hover, #252325);
   color: #f2eff2;
   font: inherit;
   outline: none;
@@ -385,7 +385,7 @@
 }
 
 .threadAction:hover {
-  background: #454145;
+  background: var(--surface-navigation-active, #454145);
   color: #eee;
 }
 
@@ -405,7 +405,7 @@
 }
 
 .showMore:hover {
-  background: #2b292b;
+  background: var(--surface-navigation-hover, #2b292b);
   color: #ddd9dd;
 }
 
@@ -429,9 +429,9 @@
   width: 228px;
   min-height: 86px;
   padding: 13px 13px 12px;
-  border: 1px solid #3b383b;
+  border: 1px solid var(--stroke-navigation, #3b383b);
   border-radius: 13px;
-  background: #2b292b;
+  background: var(--surface-navigation-active, #2b292b);
   color: #eee;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
   pointer-events: none;

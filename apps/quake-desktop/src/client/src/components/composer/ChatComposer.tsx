@@ -62,6 +62,7 @@ type Props = {
   localQueue: QueuedUserMessage[];
   agentBusy: boolean;
   promptPending: boolean;
+  isCompacting?: boolean;
   contextUsage?: WebContextUsage;
   planActive: boolean;
   plan?: WebPlanState;
@@ -115,6 +116,7 @@ export function ChatComposer({
   localQueue,
   agentBusy,
   promptPending,
+  isCompacting = false,
   contextUsage,
   planActive,
   plan,
@@ -584,6 +586,12 @@ export function ChatComposer({
         </div>
 
         <div className={styles.secondaryControls}>
+          {isCompacting ? (
+            <span className={styles.compactionStatus} role="status" aria-live="polite">
+              <i aria-hidden="true" />
+              Bağlam sıkıştırılıyor
+            </span>
+          ) : null}
           <ContextUsageIndicator usage={contextUsage} />
           <details
             ref={preferencesMenuRef}

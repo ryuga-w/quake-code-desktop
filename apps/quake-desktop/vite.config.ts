@@ -101,6 +101,7 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, "src/client/index.html"),
         landing: resolve(import.meta.dirname, "src/client/landing.html"),
+        auth: resolve(import.meta.dirname, "src/client/auth.html"),
         shimmerLab: resolve(import.meta.dirname, "src/client/shimmer-lab.html"),
         streamingLab: resolve(import.meta.dirname, "src/client/streaming-lab.html"),
       },

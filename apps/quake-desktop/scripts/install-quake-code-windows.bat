@@ -135,8 +135,8 @@ try {
         name = "Azure GPT-5.6-Sol"
         reasoning = $true
         input = @("text", "image")
-        contextWindow = 200000
-        maxTokens = 16384
+        contextWindow = 1050000
+        maxTokens = 128000
         cost = [pscustomobject][ordered]@{
           input = 0
           output = 0

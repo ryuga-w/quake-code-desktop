@@ -5,9 +5,9 @@
 :root {
   --titlebar-height: 36px;
   --surface-canvas: var(--bg);
-  --surface-navigation: #201e20;
-  --surface-navigation-hover: #302d30;
-  --surface-navigation-active: #363336;
+  --surface-navigation: #151617;
+  --surface-navigation-hover: #202224;
+  --surface-navigation-active: #2a2c2f;
   --surface-timeline: #101112;
   --surface-browser-chrome: #1d1c1d;
   --surface-browser-tab: #2a282a;
@@ -17,9 +17,9 @@
   --text-browser-muted: #969196;
   --surface-browser-note: #40213e;
   --text-browser-note: #f2a1ed;
-  --stroke-navigation: #343134;
-  --text-navigation: #d9d6d9;
-  --text-navigation-muted: #969196;
+  --stroke-navigation: #292b2e;
+  --text-navigation: #d8dade;
+  --text-navigation-muted: #93979d;
   --font-navigation: 14.5px;
   --font-navigation-section: 12.5px;
   --surface-sidebar: var(--paper-soft);

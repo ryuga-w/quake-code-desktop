@@ -348,6 +348,34 @@
   gap: 3px;
 }
 
+.compactionStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 7px;
+  color: var(--text-muted, var(--muted));
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.compactionStatus i {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid color-mix(in srgb, currentColor 42%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: composerCompactionSpin 0.8s linear infinite;
+}
+
+@keyframes composerCompactionSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compactionStatus i { animation: none; }
+}
+
 /* Active Plan / Goal chips in composer footer — X appears on hover */
 .modeChip {
   position: relative;

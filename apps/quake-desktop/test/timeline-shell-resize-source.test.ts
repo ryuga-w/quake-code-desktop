@@ -42,6 +42,12 @@ describe("timeline shell and left sidebar sizing", () => {
     expect(responsive).toContain("border-radius: 0");
   });
 
+  it("keeps the dark right dock on the exact timeline surface", () => {
+    expect(styles).toMatch(
+      /\[data-theme="dark"\] \.rightbar \{[\s\S]*?background: var\(--surface-timeline, var\(--bg\)\);/,
+    );
+  });
+
   it("limits the titlebar fade to the shared timeline text column", () => {
     expect(titlebar).toContain("showTimelineFade &&");
     expect(shell).toContain('showTimelineFade={!settingsModalOpen && centerView === "chat" && hasVisibleMessages');

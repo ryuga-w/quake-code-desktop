@@ -2798,9 +2798,12 @@ pre {
 [data-theme="dark"] .composer textarea::placeholder {
   color: var(--muted-2);
 }
-[data-theme="dark"] .sidebar,
-[data-theme="dark"] .rightbar {
+[data-theme="dark"] .sidebar {
   background: var(--paper-soft);
+  border-color: var(--border);
+}
+[data-theme="dark"] .rightbar {
+  background: var(--surface-timeline, var(--bg));
   border-color: var(--border);
 }
 [data-theme="dark"] .rightbar .panel-search,

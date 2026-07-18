@@ -58,6 +58,7 @@ export function App() {
     sessionThinkingLevel,
     sessionContextUsage,
     isSessionStreaming,
+    isSessionCompacting,
     streamingSessionPaths,
     sessionPlan,
     sessionConversationMode,
@@ -90,6 +91,7 @@ export function App() {
     sessionThinkingLevel: state.state?.thinkingLevel,
     sessionContextUsage: state.state?.contextUsage as WebContextUsage | undefined,
     isSessionStreaming: Boolean(state.state?.isStreaming),
+    isSessionCompacting: Boolean(state.state?.isCompacting),
     // Must be a stable reference when empty — `[]` each call infinite-loops useSyncExternalStore.
     streamingSessionPaths: (Array.isArray(state.state?.streamingSessions)
       ? state.state.streamingSessions
@@ -1909,6 +1911,7 @@ export function App() {
       userMessageQueue={userMessageQueue}
       isComposerStreaming={isComposerStreaming}
       isPromptPending={isPromptPending}
+      isCompacting={isSessionCompacting}
       contextUsage={sessionContextUsage}
       planEnabled={planEnabled}
       goalModePref={goalModePref}
