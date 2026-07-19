@@ -6,7 +6,10 @@ const markdown = readFileSync(join(process.cwd(), "src/client/src/components/mar
 const toolActivity = readFileSync(join(process.cwd(), "src/client/src/components/markdown/ToolActivityNotice.tsx"), "utf8");
 const semanticFlow = readFileSync(join(process.cwd(), "src/client/src/components/markdown/SemanticFlow.tsx"), "utf8");
 const markdownRuntime = [markdown, toolActivity, semanticFlow].join("\n");
-const markdownStyles = readFileSync(join(process.cwd(), "src/client/src/components/markdown/MarkdownMessage.module.css"), "utf8");
+const markdownStyles = readFileSync(
+  join(process.cwd(), "src/client/src/components/markdown/MarkdownMessage.module.css"),
+  "utf8",
+).replace(/\r\n?/g, "\n");
 const thinkingPreview = readFileSync(join(process.cwd(), "src/client/src/lib/thinking-preview.ts"), "utf8");
 const splash = readFileSync(join(process.cwd(), "src/client/src/components/chrome/SplashScreen.tsx"), "utf8");
 const earlySplash = readFileSync(join(process.cwd(), "src/client/index.html"), "utf8");

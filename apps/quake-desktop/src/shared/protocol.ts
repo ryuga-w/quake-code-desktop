@@ -144,6 +144,16 @@ export interface WebSkillInfo {
   source?: string;
 }
 
+export interface WebArtifactTemplate {
+  id: string;
+  skillName: string;
+  displayName: string;
+  description: string;
+  defaultPrompt: string;
+  kind: "document" | "spreadsheet" | "presentation";
+  previewUrl: string;
+}
+
 export type WebMcpToolDecision = "allow" | "ask" | "deny";
 
 export interface WebMcpServerBase {

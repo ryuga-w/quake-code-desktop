@@ -17,6 +17,7 @@ import {
   toPromptImages,
 } from "../lib/client-ids";
 import { composerFallbackMessage, hasComposerPayload } from "../lib/composer-files";
+import { artifactTemplateDisplayName } from "../lib/artifact-template-message";
 import {
   countConversationTurns,
   hasAbortedAssistantMessageForTurn,
@@ -42,6 +43,14 @@ import {
 } from './hooks';
 
 const EMPTY_WORKSPACE_ROOTS: string[] = [];
+
+type DocumentTemplateInvocation = { skillName?: string; content: string };
+
+function parseDocumentTemplateInvocation(message: string): DocumentTemplateInvocation | undefined {
+  const match = message.match(/^@documents(?:\[([a-z0-9-]+)\])?\s*(.*)$/is);
+  if (!match) return undefined;
+  return { skillName: match[1], content: match[2].trim() };
+}
 
 export function App() {
   const { confirm, ConfirmPortal } = useConfirm();
@@ -737,6 +746,7 @@ export function App() {
   }
 
   const {
+    queueUserPrompt,
     clearQueuedUserMessages,
     removeQueuedUserMessage,
     editQueuedUserMessage,
@@ -1451,19 +1461,28 @@ export function App() {
     const message = promptValueRef.current.trim();
     if (!hasComposerPayload(message, images.length, nonAnnotationContextChips.length)) return;
     const fallbackMessage = composerFallbackMessage(images.length, nonAnnotationContextChips.length);
-    const displayMessage = message || fallbackMessage;
-    const modelMessage = [message, annotationHint].filter(Boolean).join("\n\n") || fallbackMessage;
+    const documentInvocation = parseDocumentTemplateInvocation(message);
+    const documentSkill = documentInvocation?.skillName || "docx";
+    const documentPrompt = documentInvocation
+      ? [
+          `Use $${documentSkill} to create a new document with the selected retained template.`,
+          documentInvocation.content || "Create a new document with this template.",
+        ].join("\n\n")
+      : undefined;
+    const displayMessage = documentInvocation
+      ? documentInvocation.content || `Documents · ${artifactTemplateDisplayName(documentInvocation.skillName || "docx")}`
+      : message || fallbackMessage;
+    const modelMessage = [documentPrompt || message, annotationHint].filter(Boolean).join("\n\n") || fallbackMessage;
     const sentAsGoal = goalModePref || message.startsWith("/goal ");
     const outgoingMessage = goalModePref && !message.startsWith("/goal ") ? `/goal ${modelMessage}` : modelMessage;
     const outgoingDisplayMessage = goalModePref && !message.startsWith("/goal ") ? `/goal ${displayMessage}` : displayMessage;
     if (goalModePref) setGoalModePref(false);
 
-    // Codex `Op::UserInput` while turn active → Session::steer_input (same-turn).
-    // Not "wait until agent finishes" — inject into the current turn (pending_input).
-    // Local follow-up queue is only via explicit ComposerQueue "Bekliyor" path.
+    // While the agent is active, keep new input above the composer. It is sent
+    // automatically after completion unless the user explicitly routes it now.
     const snap = useAppStore.getState();
     const localStreaming = Boolean(snap.state?.isStreaming || snap.streamingMessage);
-    let forceSteer = false;
+    let shouldQueue = false;
     if (isComposerStreaming || localStreaming || isPromptPending) {
       const runtimeState = await refreshSessionState({ quiet: true, settleIfIdle: true }).catch(() => undefined);
       const activeStillStreaming = Boolean(
@@ -1472,15 +1491,23 @@ export function App() {
           useAppStore.getState().streamingMessage,
       );
       if (activeStillStreaming || isPromptPending) {
-        forceSteer = true;
+        shouldQueue = true;
       } else {
         // Stale lock — free the composer for this (new/switched) session.
         clearLocalStreamingState();
       }
     }
 
+    if (shouldQueue) {
+      queueUserPrompt(outgoingDisplayMessage, images, `${outgoingMessage}${contextHint}`);
+      setPromptDraft("");
+      setComposerImagesDraft([]);
+      if (contextChips.length) setContextChipsDraft([]);
+      return;
+    }
+
     promptSubmitLockRef.current = true;
-    const nextHistory = message ? [message, ...promptHistory.filter((entry) => entry !== message)].slice(0, 50) : promptHistory;
+    const nextHistory = displayMessage ? [displayMessage, ...promptHistory.filter((entry) => entry !== displayMessage)].slice(0, 50) : promptHistory;
     setPromptHistory(nextHistory);
     writeStorageJson("quake-web:promptHistory", nextHistory);
     setPromptHistoryIndex(undefined);
@@ -1517,6 +1544,7 @@ export function App() {
         turnId: optimisticTurnId,
         __localOptimistic: true,
         __sentAsGoal: sentAsGoal,
+        __artifactTemplateSkill: documentInvocation?.skillName,
       });
       upsertActiveSessionInSidebar(displayMessage);
     }
@@ -1524,18 +1552,7 @@ export function App() {
     if (images.length) setSentImagePreviews((current) => ({ ...current, [outgoingDisplayMessage]: images }));
     try {
       if (message.startsWith("/")) await runSlash(message);
-      else if (forceSteer) {
-        // Codex turn/steer — inject into active turn (does not start a new turn).
-        await sendCommand({
-          type: "turn_steer",
-          message: `${outgoingMessage}${contextHint}`,
-          displayMessage: outgoingDisplayMessage,
-          images: toPromptImages(images),
-          conversationMode: planEnabled ? "plan" : "execute",
-        });
-        showToast("Aynı tura yönlendirildi (Codex steer)", "info");
-        scheduleRefreshSessions(400);
-      } else {
+      else {
         await sendCommand({
           type: "prompt",
           message: `${outgoingMessage}${contextHint}`,
@@ -1910,7 +1927,6 @@ export function App() {
       composerImages={composerImages}
       sentImagePreviews={sentImagePreviews}
       contextChips={contextChips}
-      queuedMessages={queuedMessages}
       userMessageQueue={userMessageQueue}
       isComposerStreaming={isComposerStreaming}
       isPromptPending={isPromptPending}

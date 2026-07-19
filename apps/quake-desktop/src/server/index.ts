@@ -88,6 +88,12 @@ import {
 } from "./provider-accounts.js";
 import { getOAuthProvider } from "@mrquake/quakecode-ai/oauth";
 import { parseWorkspaceRootsJson, WorkspaceRegistry } from "./workspace-registry.js";
+import {
+  readArtifactTemplateCatalog,
+  readArtifactTemplatePreview,
+  readArtifactTemplateSkill,
+  type ArtifactTemplateKind,
+} from "./artifact-templates.js";
 
 // Match qm / CLI launcher behavior: if QUAKE_CODE_CODING_AGENT_DIR is not set,
 // prefer ~/.grok/agent (where user keeps Azure AI Foundry anthropic models.json)
@@ -1813,6 +1819,42 @@ const server = createServer(async (req, res) => {
       const commands = activeRuntime.listCommands();
       const skills = commands.filter((c: any) => c.source === "skill").map((c: any) => ({ name: c.name, description: c.description, source: c.source }));
       sendJson(res, 200, { skills });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/artifact-templates") {
+      const requestedKind = url.searchParams.get("kind");
+      const kind: ArtifactTemplateKind | undefined = requestedKind === "document"
+        || requestedKind === "spreadsheet"
+        || requestedKind === "presentation"
+        ? requestedKind
+        : undefined;
+      sendJson(res, 200, { templates: readArtifactTemplateCatalog(undefined, kind) });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/artifact-templates/preview") {
+      const id = url.searchParams.get("id") || "";
+      const preview = readArtifactTemplatePreview(id);
+      if (!preview) {
+        sendJson(res, 404, { error: "Şablon önizlemesi bulunamadı" });
+        return;
+      }
+      res.writeHead(200, {
+        ...securityHeaders(),
+        "Content-Type": "image/png",
+        "Content-Length": preview.byteLength,
+        "Cache-Control": "private, max-age=300",
+      });
+      res.end(preview);
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/artifact-templates/skill") {
+      const id = url.searchParams.get("id") || "";
+      const skill = readArtifactTemplateSkill(id);
+      if (!skill) {
+        sendJson(res, 404, { error: "Şablon skilli bulunamadı" });
+        return;
+      }
+      sendJson(res, 200, skill, { "Cache-Control": "private, max-age=60" });
       return;
     }
     if (req.method === "GET" && url.pathname === "/api/prompts") {

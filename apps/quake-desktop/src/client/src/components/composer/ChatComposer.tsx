@@ -1,13 +1,16 @@
 import React from "react";
-import { ArrowUp, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X, type LucideIcon } from "lucide-react";
+import { ArrowUp, Box, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X, type LucideIcon } from "lucide-react";
 import type { WebContextUsage, WebPlanState, WebSkillInfo } from "../../../../shared/protocol";
-import type { ComposerImage, QueuedMessages, QueuedUserMessage } from "../../types";
+import type { ComposerImage, QueuedUserMessage } from "../../types";
 import { THINKING_OPTIONS } from "../../constants";
 import { apiGet } from "../../lib/api";
 import { COMPOSER_FILE_ACCEPT, hasComposerPayload } from "../../lib/composer-files";
+import { composeGithubLinkValue, parseComposerGithubLink } from "../../lib/composer-github-link";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
 import { useConfirmAction } from "../common/ConfirmContext";
 import { ComposerQueue } from "./ComposerQueue";
+import { ComposerGithubLinkToken } from "./ComposerGithubLinkToken";
+import { DocumentTemplateGallery } from "./DocumentTemplateGallery";
 import { getComposerAddMenuExtensions, type ComposerAddMenuExtension, type ComposerAddMenuExtensionKind } from "./composer-add-menu";
 import { composerPetContextUsage, composerPetFileKind, type ComposerPetFileKind } from "./composer-pet-signals";
 import { ContextUsageIndicator } from "./ContextUsageIndicator";
@@ -60,7 +63,6 @@ type Props = {
   hasVisibleMessages: boolean;
   images: ComposerImage[];
   contextCount: number;
-  queuedMessages: QueuedMessages;
   localQueue: QueuedUserMessage[];
   agentBusy: boolean;
   promptPending: boolean;
@@ -83,10 +85,11 @@ type Props = {
   onPromptChange: (value: string) => void;
   onPromptPaste: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
   onAddFiles: (files: readonly File[]) => void | Promise<void>;
-  onPromptKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onPromptKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => boolean | void;
   onOpenFiles: () => void;
   onOpenProjects: () => void;
   onOpenPlan?: () => void;
+  onOpenDocumentSkill?: (skillName: string) => void;
   onPreviewImage: (image: ComposerImage) => void;
   onRemoveImage: (id: string) => void;
   onSetMode: (mode: "plan" | "execute" | "goal") => void;
@@ -115,7 +118,6 @@ export function ChatComposer({
   hasVisibleMessages,
   images,
   contextCount,
-  queuedMessages,
   localQueue,
   agentBusy,
   promptPending,
@@ -141,6 +143,7 @@ export function ChatComposer({
   onOpenFiles,
   onOpenProjects,
   onOpenPlan,
+  onOpenDocumentSkill,
   onPreviewImage,
   onRemoveImage,
   onSetMode,
@@ -160,8 +163,18 @@ export function ChatComposer({
   formatThinkingLabel,
   compact = false,
 }: Props) {
-  const expanded = prompt.length > 120 || prompt.includes("\n");
-  const showServerQueue = queuedMessages.steering.length + queuedMessages.followUp.length > 0 && localQueue.length === 0;
+  const documentMatch = prompt.match(/^(?:@documents(?:\[([a-z0-9-]+)\])?\s+|\/(?:docx|documents?)\s*)/i);
+  const documentPrefix = documentMatch?.[0];
+  const selectedDocumentSkill = documentMatch?.[1];
+  const documentModeActive = Boolean(documentPrefix);
+  const selectedDocumentLabel = selectedDocumentSkill ? documentTemplateDisplayName(selectedDocumentSkill) : undefined;
+  const documentCommand = documentPrefix?.trim().startsWith("@")
+    ? `@documents${selectedDocumentSkill ? `[${selectedDocumentSkill}]` : ""} `
+    : "/docx ";
+  const visiblePrompt = documentPrefix ? prompt.slice(documentPrefix.length) : prompt;
+  const githubLink = parseComposerGithubLink(visiblePrompt);
+  const editablePrompt = githubLink?.rest ?? visiblePrompt;
+  const expanded = editablePrompt.length > 120 || editablePrompt.includes("\n");
   const availableThinkingOptions = getAvailableThinkingOptions(currentModel);
   const quickThinkingOptions = getQuickThinkingOptions(availableThinkingOptions, currentThinking);
   const currentEffortLabel = currentModel?.reasoning ? formatThinkingLabel(currentThinking) : "Standart";
@@ -211,6 +224,10 @@ export function ChatComposer({
       textarea?.setSelectionRange(end, end);
     });
   }, [onPromptChange, prompt, promptRef]);
+
+  React.useEffect(() => {
+    if (/^documents$/i.test(prompt.trim())) onPromptChange("/docx ");
+  }, [onPromptChange, prompt]);
 
   React.useEffect(() => {
     let active = true;
@@ -395,10 +412,17 @@ export function ChatComposer({
           <span><b>Dosyaları bağlama ekle</b><small>Görseller önizlenir; metin ve kod dosyaları bağlam olur</small></span>
         </div>
       )}
-      {showServerQueue && (
+      {documentModeActive && (
+        <DocumentTemplateGallery
+          onSelect={(template) => {
+            onPromptChange(`@documents[${template.skillName}] ${visiblePrompt}`);
+            requestAnimationFrame(() => promptRef.current?.focus({ preventScroll: true }));
+          }}
+        />
+      )}
+      {localQueue.length > 0 && (
         <ComposerQueue
-          items={[]}
-          serverQueue={queuedMessages}
+          items={localQueue}
           agentBusy={agentBusy || promptPending}
           onSendNow={onSendQueued}
           onEdit={onEditQueued}
@@ -441,21 +465,67 @@ export function ChatComposer({
         </div>
       )}
 
-      <div className={styles.inputRow}>
+      <div
+        className={styles.inputRow}
+        data-document-mode={documentModeActive ? "true" : undefined}
+        data-inline-content={documentModeActive || githubLink ? "true" : undefined}
+      >
+        {documentModeActive ? (
+          <span className={styles.documentModeLabel}>
+            <span className={styles.documentModeIcon} aria-hidden="true"><FileText size={12} strokeWidth={2} /></span>
+            <span>Documents</span>
+          </span>
+        ) : null}
+        {selectedDocumentSkill && selectedDocumentLabel ? (
+          <button
+            type="button"
+            className={styles.documentTemplateChip}
+            title={`${selectedDocumentLabel} SKILL.md dosyasını aç`}
+            onClick={() => onOpenDocumentSkill?.(selectedDocumentSkill)}
+          >
+            <Box size={13} strokeWidth={1.8} aria-hidden="true" />
+            <span>{selectedDocumentLabel}</span>
+          </button>
+        ) : null}
+        {githubLink ? (
+          <ComposerGithubLinkToken
+            link={githubLink}
+            onChangeSource={(source) => {
+              const nextVisiblePrompt = composeGithubLinkValue(source, githubLink.rest);
+              onPromptChange(documentModeActive ? `${documentCommand}${nextVisiblePrompt}` : nextVisiblePrompt);
+            }}
+          />
+        ) : null}
         <textarea
           ref={promptRef}
           id="prompt"
           rows={1}
-          value={prompt}
+          value={editablePrompt}
           onPaste={(event) => {
             const files = Array.from(event.clipboardData.files || []);
             if (files.length) setPetFileKind(composerPetFileKind(files));
             onPromptPaste(event);
           }}
-          onChange={(event) => onPromptChange(event.target.value)}
-          placeholder={hasVisibleMessages ? "Quake’e bir görev ver…" : "Ne oluşturmak veya değiştirmek istiyorsun?"}
+          onChange={(event) => {
+            const nextVisiblePrompt = githubLink
+              ? composeGithubLinkValue(githubLink.source, event.target.value)
+              : event.target.value;
+            onPromptChange(documentModeActive ? `${documentCommand}${nextVisiblePrompt}` : nextVisiblePrompt);
+          }}
+          placeholder={githubLink ? "" : documentModeActive ? "Oluşturmak istediğin belgeyi anlat…" : hasVisibleMessages ? "Quake’e bir görev ver…" : "Ne oluşturmak veya değiştirmek istiyorsun?"}
           aria-label="Quake'e mesaj"
           onKeyDown={(event) => {
+            if (githubLink && event.key === "Backspace" && !githubLink.rest) {
+              event.preventDefault();
+              onPromptChange(documentModeActive ? documentCommand : "");
+              return;
+            }
+            if (documentModeActive && event.key === "Backspace" && !visiblePrompt) {
+              event.preventDefault();
+              onPromptChange("");
+              return;
+            }
+            if (onPromptKeyDown(event)) return;
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
               triggerPetImpact();
@@ -468,7 +538,6 @@ export function ChatComposer({
               onSubmitCurrent();
               return;
             }
-            onPromptKeyDown(event);
           }}
         />
       </div>
@@ -1071,6 +1140,15 @@ function EffortSlider({
 function closeDetails(event: React.MouseEvent<HTMLElement>) {
   const details = event.currentTarget.closest("details");
   closeDetailsElement(details);
+}
+
+function documentTemplateDisplayName(skillName: string): string {
+  return skillName
+    .replace(/^artifact-template-/, "")
+    .split("-")
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
 }
 
 function closeDetailsElement(details: HTMLDetailsElement | null) {

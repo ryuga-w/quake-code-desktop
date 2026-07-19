@@ -342,6 +342,74 @@
   padding: 12px 14px 2px;
 }
 
+.inputRow[data-inline-content="true"] {
+  display: flex;
+  align-items: center;
+  align-content: initial;
+  gap: 7px;
+}
+
+.documentModeLabel {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  color: #6da0ff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.documentModeIcon {
+  display: inline-grid;
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  background: #2467d5;
+  color: #fff;
+  place-items: center;
+}
+
+.documentTemplateChip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  max-width: min(240px, 42%);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, #b9b8ff 78%, var(--heading));
+  font: inherit;
+  font-size: 13px;
+  font-weight: 570;
+  cursor: pointer;
+}
+
+.documentTemplateChip svg {
+  flex: 0 0 auto;
+}
+
+.documentTemplateChip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.documentTemplateChip:hover {
+  color: color-mix(in srgb, #cfceff 88%, var(--heading));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.documentTemplateChip:focus-visible {
+  border-radius: 5px;
+  outline: 2px solid color-mix(in srgb, var(--accent) 62%, transparent);
+  outline-offset: 2px;
+}
+
 :global(#composer).composer .inputRow textarea {
   width: 100%;
   min-height: 50px;
@@ -358,6 +426,14 @@
   font: inherit;
   font-size: 14px;
   line-height: 1.5;
+}
+
+:global(#composer).composer .inputRow[data-inline-content="true"] textarea {
+  flex: 1 1 120px;
+  width: auto;
+  min-width: 80px;
+  min-height: 24px;
+  padding-top: 1px;
 }
 
 :global(#composer).composer .inputRow textarea:focus {

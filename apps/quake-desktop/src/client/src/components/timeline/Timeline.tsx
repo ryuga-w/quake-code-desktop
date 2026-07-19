@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { StickToBottom, type StickToBottomContext } from "use-stick-to-bottom";
-import { Copy } from "lucide-react";
+import { Box, Copy, FileText } from "lucide-react";
 import { textFromMessage } from "../../lib/render";
+import {
+  artifactTemplateMessageMeta,
+  artifactTemplateRestorePrompt,
+  type ArtifactTemplateMessageMeta,
+} from "../../lib/artifact-template-message";
 import { useAppStore, type ToolCardState } from "../../state/app-store";
 import {
   computeTurnDurationMs,
@@ -72,6 +77,7 @@ export function LiveTimeline(props: {
   onToast?: (message: string, type?: "info" | "success" | "warning" | "error") => void;
   onPreviewImage: (image: ComposerImage) => void;
   onOpenPlan: () => void;
+  onOpenArtifactTemplateSkill?: (skillName: string) => void;
   onForkFromMessage?: (entryId: string) => void;
   forkingEntryId?: string | null;
   plan?: import("../../../../shared/protocol").WebPlanState;
@@ -84,6 +90,36 @@ export function LiveTimeline(props: {
   const messages = useAppStore((state) => state.messages);
   const streamingMessage = useAppStore((state) => state.streamingMessage);
   return <Timeline messages={messages} streamingMessage={streamingMessage} {...props} />;
+}
+
+export function ArtifactTemplateUserMessage({
+  meta,
+  onOpenSkill,
+}: {
+  meta: ArtifactTemplateMessageMeta;
+  onOpenSkill?: (skillName: string) => void;
+}) {
+  return <div className="user-artifact-template-content">
+    <span className="user-artifact-documents">
+      <span className="user-artifact-documents-icon" aria-hidden="true"><FileText size={12} strokeWidth={2} /></span>
+      <span>Documents</span>
+    </span>
+    <button
+      type="button"
+      className="user-artifact-skill"
+      title={`${meta.displayName} SKILL.md dosyasını aç`}
+      onClick={() => onOpenSkill?.(meta.skillName)}
+    >
+      <Box size={13} strokeWidth={1.8} aria-hidden="true" />
+      <span>{meta.displayName}</span>
+    </button>
+    {meta.userText ? <span className="user-artifact-prompt">{meta.userText}</span> : null}
+  </div>;
+}
+
+function userMessageClipboardText(meta: ArtifactTemplateMessageMeta | undefined, visibleText: string): string {
+  if (!meta) return visibleText;
+  return [`Documents · ${meta.displayName}`, meta.userText].filter(Boolean).join("\n");
 }
 
 export function TimelineInner({
@@ -103,6 +139,7 @@ export function TimelineInner({
   onToast,
   onPreviewImage,
   onOpenPlan,
+  onOpenArtifactTemplateSkill,
   onForkFromMessage,
   forkingEntryId = null,
   plan,
@@ -127,6 +164,7 @@ export function TimelineInner({
   onToast?: (message: string, type?: "info" | "success" | "warning" | "error") => void;
   onPreviewImage: (image: ComposerImage) => void;
   onOpenPlan: () => void;
+  onOpenArtifactTemplateSkill?: (skillName: string) => void;
   onForkFromMessage?: (entryId: string) => void;
   forkingEntryId?: string | null;
   plan?: import("../../../../shared/protocol").WebPlanState;
@@ -268,16 +306,18 @@ export function TimelineInner({
     // Antigravity user bubble: soldan pill, hover'da saat + kopyala + geri al + dallandır
     if (isUser) {
       const timeLabel = formatUserBubbleTime(item.message);
-      const multiLine = text.includes("\n") || text.length > 72;
       const sentAsGoal = isUserMessageSentAsGoal(item.message, text);
       const displayText = sentAsGoal ? stripGoalRuntimeEnvelope(text) : text;
+      const artifactTemplate = artifactTemplateMessageMeta(item.message, displayText);
+      const visibleUserText = artifactTemplate?.userText ?? displayText;
+      const multiLine = visibleUserText.includes("\n") || visibleUserText.length > 72;
       // Stable session JSONL entry id from getTimelineMessages(); required by fork_session.
       const entryId = String(item.message?.messageId || item.message?.id || "").trim();
       const canFork = Boolean(entryId && onForkFromMessage && !item.message?.__localOptimistic);
       const forkBusy = Boolean(forkingEntryId && entryId && forkingEntryId === entryId);
       const forkAnyBusy = Boolean(forkingEntryId);
       const contextItems = [
-        { id: "copy", label: "Metni kopyala", onSelect: () => { void navigator.clipboard?.writeText(displayText); } },
+        { id: "copy", label: "Metni kopyala", onSelect: () => { void navigator.clipboard?.writeText(userMessageClipboardText(artifactTemplate, visibleUserText)); } },
         ...(canFork
           ? [{
               id: "fork",
@@ -288,7 +328,7 @@ export function TimelineInner({
       ];
       return (
         <article
-          className={`message user clean-user ${attached.length ? "has-attachments" : ""} ${multiLine ? "user-multi" : ""} ${sentAsGoal ? "user-goal" : ""}`}
+          className={`message user clean-user ${attached.length ? "has-attachments" : ""} ${multiLine ? "user-multi" : ""} ${sentAsGoal ? "user-goal" : ""} ${artifactTemplate ? "user-artifact-template" : ""}`}
           tabIndex={0}
           aria-label="Kullanıcı mesajı"
           onContextMenu={(event) => {
@@ -298,7 +338,9 @@ export function TimelineInner({
         >
           {attached.length > 0 && <UserImageAttachments images={attached} onPreview={onPreviewImage} />}
           <div className="user-msg-bubble">
-            <ExpandableUserMessage text={displayText} />
+            {artifactTemplate
+              ? <ArtifactTemplateUserMessage meta={artifactTemplate} onOpenSkill={onOpenArtifactTemplateSkill} />
+              : <ExpandableUserMessage text={displayText} />}
             <div className="user-msg-actions">
               {timeLabel ? <span className="user-msg-time">{timeLabel}</span> : null}
               <button
@@ -306,7 +348,7 @@ export function TimelineInner({
                 className="user-msg-action"
                 aria-label="Kopyala"
                 title="Kopyala"
-                onClick={() => { void navigator.clipboard?.writeText(displayText); }}
+                onClick={() => { void navigator.clipboard?.writeText(userMessageClipboardText(artifactTemplate, visibleUserText)); }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
               </button>
@@ -317,7 +359,7 @@ export function TimelineInner({
                 title="Mesajı düzenle"
                 onClick={() => {
                   try {
-                    window.dispatchEvent(new CustomEvent("quake:restore-user-prompt", { detail: { text: displayText } }));
+                    window.dispatchEvent(new CustomEvent("quake:restore-user-prompt", { detail: { text: artifactTemplate ? artifactTemplateRestorePrompt(artifactTemplate) : displayText } }));
                   } catch { /* ignore */ }
                 }}
               >

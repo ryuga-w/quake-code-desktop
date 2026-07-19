@@ -40,6 +40,7 @@ import {
 } from "./extension-catalog.js";
 import { clearExpiredExhaustion, rotateOnQuotaError } from "./provider-accounts.js";
 import { isProviderVisibleInModelPicker } from "./auth-providers.js";
+import { artifactTemplateSkillPaths } from "./artifact-templates.js";
 
 type ExtensionsEnabledReader = () => Record<string, boolean | undefined>;
 type ExtensionsEnabledResolver = (cwd: string) => Record<string, boolean | undefined>;
@@ -55,6 +56,7 @@ type WorkspaceContextHooks = {
 function buildRuntimeBootstrap(getExtensionsEnabled: ExtensionsEnabledReader) {
   return {
     resourceLoader: {
+      additionalSkillPaths: artifactTemplateSkillPaths(),
       extensionsOverride: (base: any) => {
         const enabledMap = getExtensionsEnabled();
         return {
@@ -1084,26 +1086,29 @@ export class WebRuntimeController {
 
   private loadSkillsFromFs(): WebCommandInfo[] {
     const result: WebCommandInfo[] = [];
+    const seen = new Set<string>();
     try {
-      const skillsDir = join(homedir(), ".quake-code", "agent", "skills");
-      if (!existsSync(skillsDir)) return result;
-      const dirs = readdirSync(skillsDir, { withFileTypes: true });
-      for (const dir of dirs) {
-        if (!dir.isDirectory()) continue;
-        const skillFile = join(skillsDir, dir.name, "SKILL.md");
-        if (!existsSync(skillFile)) continue;
-        try {
-          const content = readFileSync(skillFile, "utf-8");
-          const match = content.match(/^---[\s\S]*?name:\s*(.+?)\n[\s\S]*?description:\s*[>|]?\s*([\s\S]*?)\n---/);
-          if (match) {
-            const name = match[1].trim();
-            const desc = match[2].trim().split("\n")[0].substring(0, 100);
-            result.push({ name: `/${name}`, description: desc || dir.name, source: "skill" });
-          } else {
+      const roots = [join(homedir(), ".quake-code", "agent", "skills"), ...artifactTemplateSkillPaths()];
+      for (const skillsDir of roots) {
+        if (!existsSync(skillsDir)) continue;
+        const dirs = readdirSync(skillsDir, { withFileTypes: true });
+        for (const dir of dirs) {
+          if (!dir.isDirectory()) continue;
+          const skillFile = join(skillsDir, dir.name, "SKILL.md");
+          if (!existsSync(skillFile)) continue;
+          try {
+            const content = readFileSync(skillFile, "utf-8");
+            const match = content.match(/^---[\s\S]*?name:\s*(.+?)\n[\s\S]*?description:\s*[>|]?\s*([\s\S]*?)\n---/);
+            const name = match?.[1]?.trim() || dir.name;
+            if (seen.has(name)) continue;
+            seen.add(name);
+            const desc = match?.[2]?.trim().split("\n")[0].substring(0, 100) || dir.name;
+            result.push({ name: `/${name}`, description: desc, source: "skill" });
+          } catch {
+            if (seen.has(dir.name)) continue;
+            seen.add(dir.name);
             result.push({ name: `/${dir.name}`, description: dir.name, source: "skill" });
           }
-        } catch {
-          result.push({ name: `/${dir.name}`, description: dir.name, source: "skill" });
         }
       }
     } catch (e) { console.error("Skill loading error:", e); }

@@ -32,6 +32,6 @@ export type DockTab = "files" | "browser" | "mobile" | "plan" | "sidechat" | "su
 export type RightTab = DockTab | "preview" | "terminal" | "computer" | "launcher";
 export type WorkspaceChangeSummary = { files: number; added: number; removed: number; paths?: string[] };
 export type QueuedMessages = { steering: string[]; followUp: string[] };
-export type QueuedUserMessage = { id: string; message: string; images: ComposerImage[] };
+export type QueuedUserMessage = { id: string; message: string; modelMessage?: string; artifactTemplateSkill?: string; images: ComposerImage[] };
 export type TimelineVisibleSelection = { messages: any[]; total: number; startIndex: number; firstSourceIndex: number; lastSourceIndex: number };
 export type TimelineToolsView = { tools: ToolCardState[]; total: number };

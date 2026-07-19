@@ -1,6 +1,7 @@
 import type { ToastState } from "../state/app-store";
 import type { ComposerImage, QueuedUserMessage } from "../types";
 import { composerFileSourceKey } from "./composer-files";
+import { artifactTemplateSkillFromPrompt } from "./artifact-template-message";
 
 export function extensionNotifyType(value: unknown): ToastState["type"] {
   return value === "success" || value === "warning" || value === "error" || value === "info" ? value : "info";
@@ -15,8 +16,14 @@ export function normalizeSessionDraftKey(value: string): string {
   return String(value || "").replace(/\//g, "\\").toLocaleLowerCase("en-US");
 }
 
-export function createQueuedUserMessage(message: string, images: ComposerImage[]): QueuedUserMessage {
-  return { id: createClientSideId("queued-message"), message, images };
+export function createQueuedUserMessage(message: string, images: ComposerImage[], modelMessage?: string): QueuedUserMessage {
+  return {
+    id: createClientSideId("queued-message"),
+    message,
+    modelMessage,
+    artifactTemplateSkill: artifactTemplateSkillFromPrompt(modelMessage),
+    images,
+  };
 }
 
 export function toPromptImages(images: ComposerImage[]) {

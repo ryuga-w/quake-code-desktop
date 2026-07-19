@@ -23,7 +23,6 @@ import type {
   MainView,
   ModalRequest,
   MonacoModal,
-  QueuedMessages,
   QueuedUserMessage,
   RightTab,
   TurnReviewView,
@@ -44,6 +43,7 @@ import { TrustOnboardingModal } from "../components/security/TrustOnboardingModa
 import { StatusNoticeHost } from "../components/common/StatusNotice";
 import { ContextChips, SlashAutocomplete, type SlashAutocompleteHandle } from "../components/composer/ComposerHelpers";
 import { ChatComposer } from "../components/composer/ChatComposer";
+import { ComposerMentionMenu, type ComposerMentionMenuHandle } from "../components/composer/ComposerMentionMenu";
 import { GoalPanel } from "../components/goal/GoalPanel";
 import { DropZone } from "../components/files/DropZone";
 import { ExtensionRenderer } from "../components/extensions/ExtensionRenderer";
@@ -258,7 +258,6 @@ export type AppShellProps = {
   composerImages: ComposerImage[];
   sentImagePreviews: Record<string, ComposerImage[]>;
   contextChips: AppShellContextChip[];
-  queuedMessages: QueuedMessages;
   userMessageQueue: QueuedUserMessage[];
   isComposerStreaming: boolean;
   isPromptPending: boolean;
@@ -475,7 +474,6 @@ export function AppShell(props: AppShellProps) {
     composerImages,
     sentImagePreviews,
     contextChips,
-    queuedMessages,
     userMessageQueue,
     isComposerStreaming,
     isPromptPending,
@@ -623,6 +621,7 @@ export function AppShell(props: AppShellProps) {
   const appGridRef = React.useRef<HTMLDivElement>(null);
   const filesWorkbenchRef = React.useRef<HTMLDivElement>(null);
   const slashAutocompleteRef = React.useRef<SlashAutocompleteHandle>(null);
+  const mentionMenuRef = React.useRef<ComposerMentionMenuHandle>(null);
   const [filesTreeOpen, setFilesTreeOpen] = React.useState(() => readStorageValue("quake-web:filesTreeOpen", "1") !== "0");
   const [filesTreeWidth, setFilesTreeWidth] = React.useState(() => {
     const stored = Number(readStorageValue("quake-web:filesTreeWidth", String(FILES_TREE_DEFAULT_WIDTH)));
@@ -660,6 +659,18 @@ export function AppShell(props: AppShellProps) {
       writeStorageValue("quake-web:filesTreeOpen", "1");
     }
   }, [setFilePreview]);
+
+  const openArtifactTemplateSkill = React.useCallback(async (skillName: string) => {
+    try {
+      const skill = await apiGet<{ path: string; content: string }>(
+        `/api/artifact-templates/skill?id=${encodeURIComponent(skillName)}`,
+      );
+      setFilePreview({ path: skill.path, content: skill.content });
+      openRightPanel("files");
+    } catch (error: any) {
+      showToast(`Şablon skilli açılamadı: ${error?.message || "bilinmeyen hata"}`, "error");
+    }
+  }, [openRightPanel, setFilePreview, showToast]);
 
   React.useEffect(() => {
     if (!filePreview.path || typeof window === "undefined" || window.innerWidth > 640) return;
@@ -995,9 +1006,6 @@ export function AppShell(props: AppShellProps) {
             onFilterChange={setTimelineFilter}
             conversationKey={sessionId}
             scrollRequest={timelineScrollRequest}
-            pendingMessages={userMessageQueue}
-            onRemovePending={removeQueuedUserMessage}
-            onSendPending={(item) => void routeQueuedUserMessage(item)}
             onInspectTool={setSelectedToolId}
             onOpenFile={(path) => { openRightPanel("files"); void openFile(path); }}
             onOpenDiff={openDiffTab}
@@ -1005,6 +1013,7 @@ export function AppShell(props: AppShellProps) {
             onToast={showToast}
             onPreviewImage={setPreviewImage}
             onOpenPlan={() => openRightPanel("plan")}
+            onOpenArtifactTemplateSkill={(skillName) => void openArtifactTemplateSkill(skillName)}
             onForkFromMessage={(entryId) => void forkSessionFromMessage(entryId)}
             forkingEntryId={forkingEntryId}
             plan={sessionSurfacePending ? undefined : sessionPlan}
@@ -1134,14 +1143,23 @@ export function AppShell(props: AppShellProps) {
               );
             }}
           />
-        ) : (
+        ) : (<>
+        <ComposerMentionMenu
+          ref={mentionMenuRef}
+          prompt={prompt}
+          promptHistory={promptHistory}
+          onPick={(value) => {
+            setPromptHistoryIndex(undefined);
+            setPromptDraft(value);
+            requestAnimationFrame(() => promptRef.current?.focus({ preventScroll: true }));
+          }}
+        />
         <ChatComposer
           promptRef={promptRef}
           prompt={prompt}
           hasVisibleMessages={hasVisibleMessages}
           images={composerImages}
           contextCount={contextChips.filter((chip) => chip.type !== "annotation").length}
-          queuedMessages={queuedMessages}
           localQueue={userMessageQueue}
           agentBusy={isComposerStreaming}
           promptPending={isPromptPending}
@@ -1165,14 +1183,17 @@ export function AppShell(props: AppShellProps) {
           onPromptPaste={handleComposerPaste}
           onAddFiles={addComposerFiles}
           onPromptKeyDown={(event) => {
-            if (slashAutocompleteRef.current?.handleKeyDown(event)) return;
-            if (event.key === "ArrowUp" && !prompt.trim() && promptHistory.length) { event.preventDefault(); setPromptHistoryIndex(0); setPromptDraft(promptHistory[0]); }
-            if (event.key === "ArrowUp" && promptHistoryIndex !== undefined) { event.preventDefault(); const next = Math.min(promptHistoryIndex + 1, promptHistory.length - 1); setPromptHistoryIndex(next); setPromptDraft(promptHistory[next] || ""); }
-            if (event.key === "ArrowDown" && promptHistoryIndex !== undefined) { event.preventDefault(); const next = promptHistoryIndex - 1; setPromptHistoryIndex(next >= 0 ? next : undefined); setPromptDraft(next >= 0 ? promptHistory[next] || "" : ""); }
+            if (mentionMenuRef.current?.handleKeyDown(event)) return true;
+            if (slashAutocompleteRef.current?.handleKeyDown(event)) return true;
+            if (event.key === "ArrowUp" && !prompt.trim() && promptHistory.length) { event.preventDefault(); setPromptHistoryIndex(0); setPromptDraft(promptHistory[0]); return true; }
+            if (event.key === "ArrowUp" && promptHistoryIndex !== undefined) { event.preventDefault(); const next = Math.min(promptHistoryIndex + 1, promptHistory.length - 1); setPromptHistoryIndex(next); setPromptDraft(promptHistory[next] || ""); return true; }
+            if (event.key === "ArrowDown" && promptHistoryIndex !== undefined) { event.preventDefault(); const next = promptHistoryIndex - 1; setPromptHistoryIndex(next >= 0 ? next : undefined); setPromptDraft(next >= 0 ? promptHistory[next] || "" : ""); return true; }
+            return false;
           }}
           onOpenFiles={() => openRightPanel("files")}
           onOpenProjects={() => setCenterView("projects")}
           onOpenPlan={() => handleOpenPanel("plan")}
+          onOpenDocumentSkill={(skillName) => void openArtifactTemplateSkill(skillName)}
           onPreviewImage={setPreviewImage}
           onRemoveImage={removeComposerImage}
           onSetMode={(mode) => {
@@ -1215,7 +1236,7 @@ export function AppShell(props: AppShellProps) {
           formatThinkingLabel={thinkingLabel}
           compact={rightOpen && ((rightTab === "browser" && browserLayout === "focus") || (rightTab === "files" && filesLayout === "focus")) && browserFocusComposer === "mini"}
         />
-        )}
+        </>)}
         </div>
         </>}
         </>}

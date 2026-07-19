@@ -81,7 +81,9 @@ describe("composer Quakelet MVP", () => {
     expect(petStyles).toContain("@keyframes quakeletDoubleSlam");
     expect(petStyles).toContain("@keyframes quakeletImpactRing");
     expect(petStyles).toContain("@keyframes quakeletComposerQuake");
-    expect(petStyles).toContain(':global(#composer:has([data-composer-pet-impact="true"]))');
+    expect(petStyles).toContain(':global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-impact="true"]))');
+    expect(petStyles).toContain(':global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-stop="true"]))');
+    expect(petStyles).toContain(':global(html[data-composer-pet="off"] #composer)');
     expect(petStyles).toContain("@keyframes quakeletFileStow");
     expect(petStyles).toContain("@keyframes quakeletEmergencyBrake");
     expect(petStyles).toContain("@keyframes quakeletComposerBrake");

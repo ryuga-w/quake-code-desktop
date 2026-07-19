@@ -62,8 +62,8 @@ export function useComposerQueue(deps: ComposerQueueDeps) {
     setComposerImagesDraft,
   } = deps;
 
-  function queueUserPrompt(message: string, images: ComposerImage[]) {
-    const item = createQueuedUserMessage(message, images);
+  function queueUserPrompt(message: string, images: ComposerImage[], modelMessage?: string) {
+    const item = createQueuedUserMessage(message, images, modelMessage);
     let nextCount = 1;
     setUserMessageQueue((prev) => {
       const next = [...prev, item];
@@ -77,7 +77,7 @@ export function useComposerQueue(deps: ComposerQueueDeps) {
         : `Bekliyor (${nextCount}) — tur bitince sırayla`,
       "info",
       {
-        actionLabel: "Steer (hemen)",
+        actionLabel: "Yönlendir",
         action: () => {
           void routeQueuedUserMessage(item);
         },
@@ -132,11 +132,13 @@ export function useComposerQueue(deps: ComposerQueueDeps) {
       timestamp: Date.now(),
       turnId,
       __localOptimistic: true,
+      __artifactTemplateSkill: item.artifactTemplateSkill,
     });
     try {
       await sendCommand({
         type: "prompt",
-        message: item.message,
+        message: item.modelMessage || item.message,
+        displayMessage: item.message,
         images: toPromptImages(item.images),
         conversationMode: planEnabled ? "plan" : "execute",
         // "Yönlendir" = deliver to agent now (steer), not dump into the draft box.
@@ -168,11 +170,13 @@ export function useComposerQueue(deps: ComposerQueueDeps) {
       timestamp: Date.now(),
       turnId,
       __localOptimistic: true,
+      __artifactTemplateSkill: item.artifactTemplateSkill,
     });
     patchSessionState({ isStreaming: true });
     return sendCommand({
       type: "prompt",
-      message: item.message,
+      message: item.modelMessage || item.message,
+      displayMessage: item.message,
       images: toPromptImages(item.images),
       conversationMode: planEnabled ? "plan" : "execute",
       // Auto-flush after a turn ends → follow-up only if still mid-turn (rare race).

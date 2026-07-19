@@ -23,7 +23,7 @@ describe("slash autocomplete keyboard navigation", () => {
 
     expect(slashHandler).toBeGreaterThan(-1);
     expect(historyHandler).toBeGreaterThan(slashHandler);
-    expect(appShellSource).toContain("if (slashAutocompleteRef.current?.handleKeyDown(event)) return;");
+    expect(appShellSource).toContain("if (slashAutocompleteRef.current?.handleKeyDown(event)) return true;");
   });
 
   it("exposes a listbox with active-descendant semantics", () => {

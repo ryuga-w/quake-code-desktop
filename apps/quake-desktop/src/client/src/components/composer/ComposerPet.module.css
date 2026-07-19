@@ -1093,7 +1093,7 @@
   opacity: 0 !important;
 }
 
-:global(#composer:has([data-composer-pet-impact="true"])) {
+:global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-impact="true"])) {
   animation: quakeletComposerQuake 620ms cubic-bezier(.22, .72, .2, 1) both;
   will-change: transform;
 }
@@ -1144,7 +1144,7 @@
   opacity: 0 !important;
 }
 
-:global(#composer:has([data-composer-pet-stop="true"])) {
+:global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-stop="true"])) {
   animation: quakeletComposerBrake 720ms cubic-bezier(.18, .82, .2, 1) both;
   will-change: transform;
 }
@@ -1881,9 +1881,11 @@
   transition: none !important;
 }
 
+:global(html[data-composer-pet="off"] #composer),
 :global(html[data-reduce-motion="on"] #composer),
 :global(html[data-motion="off"] #composer) {
   animation: none !important;
+  will-change: auto;
 }
 
 :global(html[data-reduce-motion="on"]) .pet[data-state="working"] .signalLine,

@@ -13,6 +13,15 @@ export async function apiGet<T>(url: string): Promise<T> {
   return body as T;
 }
 
+export async function apiGetBlob(url: string): Promise<Blob> {
+  const res = await fetch(url, { headers: authToken ? { "X-Quake-Web-Token": authToken } : undefined });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(apiErrorMessage(res.status, body));
+  }
+  return res.blob();
+}
+
 export async function apiPost<T>(url: string, payload: unknown): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
