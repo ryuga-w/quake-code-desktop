@@ -26,8 +26,6 @@ import { SkeletonLines } from "../common/Feedback";
 import { TreeEntryIcon } from "./file-icons";
 import {
   ancestorDirs,
-  countLoadedFileEntries,
-  formatBytes,
   isValidEntryName,
   joinWorkspacePath,
   normalizeDir,
@@ -40,6 +38,7 @@ import styles from "./FilesPanel.module.css";
 
 const FILE_TREE_INITIAL_WINDOW = 700;
 const FILE_TREE_WINDOW_STEP = 500;
+const FILE_TREE_REFERENCE_DEFAULTS_KEY = "quake-web:fileTreeReferenceDefaultsV1";
 
 type MutationDialogState = { kind: "file" | "directory" | "rename"; parent: string; entry?: WorkspaceEntry };
 
@@ -55,6 +54,15 @@ type SessionFilesState = {
 };
 
 const filesStateBySession = new Map<string, SessionFilesState>();
+
+function initialFileVisibility(key: "quake-web:showHiddenFiles" | "quake-web:showGeneratedFiles"): boolean {
+  if (readStorageValue(FILE_TREE_REFERENCE_DEFAULTS_KEY, "0") !== "1") {
+    writeStorageValue(FILE_TREE_REFERENCE_DEFAULTS_KEY, "1");
+    writeStorageValue("quake-web:showHiddenFiles", "1");
+    writeStorageValue("quake-web:showGeneratedFiles", "1");
+  }
+  return readStorageValue(key, "1") !== "0";
+}
 
 type Props = {
   sessionKey: string;
@@ -78,8 +86,8 @@ export function FilesPanel(props: Props) {
   const showToast = useAppStore((state) => state.showToast);
   const rootFiles = useMemo(() => normalizeEntries(storeFiles), [storeFiles]);
   const [query, setQuery] = useState(() => restoredState?.query || "");
-  const [showHidden, setShowHidden] = useState(() => restoredState?.showHidden ?? (readStorageValue("quake-web:showHiddenFiles") === "1"));
-  const [showGenerated, setShowGenerated] = useState(() => restoredState?.showGenerated ?? (readStorageValue("quake-web:showGeneratedFiles") === "1"));
+  const [showHidden, setShowHidden] = useState(() => restoredState?.showHidden ?? initialFileVisibility("quake-web:showHiddenFiles"));
+  const [showGenerated, setShowGenerated] = useState(() => restoredState?.showGenerated ?? initialFileVisibility("quake-web:showGeneratedFiles"));
   const [childrenByDir, setChildrenByDir] = useState<Record<string, WorkspaceEntry[]>>(() => restoredState?.childrenByDir || {});
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(restoredState?.expanded || [".", ...ancestorDirs(props.currentFileDir || ".")]));
   const [loadingDirs, setLoadingDirs] = useState<Set<string>>(() => new Set());
@@ -174,10 +182,7 @@ export function FilesPanel(props: Props) {
     [searchQuery, childrenByDir, rootEntries, expanded, showHidden, showGenerated, treeWindowSize],
   );
   const keyboardEntries = searchQuery ? searchResults : treeSelection.rows.map((row) => row.entry);
-  const loadedCount = countLoadedFileEntries(childrenByDir);
-  const visibleCount = searchQuery ? searchResults.length : treeSelection.total;
   const hiddenCount = Math.max(0, treeSelection.total - treeSelection.rows.length);
-  const crumbs = normalizedCurrentDir === "." ? [] : normalizedCurrentDir.split("/").filter(Boolean);
 
   async function loadChildren(path: string, force = false, visibility = { hidden: showHidden, generated: showGenerated }): Promise<WorkspaceEntry[]> {
     const directory = normalizeDir(path);
@@ -397,8 +402,11 @@ export function FilesPanel(props: Props) {
         aria-level={depth + 1}
         data-file-path={entry.path}
         tabIndex={selected ? 0 : -1}
-        onClick={() => setActivePath(entry.path)}
-        onDoubleClick={() => activateEntry(entry)}
+        onClick={() => {
+          setActivePath(entry.path);
+          if (!isDirectory) props.onOpenFile(entry.path);
+        }}
+        onDoubleClick={() => isDirectory ? activateEntry(entry) : props.onOpenMonaco(entry.path)}
         onContextMenu={(event) => openContextMenu(event, entry)}
       >
         <button type="button" className={styles.twist} disabled={!isDirectory} aria-label={isExpanded ? "Daralt" : "Genişlet"} onClick={(event) => { event.stopPropagation(); if (isDirectory) void toggleDirectory(entry.path); }}>
@@ -406,52 +414,55 @@ export function FilesPanel(props: Props) {
         </button>
         <TreeEntryIcon entry={entry} expanded={isExpanded} />
         <span className={styles.name} title={entry.path}>{renderName(entry.name)}</span>
-        {loadingDirs.has(entry.path) ? <span className={styles.loading}>yükleniyor</span> : <span className={styles.meta}>{formatBytes(entry.size)}</span>}
+        {loadingDirs.has(entry.path) ? <span className={styles.loading}>…</span> : null}
         <button type="button" className={styles.rowMenuButton} aria-label={`${entry.name} işlemleri`} onClick={(event) => openContextMenu(event, entry)}><MoreHorizontal size={15} /></button>
         {isSearch && <span className={styles.path}>{entry.path}</span>}
       </div>
     );
   }
 
+  function closeExplorerMenu(event: React.MouseEvent<HTMLElement>) {
+    event.currentTarget.closest("details")?.removeAttribute("open");
+  }
+
+  function explorerHeader() {
+    return <div className={styles.header}>
+      <label className={styles.searchWrap}>
+        {searching ? <RefreshCw className={styles.searchSpinner} size={14} /> : <Search size={14} />}
+        <input
+          className={styles.search}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => { if (event.key === "Escape") setQuery(""); }}
+          placeholder="Dosyaları filtrele…"
+          aria-label="Dosyaları filtrele"
+        />
+        {query && <button type="button" className={styles.clearButton} aria-label="Aramayı temizle" onClick={() => setQuery("")}><X size={13} /></button>}
+      </label>
+      <details className={styles.optionsMenu}>
+        <summary className={styles.optionsTrigger} aria-label="Dosya ağacı seçenekleri" title="Dosya ağacı seçenekleri"><MoreHorizontal size={15} /></summary>
+        <div className={styles.optionsPopover}>
+          <button type="button" onClick={(event) => { openMutation("file"); closeExplorerMenu(event); }}><FilePlus2 size={14} /><span>Yeni dosya</span></button>
+          <button type="button" onClick={(event) => { openMutation("directory"); closeExplorerMenu(event); }}><FolderPlus size={14} /><span>Yeni klasör</span></button>
+          <div className={styles.optionsSeparator} />
+          <button type="button" onClick={(event) => { void refreshDirectory(activeDirectory()); closeExplorerMenu(event); }}><RefreshCw size={14} /><span>Yenile</span></button>
+          <button type="button" onClick={(event) => { setExpanded(new Set(["."])); closeExplorerMenu(event); }}><ChevronsDownUp size={14} /><span>Tümünü daralt</span></button>
+          <button type="button" onClick={(event) => { void revealEntry(activePath); closeExplorerMenu(event); }}><FolderSearch size={14} /><span>Seçimi göster</span></button>
+          <div className={styles.optionsSeparator} />
+          <label><input type="checkbox" checked={showHidden} onChange={(event) => updateVisibility("hidden", event.target.checked)} /><span>Gizli dosyalar</span></label>
+          <label><input type="checkbox" checked={showGenerated} onChange={(event) => updateVisibility("generated", event.target.checked)} /><span>Üretilen dosyalar</span></label>
+        </div>
+      </details>
+    </div>;
+  }
+
   if (props.loading && !rootEntries.length) {
-    return <div className={styles.panel}><div className={styles.header}><div className={styles.titleRow}><div className={styles.title}>Dosyalar</div><span className={styles.count}>yükleniyor…</span></div></div><SkeletonLines count={9} /></div>;
+    return <div className={styles.panel}>{explorerHeader()}<SkeletonLines count={12} /></div>;
   }
 
   return (
     <div className={`${styles.panel} files-panel`}>
-      <div className={styles.header}>
-        <div className={styles.titleRow}><div className={styles.title}>Dosyalar</div><span className={styles.count}>{searching ? "aranıyor…" : `${visibleCount}/${loadedCount || rootFiles.length}`}</span></div>
-        <div className={styles.toolbar}>
-          <div className={styles.toolbarGroup}>
-            <button className={styles.iconButton} type="button" title="Yeni dosya" aria-label="Yeni dosya" onClick={() => openMutation("file")}><FilePlus2 size={15} /></button>
-            <button className={styles.iconButton} type="button" title="Yeni klasör" aria-label="Yeni klasör" onClick={() => openMutation("directory")}><FolderPlus size={15} /></button>
-            <button className={styles.iconButton} type="button" title="Klasörü yenile" aria-label="Klasörü yenile" onClick={() => void refreshDirectory(activeDirectory())}><RefreshCw size={15} /></button>
-          </div>
-          <div className={styles.toolbarGroup}>
-            <button className={styles.iconButton} type="button" title="Tümünü daralt" aria-label="Tümünü daralt" onClick={() => setExpanded(new Set(["."]))}><ChevronsDownUp size={15} /></button>
-            <button className={styles.iconButton} type="button" title="Seçimi ağaçta göster" aria-label="Seçimi ağaçta göster" onClick={() => void revealEntry(activePath)}><FolderSearch size={15} /></button>
-          </div>
-        </div>
-        <label className={styles.searchWrap}>
-          {searching ? <RefreshCw className={styles.searchSpinner} size={14} /> : <Search size={14} />}
-          <input className={styles.search} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") setQuery(""); }} placeholder="Çalışma alanında ara…" />
-          {query && <button type="button" className={styles.clearButton} aria-label="Aramayı temizle" onClick={() => setQuery("")}><X size={13} /></button>}
-        </label>
-      </div>
-
-      <nav className={styles.breadcrumb} aria-label="Dosya yolu">
-        {crumbs.map((crumb, index) => {
-          const path = crumbs.slice(0, index + 1).join("/");
-          return <button className={styles.crumb} key={`${crumb}-${index}`} type="button" title={path} onClick={() => { setActivePath(path); setExpanded((current) => new Set([...current, ...ancestorDirs(path), path])); void loadChildren(path); props.onOpenDir(path); }}>{crumb}</button>;
-        })}
-        {!crumbs.length && <span className={styles.rootLabel}>Çalışma alanı</span>}
-      </nav>
-
-      <div className={styles.filterBar}>
-        <label className={styles.filter}><input type="checkbox" checked={showHidden} onChange={(event) => updateVisibility("hidden", event.target.checked)} /> Gizli</label>
-        <label className={styles.filter}><input type="checkbox" checked={showGenerated} onChange={(event) => updateVisibility("generated", event.target.checked)} /> Üretilen</label>
-        <span className={styles.filterHint}>Enter aç · F2 yeniden adlandır</span>
-      </div>
+      {explorerHeader()}
 
       <div id="files" ref={treeRef} className={styles.tree} role="tree" aria-label="Çalışma alanı dosya ağacı" aria-busy={searching} tabIndex={0} onKeyDown={handleTreeKeyDown}>
         {searchQuery ? searchResults.map((entry) => renderEntry(entry, 0, true)) : treeSelection.rows.map((row) => renderEntry(row.entry, row.depth))}
@@ -460,8 +471,6 @@ export function FilesPanel(props: Props) {
         {!treeError && !rootEntries.length && !searchQuery && <div className={styles.empty}>Bu klasörde gösterilecek dosya yok.</div>}
         {searchQuery && !searching && !searchResults.length && <div className={styles.empty}>“{query.trim()}” için eşleşme bulunamadı.</div>}
       </div>
-
-      <div className={styles.statusBar}><span>{activePath}</span><span>{showHidden ? "gizli açık" : "gizli kapalı"}</span></div>
       {contextMenu.menu}
       <ConfirmPortal />
       {mutationDialog && (

@@ -21,7 +21,10 @@ export type MenuAction =
   | "new-chat"
   | "open-folder"
   | "settings"
-
+  | "toggle-sidebar"
+  | "toggle-bottom-panel"
+  | "toggle-right-panel"
+  | "toggle-theme"
   | "about";
 
 export function Titlebar({
@@ -111,6 +114,17 @@ export function Titlebar({
       items: [{ label: "Sohbet ara / sürdür…", action: "new-chat" }],
     },
     {
+      id: "view",
+      label: "Görünüm",
+      items: [
+        { label: "Kenar çubuğunu aç/kapat", action: "toggle-sidebar" },
+        { label: "Alt paneli aç/kapat", action: "toggle-bottom-panel" },
+        { label: "Sağ paneli aç/kapat", action: "toggle-right-panel" },
+        "sep",
+        { label: "Temayı değiştir", action: "toggle-theme" },
+      ],
+    },
+    {
       id: "help",
       label: "Yardım",
       items: [{ label: "Hakkında", action: "about" }],
@@ -145,7 +159,7 @@ export function Titlebar({
           </button>
         </div>
 
-        <button type="button" className={styles.projectContext} onClick={() => runAction("open-folder")} title={workspacePath || "Çalışma alanı aç"}>
+        <button type="button" className={`${styles.projectContext} ${leftOpen ? styles.projectContextSidebarOpen : ""}`} onClick={() => runAction("open-folder")} title={workspacePath || "Çalışma alanı aç"}>
           <Folder size={14} strokeWidth={1.9} aria-hidden="true" />
           <span>{workspaceName || "Proje seç"}</span>
         </button>

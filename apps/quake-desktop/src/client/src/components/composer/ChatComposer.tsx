@@ -1,12 +1,14 @@
 import React from "react";
-import { ArrowUp, Bot, Check, ChevronRight, FilePlus2, FileUp, Hand, ListTodo, Plus, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X, type LucideIcon } from "lucide-react";
-import type { WebContextUsage, WebPlanState } from "../../../../shared/protocol";
+import { ArrowUp, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X, type LucideIcon } from "lucide-react";
+import type { WebContextUsage, WebPlanState, WebSkillInfo } from "../../../../shared/protocol";
 import type { ComposerImage, QueuedMessages, QueuedUserMessage } from "../../types";
 import { THINKING_OPTIONS } from "../../constants";
+import { apiGet } from "../../lib/api";
 import { COMPOSER_FILE_ACCEPT, hasComposerPayload } from "../../lib/composer-files";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
 import { useConfirmAction } from "../common/ConfirmContext";
 import { ComposerQueue } from "./ComposerQueue";
+import { getComposerAddMenuExtensions, type ComposerAddMenuExtension, type ComposerAddMenuExtensionKind } from "./composer-add-menu";
 import { composerPetContextUsage, composerPetFileKind, type ComposerPetFileKind } from "./composer-pet-signals";
 import { ContextUsageIndicator } from "./ContextUsageIndicator";
 import { RuntimeComposerPet } from "./RuntimeComposerPet";
@@ -83,6 +85,7 @@ type Props = {
   onAddFiles: (files: readonly File[]) => void | Promise<void>;
   onPromptKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onOpenFiles: () => void;
+  onOpenProjects: () => void;
   onOpenPlan?: () => void;
   onPreviewImage: (image: ComposerImage) => void;
   onRemoveImage: (id: string) => void;
@@ -136,6 +139,7 @@ export function ChatComposer({
   onAddFiles,
   onPromptKeyDown,
   onOpenFiles,
+  onOpenProjects,
   onOpenPlan,
   onPreviewImage,
   onRemoveImage,
@@ -163,6 +167,8 @@ export function ChatComposer({
   const currentEffortLabel = currentModel?.reasoning ? formatThinkingLabel(currentThinking) : "Standart";
   const [preferencesView, setPreferencesView] = React.useState<PreferencesView>("quick");
   const [preferencesSubmenu, setPreferencesSubmenu] = React.useState<PreferencesSubmenu>();
+  const [addMenuOpen, setAddMenuOpen] = React.useState(false);
+  const [addMenuExtensions, setAddMenuExtensions] = React.useState<ComposerAddMenuExtension[]>(() => getComposerAddMenuExtensions([]));
   const addMenuRef = React.useRef<HTMLDetailsElement>(null);
   const preferencesMenuRef = React.useRef<HTMLDetailsElement>(null);
   const approvalMenuRef = React.useRef<HTMLDetailsElement>(null);
@@ -194,6 +200,29 @@ export function ChatComposer({
     if (files.length) setPetFileKind(composerPetFileKind(files));
     return onAddFiles(files);
   }, [onAddFiles]);
+  const selectAddMenuExtension = React.useCallback((extension: ComposerAddMenuExtension) => {
+    const separator = prompt && !/\s$/.test(prompt) ? " " : "";
+    onPromptChange(`${prompt}${separator}${extension.insertText}`);
+    if (addMenuRef.current) addMenuRef.current.open = false;
+    requestAnimationFrame(() => {
+      const textarea = promptRef.current;
+      textarea?.focus({ preventScroll: true });
+      const end = textarea?.value.length ?? 0;
+      textarea?.setSelectionRange(end, end);
+    });
+  }, [onPromptChange, prompt, promptRef]);
+
+  React.useEffect(() => {
+    let active = true;
+    void apiGet<{ skills?: WebSkillInfo[] }>("/api/skills")
+      .then((payload) => {
+        if (active) setAddMenuExtensions(getComposerAddMenuExtensions(payload.skills || []));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!fileDragActive) return;
@@ -208,6 +237,17 @@ export function ChatComposer({
       window.removeEventListener("drop", reset);
     };
   }, [fileDragActive]);
+
+  React.useEffect(() => {
+    if (!addMenuOpen) return;
+    const dismissAddMenu = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target || addMenuRef.current?.contains(target)) return;
+      if (addMenuRef.current) addMenuRef.current.open = false;
+    };
+    document.addEventListener("pointerdown", dismissAddMenu, true);
+    return () => document.removeEventListener("pointerdown", dismissAddMenu, true);
+  }, [addMenuOpen]);
 
   const handleFileDragEnter = (event: React.DragEvent<HTMLFormElement>) => {
     if (!event.dataTransfer.types.includes("Files")) return;
@@ -438,41 +478,68 @@ export function ChatComposer({
           <details
             ref={addMenuRef}
             name="composer-control-menu"
-            className={`${styles.addMenu} composer-menu`}
+            className={styles.addMenu}
             onToggle={(event) => {
-              if (event.currentTarget.open) {
-                focusFirstMenuItem(event.currentTarget.querySelector<HTMLElement>('[role="menu"]'));
-              }
+              const open = event.currentTarget.open;
+              setAddMenuOpen(open);
+              if (open) focusFirstMenuItem(event.currentTarget.querySelector<HTMLElement>('[role="menu"]'));
             }}
           >
-            <summary className={styles.iconButton} aria-label="Composer seçenekleri" title="Plan, Agent, Goal, dosya ve bağlam ekle">
+            <summary
+              className={styles.iconButton}
+              aria-label="Ekle"
+              aria-haspopup="menu"
+              aria-expanded={addMenuOpen}
+              title="Dosya, proje, hedef veya plan ekle"
+            >
               <Plus size={18} strokeWidth={1.9} aria-hidden="true" />
             </summary>
             <div
-              className={`${styles.addPopover} composer-popover`}
+              className={styles.addPopover}
               role="menu"
-              aria-label="Composer seçenekleri"
+              aria-label="Ekle"
               onKeyDown={(event) => handleMenuKeyDown(event, {
                 onEscape: () => closeDetailsElement(addMenuRef.current),
               })}
             >
-              <div className={styles.menuLabel}>Çalışma modu</div>
-              <button type="button" role="menuitemradio" aria-checked={planActive} className={planActive ? styles.selected : ""} onClick={(event) => { closeDetails(event); onSetMode("plan"); }}>
-                <ListTodo size={15} aria-hidden="true" /><span><b>Plan</b><small>Önce planla ve onay bekle</small></span>{planActive ? <Check size={14} aria-hidden="true" /> : null}
+              <div className={styles.addPanelTitle}>Ekle</div>
+              <button className={styles.addAction} type="button" role="menuitem" onClick={(event) => { closeDetails(event); fileInputRef.current?.click(); }}>
+                <Paperclip size={15} strokeWidth={1.8} aria-hidden="true" />
+                <span className={styles.addActionText}><b>Dosyalar ve klasörler</b></span>
               </button>
-              <button type="button" role="menuitemradio" aria-checked={!planActive && !goalActive} className={!planActive && !goalActive ? styles.selected : ""} onClick={(event) => { closeDetails(event); onSetMode("execute"); }}>
-                <Bot size={15} aria-hidden="true" /><span><b>Agent</b><small>Görevi doğrudan uygula</small></span>{!planActive && !goalActive ? <Check size={14} aria-hidden="true" /> : null}
+              <button className={styles.addAction} type="button" role="menuitem" onClick={(event) => { closeDetails(event); onOpenProjects(); }}>
+                <Folder size={15} strokeWidth={1.7} aria-hidden="true" />
+                <span className={styles.addActionText}><b>Proje</b><small>Yeni görevler için proje seç</small></span>
               </button>
-              <button type="button" role="menuitemradio" aria-checked={goalActive} className={goalActive ? styles.selected : ""} onClick={(event) => { closeDetails(event); onSetMode("goal"); }}>
-                <Target size={15} aria-hidden="true" /><span><b>Goal</b><small>Tamamlanana ve doğrulanana kadar çalış</small></span>{goalActive ? <Check size={14} aria-hidden="true" /> : null}
+              <button className={styles.addAction} type="button" role="menuitemradio" aria-checked={goalActive} onClick={(event) => { closeDetails(event); onSetMode("goal"); }}>
+                <Target size={15} strokeWidth={1.7} aria-hidden="true" />
+                <span className={styles.addActionText}><b>Hedef</b><small>Üzerinde çalışmak için bir hedef belirle</small></span>
               </button>
-              <div className={styles.separator} />
-              <button type="button" role="menuitem" onClick={(event) => { closeDetails(event); fileInputRef.current?.click(); }}>
-                <FileUp size={15} aria-hidden="true" /><span><b>Bilgisayardan dosya</b><small>Görsel, metin veya kod dosyası ekle</small></span>
+              <button className={styles.addAction} type="button" role="menuitemradio" aria-checked={planActive} onClick={(event) => { closeDetails(event); onSetMode("plan"); }}>
+                <Lightbulb size={15} strokeWidth={1.7} aria-hidden="true" />
+                <span className={styles.addActionText}><b>Plan modu</b><small>Plan modunu aç</small></span>
               </button>
-              <button type="button" role="menuitem" onClick={(event) => { closeDetails(event); onOpenFiles(); }}>
-                <FilePlus2 size={15} aria-hidden="true" /><span><b>Dosya ve bağlam</b><small>Projeden dosya veya klasör ekle</small></span>
-              </button>
+              <div className={styles.addSection} role="group" aria-label="Eklentiler">
+                <div className={styles.addSectionTitle}>Eklentiler</div>
+                {addMenuExtensions.map((extension) => (
+                  <button
+                    className={`${styles.addAction} ${styles.addExtensionAction}`}
+                    type="button"
+                    role="menuitem"
+                    key={extension.command}
+                    onClick={() => selectAddMenuExtension(extension)}
+                  >
+                    <ComposerAddMenuExtensionIcon kind={extension.kind} />
+                    <span className={styles.addActionText}><b>{extension.label}</b><small>{extension.description}</small></span>
+                  </button>
+                ))}
+              </div>
+              <div className={styles.addSection} role="group" aria-label="Dosyalar ve görevler">
+                <button className={styles.addPlainAction} type="button" role="menuitem" onClick={(event) => { closeDetails(event); onOpenFiles(); }}>
+                  Dosyalar ve görevler
+                </button>
+                <div className={styles.addSearchHint} aria-hidden="true">Dosya veya görev aramak için yaz</div>
+              </div>
             </div>
           </details>
           {/* Active mode chips — hover reveals X to dismiss Plan or Goal */}
@@ -836,6 +903,22 @@ export function ChatComposer({
       </footer>
     </form>
   </>;
+}
+
+function ComposerAddMenuExtensionIcon({ kind }: { kind: ComposerAddMenuExtensionKind }) {
+  if (kind === "pdf") {
+    return <span className={styles.addExtensionIcon} data-kind={kind} aria-hidden="true"><span className={styles.addPdfGlyph}>PDF</span></span>;
+  }
+  const Icon = kind === "documents"
+    ? FileText
+    : kind === "spreadsheets"
+      ? FileSpreadsheet
+      : kind === "presentations"
+        ? Presentation
+        : kind === "templates"
+          ? LayoutTemplate
+          : Puzzle;
+  return <span className={styles.addExtensionIcon} data-kind={kind} aria-hidden="true"><Icon size={10} strokeWidth={2.1} /></span>;
 }
 
 function ComposerPlanPill({ plan, onOpenPlan }: { plan: WebPlanState; onOpenPlan?: () => void }) {

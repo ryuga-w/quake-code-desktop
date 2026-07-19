@@ -16,4 +16,16 @@ describe("NavRail project workspace action", () => {
     expect(navRailStyles).toContain('pointer-events: none');
     expect(navRailStyles).toContain('pointer-events: auto');
   });
+
+  it("uses a restrained Codex-like navigation hierarchy", () => {
+    expect(navRail).toContain("<b>Quake Code</b>");
+    expect(navRailStyles).toContain("--nav-row-height: 29px");
+    expect(navRailStyles).toContain("--nav-thread-label-max-width: 340px");
+    expect(navRailStyles).toContain("font-size: var(--font-navigation, 13px)");
+    expect(navRailStyles).toContain("border-right: 0");
+    expect(navRailStyles).toContain("background: var(--surface-navigation-active, #363336)");
+    expect(navRailStyles).toContain("max-width: min(100%, var(--nav-thread-label-max-width))");
+    expect(navRailStyles).toContain("text-overflow: ellipsis");
+    expect(navRailStyles).not.toContain("#b06cf5");
+  });
 });

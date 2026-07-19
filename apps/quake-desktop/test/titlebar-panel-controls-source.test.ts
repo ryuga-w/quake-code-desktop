@@ -14,6 +14,10 @@ describe("titlebar panel controls", () => {
 
     expect(titlebar).toContain("showPanelToggles = true");
     expect(titlebar).toContain("{showPanelToggles && (");
+    expect(titlebar).toContain('label: "Görünüm"');
+    expect(titlebar).toContain('action: "toggle-sidebar"');
+    expect(titlebar).toContain('action: "toggle-bottom-panel"');
+    expect(titlebar).toContain('action: "toggle-right-panel"');
     expect(shell).toContain(
       'showPanelToggles={!settingsModalOpen && !(centerView === "chat" && !hasVisibleMessages)}',
     );
@@ -37,13 +41,16 @@ describe("titlebar panel controls", () => {
     expect(titlebarStyles).toContain("background: var(--surface-navigation, #201e20)");
     expect(titlebarStyles).not.toContain("backdrop-filter:");
     expect(titlebarStyles).not.toContain("border-bottom:");
+    expect(titlebarStyles).toContain(".projectContextSidebarOpen { display: none; }");
     expect(navStyles).toContain("background: var(--surface-navigation, #201e20)");
-    expect(foundation).toContain("--surface-navigation: #151617");
-    expect(foundation).toContain("--surface-navigation-hover: #202224");
-    expect(foundation).toContain("--surface-navigation-active: #2a2c2f");
+    expect(foundation).toContain("--surface-navigation: #0d0e0f");
+    expect(foundation).toContain("--surface-navigation-hover: #171819");
+    expect(foundation).toContain("--surface-navigation-active: #202124");
+    expect(foundation).toContain("--stroke-navigation: #202124");
+    expect(foundation).toContain("--stroke-workspace: #252628");
     expect(foundation).toContain("--surface-navigation: #f1eff1");
     expect(foundation).toContain("--font-navigation: 14.5px");
-    expect(appSettings).toContain('setOverlay?.("#151617", "#e8e8ea")');
+    expect(appSettings).toContain('setOverlay?.("#0d0e0f", "#e8e8ea")');
     expect(appSettings).toContain('setOverlay?.("#f1eff1", "#1a1a1a")');
   });
 });

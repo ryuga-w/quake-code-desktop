@@ -14,7 +14,7 @@ import {
 } from "../lib/layout-sizing";
 import { useModalFocusTrap } from "../lib/modal-focus";
 import { readLastSessionByWorkspace } from "../lib/session-projects";
-import { writeStorageValue } from "../lib/storage";
+import { readStorageValue, writeStorageValue } from "../lib/storage";
 import { toolContextText } from "../lib/tool-helpers";
 import type { ToolCardState } from "../state/app-store";
 import type {
@@ -118,6 +118,9 @@ const CodexCommandPalette = React.lazy(() =>
 
 export type AppShellCenterView = "chat" | "projects" | "scheduled" | "extensions" | "history";
 export type AppShellDensity = "comfortable" | "compact" | "dense";
+const FILES_TREE_MIN_WIDTH = 145;
+const FILES_TREE_MAX_WIDTH = 420;
+const FILES_TREE_DEFAULT_WIDTH = 190;
 export type AppShellBrowserLayout = "dock" | "split" | "focus";
 export type AppShellBrowserFocusComposer = "hidden" | "mini" | "open";
 export type AppShellFilesLayout = "dock" | "split" | "focus";
@@ -618,7 +621,13 @@ export function AppShell(props: AppShellProps) {
   const [browserTabMetadata, setBrowserTabMetadata] = React.useState({ title: "Tarayıcı", url: "" });
   const [subagentRequest, setSubagentRequest] = React.useState({ sessionKey: panelSessionKey, id: "", version: 0 });
   const appGridRef = React.useRef<HTMLDivElement>(null);
+  const filesWorkbenchRef = React.useRef<HTMLDivElement>(null);
   const slashAutocompleteRef = React.useRef<SlashAutocompleteHandle>(null);
+  const [filesTreeOpen, setFilesTreeOpen] = React.useState(() => readStorageValue("quake-web:filesTreeOpen", "1") !== "0");
+  const [filesTreeWidth, setFilesTreeWidth] = React.useState(() => {
+    const stored = Number(readStorageValue("quake-web:filesTreeWidth", String(FILES_TREE_DEFAULT_WIDTH)));
+    return Math.min(FILES_TREE_MAX_WIDTH, Math.max(FILES_TREE_MIN_WIDTH, Number.isFinite(stored) ? stored : FILES_TREE_DEFAULT_WIDTH));
+  });
   const scheduleDialogRef = useModalFocusTrap<HTMLDivElement>(scheduleOpen);
   const closeScheduleDialog = React.useCallback(() => setScheduleOpen(false), [setScheduleOpen]);
   const handleScheduleDialogKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -635,6 +644,90 @@ export function AppShell(props: AppShellProps) {
     }));
     openRightPanel("subagents");
   }, [openRightPanel, panelSessionKey]);
+
+  const toggleFilesTree = React.useCallback(() => {
+    setFilesTreeOpen((current) => {
+      const next = !current;
+      writeStorageValue("quake-web:filesTreeOpen", next ? "1" : "0");
+      return next;
+    });
+  }, []);
+
+  const closeFilePreview = React.useCallback(() => {
+    setFilePreview({ content: "Dosya seçilmedi" });
+    if (typeof window !== "undefined" && window.innerWidth <= 640) {
+      setFilesTreeOpen(true);
+      writeStorageValue("quake-web:filesTreeOpen", "1");
+    }
+  }, [setFilePreview]);
+
+  React.useEffect(() => {
+    if (!filePreview.path || typeof window === "undefined" || window.innerWidth > 640) return;
+    setFilesTreeOpen(false);
+  }, [filePreview.path]);
+
+  const clampFilesTreeWidth = React.useCallback((value: number) => {
+    const available = filesWorkbenchRef.current?.clientWidth || window.innerWidth;
+    const maximum = Math.min(FILES_TREE_MAX_WIDTH, Math.max(FILES_TREE_MIN_WIDTH, available - 240));
+    return Math.min(maximum, Math.max(FILES_TREE_MIN_WIDTH, value));
+  }, []);
+
+  const handleFilesTreeResizeStart = React.useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const handle = event.currentTarget;
+    const startX = event.clientX;
+    const startWidth = filesTreeWidth;
+    let nextWidth = startWidth;
+    let frame: number | undefined;
+    handle.setPointerCapture(event.pointerId);
+    document.body.classList.add("panel-resize-active", "panel-resize-horizontal");
+
+    const applyWidth = () => {
+      frame = undefined;
+      filesWorkbenchRef.current?.style.setProperty("--files-tree-width", `${Math.round(nextWidth)}px`);
+    };
+    const onMove = (moveEvent: PointerEvent) => {
+      nextWidth = clampFilesTreeWidth(startWidth + startX - moveEvent.clientX);
+      if (frame === undefined) frame = window.requestAnimationFrame(applyWidth);
+    };
+    const cleanup = () => {
+      document.body.classList.remove("panel-resize-active", "panel-resize-horizontal");
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onUp);
+      handle.removeEventListener("pointercancel", onCancel);
+    };
+    const commit = () => {
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+      applyWidth();
+      setFilesTreeWidth(nextWidth);
+      writeStorageValue("quake-web:filesTreeWidth", String(Math.round(nextWidth)));
+      cleanup();
+    };
+    const onUp = () => commit();
+    const onCancel = () => {
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+      filesWorkbenchRef.current?.style.setProperty("--files-tree-width", `${Math.round(startWidth)}px`);
+      cleanup();
+    };
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp, { once: true });
+    handle.addEventListener("pointercancel", onCancel, { once: true });
+  }, [clampFilesTreeWidth, filesTreeWidth]);
+
+  const handleFilesTreeResizeKey = React.useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = event.shiftKey ? 32 : 12;
+    let next: number | undefined;
+    if (event.key === "ArrowLeft") next = filesTreeWidth + step;
+    else if (event.key === "ArrowRight") next = filesTreeWidth - step;
+    else if (event.key === "Home") next = FILES_TREE_MIN_WIDTH;
+    else if (event.key === "End") next = FILES_TREE_MAX_WIDTH;
+    if (next === undefined) return;
+    event.preventDefault();
+    const clamped = clampFilesTreeWidth(next);
+    setFilesTreeWidth(clamped);
+    writeStorageValue("quake-web:filesTreeWidth", String(Math.round(clamped)));
+  }, [clampFilesTreeWidth, filesTreeWidth]);
 
   // Older drag previews wrote the transient width directly onto #app. Remove
   // that override so reopening always falls back to the persisted shell width.
@@ -1078,6 +1171,7 @@ export function AppShell(props: AppShellProps) {
             if (event.key === "ArrowDown" && promptHistoryIndex !== undefined) { event.preventDefault(); const next = promptHistoryIndex - 1; setPromptHistoryIndex(next >= 0 ? next : undefined); setPromptDraft(next >= 0 ? promptHistory[next] || "" : ""); }
           }}
           onOpenFiles={() => openRightPanel("files")}
+          onOpenProjects={() => setCenterView("projects")}
           onOpenPlan={() => handleOpenPanel("plan")}
           onPreviewImage={setPreviewImage}
           onRemoveImage={removeComposerImage}
@@ -1128,9 +1222,9 @@ export function AppShell(props: AppShellProps) {
       </main>
       {rightOpen && <div className="right-resize-handle" onPointerDown={handleRightDragStart} onKeyDown={handleRightResizeKey} role="separator" aria-orientation="vertical" aria-valuemin={320} aria-valuemax={Math.max(320, window.innerWidth - 360)} aria-valuenow={Math.round(rightWidth)} aria-label="Sağ paneli yeniden boyutlandır (ok tuşları)" tabIndex={0} />}
       <aside className="rightbar" data-active-panel={rightTab} aria-hidden={!rightOpen}>
-        <RightPanelTabs active={rightTab} tabs={dockTabs} addOpen={dockAddOpen} launcherExpanded={rightPanelExpanded} browserLayout={browserLayout} browserFocusComposer={browserFocusComposer} browserTitle={browserTabMetadata.title} browserUrl={browserTabMetadata.url} filesLayout={filesLayout} onClose={closeRightPanel} onCloseTab={closeDockTab} onToggleAdd={() => setDockAddOpen((value) => !value)} onToggleLauncherExpand={toggleRightPanelExpanded} onChange={(tab) => { setDockAddOpen(false); handleOpenPanel(tab); }} onBrowserLayout={applyBrowserLayout} onBrowserFocusComposer={setBrowserFocusComposerMode} onFilesLayout={applyFilesLayout} />
+        <RightPanelTabs active={rightTab} tabs={dockTabs} addOpen={dockAddOpen} launcherExpanded={rightPanelExpanded} browserLayout={browserLayout} browserFocusComposer={browserFocusComposer} browserTitle={browserTabMetadata.title} browserUrl={browserTabMetadata.url} filesTitle={filePreview.path ? filePreview.path.replace(/\\/g, "/").split("/").filter(Boolean).at(-1) : "Dosya aç"} filesLayout={filesLayout} filesTreeOpen={filesTreeOpen} onClose={closeRightPanel} onCloseTab={closeDockTab} onToggleAdd={() => setDockAddOpen((value) => !value)} onToggleLauncherExpand={toggleRightPanelExpanded} onToggleFilesTree={toggleFilesTree} onChange={(tab) => { setDockAddOpen(false); handleOpenPanel(tab); }} onBrowserLayout={applyBrowserLayout} onBrowserFocusComposer={setBrowserFocusComposerMode} onFilesLayout={applyFilesLayout} />
         {rightTab === "launcher" && <QuickLauncher variant="panel" onOpen={(panel) => handleOpenPanel(panel)} />}
-        {rightTab === "files" && <div className={`files-workbench ${filePreview.path ? "has-preview" : ""}`}><div className="files-workbench-preview"><PreviewPanel filePreview={filePreview} onClose={() => setFilePreview({ content: "Dosya seçilmedi" })} onOpen={() => setMainView({ mode: "editor", title: filePreview.path || "Dosya önizleme", path: filePreview.path, content: filePreview.content })} /></div><div className="files-workbench-tree"><React.Suspense fallback={<div className="panel-loading">Yükleniyor…</div>}><FilesPanel key={`${normalizeClientPath(currentWorkspace || "workspace")}::${panelSessionKey}`} workspaceKey={normalizeClientPath(currentWorkspace || "workspace")} sessionKey={panelSessionKey} loading={loading.files} currentFileDir={currentFileDir} onOpenDir={refreshFiles} onOpenFile={openFile} onOpenMonaco={openFileInMonaco} onReveal={revealInFileTree} onAskFile={(path) => { setPromptDraft(`Bu dosyayı incele ve önemli noktaları açıkla: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onSummarizeFile={(path) => { setPromptDraft(`Bu dosyayı kısa ve teknik şekilde özetle: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onCopyPath={(path) => copyTextWithToast(path, "Yol kopyalandı")} onAddContext={(path, type) => {
+        {rightTab === "files" && <div ref={filesWorkbenchRef} className={`files-workbench ${filePreview.path ? "has-preview" : ""} ${filesTreeOpen ? "files-tree-open" : "files-tree-closed"}`} style={{ "--files-tree-width": `${filesTreeWidth}px` } as React.CSSProperties}><div className="files-workbench-preview"><PreviewPanel filePreview={filePreview} onOpenFile={openFile} onClose={closeFilePreview} onOpen={() => setMainView({ mode: "editor", title: filePreview.path || "Dosya önizleme", path: filePreview.path, content: filePreview.content })} /></div>{filesTreeOpen && <div className="files-tree-resize-handle" role="separator" aria-orientation="vertical" aria-label="Dosya ağacı genişliğini ayarla" aria-valuemin={FILES_TREE_MIN_WIDTH} aria-valuemax={FILES_TREE_MAX_WIDTH} aria-valuenow={Math.round(filesTreeWidth)} tabIndex={0} onPointerDown={handleFilesTreeResizeStart} onKeyDown={handleFilesTreeResizeKey} />}<div className="files-workbench-tree"><React.Suspense fallback={<div className="panel-loading">Yükleniyor…</div>}><FilesPanel key={`${normalizeClientPath(currentWorkspace || "workspace")}::${panelSessionKey}`} workspaceKey={normalizeClientPath(currentWorkspace || "workspace")} sessionKey={panelSessionKey} loading={loading.files} currentFileDir={currentFileDir} onOpenDir={refreshFiles} onOpenFile={openFile} onOpenMonaco={openFileInMonaco} onReveal={revealInFileTree} onAskFile={(path) => { setPromptDraft(`Bu dosyayı incele ve önemli noktaları açıkla: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onSummarizeFile={(path) => { setPromptDraft(`Bu dosyayı kısa ve teknik şekilde özetle: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onCopyPath={(path) => copyTextWithToast(path, "Yol kopyalandı")} onAddContext={(path, type) => {
           if (type === "directory") {
             addContextChip({ type: "file", label: path, text: `Klasör bağlamı: ${path}` });
             showToast("Klasör bağlama eklendi", "success");
@@ -1176,7 +1270,7 @@ export function AppShell(props: AppShellProps) {
       </aside>
       <div className="bottom-dock">
         <BottomPanel open={bottomOpen} onClose={() => setBottomOpen(false)} height={bottomHeight} onHeightChange={(h) => { setBottomHeight(h); writeStorageValue("quake-web:bottomHeight", String(Math.round(h))); }}>
-          <React.Suspense fallback={<div className="panel-loading">Terminal yükleniyor…</div>}><XtermTerminal onAsk={(text) => { setPromptDraft(text); requestAnimationFrame(() => promptRef.current?.focus()); }} onAddContext={(context) => { addContextChip({ type: "terminal", label: context.label, text: context.text }); showToast("Terminal çıktısı bağlama eklendi", "success"); }} /></React.Suspense>
+          {(panelControls) => <React.Suspense fallback={<div className="panel-loading">Terminal yükleniyor…</div>}><XtermTerminal panelControls={panelControls} onAsk={(text) => { setPromptDraft(text); requestAnimationFrame(() => promptRef.current?.focus()); }} onAddContext={(context) => { addContextChip({ type: "terminal", label: context.label, text: context.text }); showToast("Terminal çıktısı bağlama eklendi", "success"); }} /></React.Suspense>}
         </BottomPanel>
       </div>
     </div>

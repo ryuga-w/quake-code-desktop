@@ -111,6 +111,9 @@ export function useRightDock(options: UseRightDockOptions = {}) {
     }
     setRightPanelTab(tab);
     setRightPanelOpen(true);
+    if (tab === "files" && filesLayout === "dock" && typeof window !== "undefined" && window.innerWidth > 1100) {
+      setRightWidth((current) => Math.min(520, Math.max(430, current)));
+    }
     if (tab === "plan") setRightWidth(Math.max(560, Math.round(window.innerWidth * 0.52)));
     if (tab === "sidechat") {
       const storedWidth = Number(readStorageValue("quake-web:rightWidth")) || 500;
@@ -166,7 +169,7 @@ export function useRightDock(options: UseRightDockOptions = {}) {
     setRightPanelTab("files");
     setRightPanelOpen(true);
     if (layout === "dock") {
-      setRightWidth(Math.min(520, Math.max(380, Number(readStorageValue("quake-web:rightWidth")) || 440)));
+      setRightWidth(Math.min(520, Math.max(430, Number(readStorageValue("quake-web:rightWidth")) || 440)));
     } else if (layout === "split") {
       setRightWidth(Math.round(window.innerWidth * 0.58));
     } else {

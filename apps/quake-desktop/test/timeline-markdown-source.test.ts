@@ -61,9 +61,10 @@ describe("timeline markdown rendering contract", () => {
     );
     expect(styles).toContain("--chat-column-max-width: 736px;");
     expect(styles).toContain("--composer-max-width: 736px;");
-    expect(styles).toContain("--codex-chat-copy: 14.5px;");
-    expect(styles).toContain("font: 12.5px/1.58 var(--font-mono);");
-    expect(styles).toContain("font-size: 13.5px;");
+    expect(styles).toContain("--codex-chat-copy: 15px;");
+    expect(styles).toContain("--codex-chat-line: 1.62;");
+    expect(styles).toContain("font: 13px/1.62 var(--font-mono);");
+    expect(styles).toContain("font-size: 14px;");
     expect(styles).toContain('.qc-md-ul.contains-task-list > .qc-md-li.task-list-item');
     expect(styles).toContain('input[type="checkbox"]:checked');
     expect(styles).toContain("list-style-position: outside !important;");
@@ -84,7 +85,7 @@ describe("timeline markdown rendering contract", () => {
     expect(styles).not.toMatch(/\.user-msg-bubble:hover,\s*\.user-msg-bubble:focus-within\s*\{[^}]*background:/);
     expect(styles).not.toMatch(/\.user-msg-bubble:hover,\s*\.user-msg-bubble:focus-within\s*\{[^}]*border-color:/);
     expect(styles).toContain(".user-msg-bubble:hover .user-msg-actions");
-    expect(styles).toContain("--user-bubble-bg: var(--composer-surface);");
+    expect(styles).toContain("--user-bubble-bg: #1b1b1d;");
     expect(styles).not.toContain("--user-bubble-bg: color-mix");
     expect(styles).not.toContain("background: #e7e7e9");
     expect(styles).toMatch(/\.streamdown-scope \[data-streamdown="table-header"\] \{\s*background: transparent;\s*\}/);
@@ -110,6 +111,8 @@ describe("timeline markdown rendering contract", () => {
     expect(turnFileChangesStyles).toContain("var(--composer-max-width, 720px)");
     expect(turnFileChangesStyles).toContain("100cqi - (var(--chat-column-gutter, 24px) * 2)");
     expect(turnFileChangesStyles).toContain("transform: translateX(-50%)");
+    expect(turnFileChangesStyles).toContain("box-shadow: none");
+    expect(turnFileChangesStyles).toContain("min-height: 38px");
     expect(turnFileChangesStyles).not.toContain("width: min(520px, 100%)");
   });
 

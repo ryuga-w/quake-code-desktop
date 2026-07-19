@@ -58,13 +58,13 @@ describe("settings navigation", () => {
     expect(panel).toMatch(/worktree izolasyonunu atlayabilir/);
   });
 
-  it("XtermTerminal surfaces S-OS.3 PTY isolation honesty", () => {
+  it("keeps PTY isolation details in settings instead of the terminal surface", () => {
     const xterm = readFileSync(join(root, "src/client/src/components/terminal/XtermTerminal.tsx"), "utf8");
-    expect(xterm).toContain("PTY_ISOLATION_NOTICE_TR");
-    expect(xterm).toContain("OS sandboxed değildir");
-    expect(xterm).toContain("worktree izolasyonunu atlayabilir");
-    expect(xterm).toContain("pty-isolation-banner");
-    expect(xterm).toContain("OS sandbox dışı");
-    expect(xterm).toContain("paintIsolationBanner");
+    const panel = readFileSync(join(root, "src/client/src/components/settings/SettingsPanels.tsx"), "utf8");
+    expect(xterm).not.toContain("PTY_ISOLATION_NOTICE_TR");
+    expect(xterm).not.toContain("pty-isolation-banner");
+    expect(xterm).not.toContain("OS sandbox dışı");
+    expect(xterm).not.toContain("paintIsolationBanner");
+    expect(panel).toMatch(/PTY.*OS izolasyonu dışındadır|PTY.*sandboxed değildir/);
   });
 });

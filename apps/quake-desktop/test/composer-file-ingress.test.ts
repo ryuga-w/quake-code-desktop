@@ -59,7 +59,7 @@ describe("composer file ingress", () => {
     expect(composerSource).toContain("onDragEnter={handleFileDragEnter}");
     expect(composerSource).toContain("onDrop={handleFileDrop}");
     expect(composerSource).toContain("accept={COMPOSER_FILE_ACCEPT}");
-    expect(composerSource).toContain("<b>Bilgisayardan dosya</b>");
+    expect(composerSource).toContain("<b>Dosyalar ve klasörler</b>");
     expect(composerStyles).toContain('.composer[data-file-drag-active="true"]');
     expect(composerStyles).toContain(".fileDropOverlay");
     expect(draftSource).toContain("await addComposerFiles(files)");

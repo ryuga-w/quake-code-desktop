@@ -1,6 +1,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import { CirclePlus, Folder, Globe2, Maximize2, PanelRight } from "lucide-react";
+import { CirclePlus, FileText, Folder, Globe2, Maximize2, PanelRight } from "lucide-react";
 import type { DockTab, RightTab } from "../../types";
 import { faviconUrl } from "../../lib/extract-web-sources";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
@@ -30,7 +30,7 @@ const DOCK_ADD_ITEMS: Array<{
 // Codex tarzi minimal dock basligi: bosken (launcher) sol bos + sagda 3 duzen
 // ikonu (genislet / alt-panel Ctrl+J / sag-paneli kapat). Bir arac acikken solda
 // "geri" (launcher'a don) + arac basligi.
-export function RightPanelTabs({ active, tabs, addOpen, launcherExpanded, browserLayout, browserFocusComposer, browserTitle, browserUrl, filesLayout, onClose, onCloseTab, onToggleAdd, onToggleLauncherExpand, onChange, onBrowserLayout, onBrowserFocusComposer, onFilesLayout }: { active: RightTab; tabs: DockTab[]; addOpen: boolean; launcherExpanded: boolean; browserLayout: "dock" | "split" | "focus"; browserFocusComposer: "hidden" | "mini" | "open"; browserTitle?: string; browserUrl?: string; filesLayout: "dock" | "split" | "focus"; onClose: () => void; onCloseTab: (tab: DockTab) => void; onToggleAdd: () => void; onToggleLauncherExpand: () => void; onChange: (tab: RightTab) => void; onBrowserLayout: (layout: "dock" | "split" | "focus") => void; onBrowserFocusComposer: (mode: "hidden" | "mini" | "open") => void; onFilesLayout: (layout: "dock" | "split" | "focus") => void }) {
+export function RightPanelTabs({ active, tabs, addOpen, launcherExpanded, browserLayout, browserFocusComposer, browserTitle, browserUrl, filesTitle, filesLayout, filesTreeOpen, onClose, onCloseTab, onToggleAdd, onToggleLauncherExpand, onToggleFilesTree, onChange, onBrowserLayout, onBrowserFocusComposer, onFilesLayout }: { active: RightTab; tabs: DockTab[]; addOpen: boolean; launcherExpanded: boolean; browserLayout: "dock" | "split" | "focus"; browserFocusComposer: "hidden" | "mini" | "open"; browserTitle?: string; browserUrl?: string; filesTitle?: string; filesLayout: "dock" | "split" | "focus"; filesTreeOpen: boolean; onClose: () => void; onCloseTab: (tab: DockTab) => void; onToggleAdd: () => void; onToggleLauncherExpand: () => void; onToggleFilesTree: () => void; onChange: (tab: RightTab) => void; onBrowserLayout: (layout: "dock" | "split" | "focus") => void; onBrowserFocusComposer: (mode: "hidden" | "mini" | "open") => void; onFilesLayout: (layout: "dock" | "split" | "focus") => void }) {
   const isLauncher = active === "launcher";
   const browserFavicon = getBrowserFavicon(browserUrl || "");
   const dynamicTabKind = active === "sidechat" || active === "subagents" ? active : undefined;
@@ -97,11 +97,12 @@ export function RightPanelTabs({ active, tabs, addOpen, launcherExpanded, browse
           if (tab === active && dynamicTabKind) {
             return <div className="dock-dynamic-tab-slot" data-dock-dynamic-tabs={dynamicTabKind} key={tab} />;
           }
-          const label = tab === "browser" ? (browserTitle || "Tarayıcı") : dockTabLabel(tab);
+          const label = tab === "browser" ? (browserTitle || "Tarayıcı") : tab === "files" ? (filesTitle || "Dosya aç") : dockTabLabel(tab);
           return (
             <div className={`dock-workspace-tab ${tab === "browser" ? "dock-browser-tab" : ""} ${active === tab ? "active" : ""}`} key={tab}>
               <button type="button" role="tab" aria-selected={active === tab} onClick={() => onChange(tab)}>
                 {tab === "browser" && <span className="dock-tab-favicon" aria-hidden="true"><Globe2 />{browserFavicon && <img src={browserFavicon} alt="" onError={(event) => event.currentTarget.remove()} />}</span>}
+                {tab === "files" && <FileText aria-hidden="true" />}
                 {tab === "review" && <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>}
                 <span>{label}</span>
               </button>
@@ -153,10 +154,13 @@ export function RightPanelTabs({ active, tabs, addOpen, launcherExpanded, browse
       <div className="dock-header-right">
         {isLauncher && <button type="button" className="dock-launcher-expand" title={launcherExpanded ? "Paneli önceki boyuta getir" : "Paneli genişlet"} aria-label={launcherExpanded ? "Sağ paneli önceki boyuta getir" : "Sağ paneli genişlet"} aria-pressed={launcherExpanded} onClick={onToggleLauncherExpand}><Maximize2 aria-hidden="true" /></button>}
         {active === "files" && (
-          <div className="browser-layout-switch" role="group" aria-label="Dosya çalışma alanı yerleşimi">
-            <button type="button" className={filesLayout === "dock" ? "active" : ""} title="Dar dosya paneli" aria-label="Dosya panelini dar yap" aria-pressed={filesLayout === "dock"} onClick={() => onFilesLayout("dock")}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16" /></svg></button>
-            <button type="button" className={filesLayout === "split" ? "active" : ""} title="Dosya ve önizleme yarım ekran" aria-label="Dosya çalışma alanını yarım ekran yap" aria-pressed={filesLayout === "split"} onClick={() => onFilesLayout("split")}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16" /></svg></button>
-            <button type="button" className={filesLayout === "focus" ? "active" : ""} title="Dosya çalışma alanı odak modu" aria-label="Dosya çalışma alanı odak modunu aç" aria-pressed={filesLayout === "focus"} onClick={() => onFilesLayout("focus")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M8 21H5a2 2 0 0 1-2-2v-3m18 0v3a2 2 0 0 1-2 2h-3" /></svg></button>
+          <div className="files-header-actions">
+            <button type="button" className={`files-tree-toggle ${filesTreeOpen ? "active" : ""}`} title={filesTreeOpen ? "Dosya ağacını kapat" : "Dosya ağacını aç"} aria-label={filesTreeOpen ? "Dosya ağacını kapat" : "Dosya ağacını aç"} aria-pressed={filesTreeOpen} onClick={onToggleFilesTree}><Folder aria-hidden="true" /></button>
+            <div className="browser-layout-switch" role="group" aria-label="Dosya çalışma alanı yerleşimi">
+              <button type="button" className={filesLayout === "dock" ? "active" : ""} title="Dar dosya paneli" aria-label="Dosya panelini dar yap" aria-pressed={filesLayout === "dock"} onClick={() => onFilesLayout("dock")}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16" /></svg></button>
+              <button type="button" className={filesLayout === "split" ? "active" : ""} title="Dosya ve önizleme yarım ekran" aria-label="Dosya çalışma alanını yarım ekran yap" aria-pressed={filesLayout === "split"} onClick={() => onFilesLayout("split")}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16" /></svg></button>
+              <button type="button" className={filesLayout === "focus" ? "active" : ""} title="Dosya çalışma alanı odak modu" aria-label="Dosya çalışma alanı odak modunu aç" aria-pressed={filesLayout === "focus"} onClick={() => onFilesLayout("focus")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M8 21H5a2 2 0 0 1-2-2v-3m18 0v3a2 2 0 0 1-2 2h-3" /></svg></button>
+            </div>
           </div>
         )}
         {active === "browser" && (

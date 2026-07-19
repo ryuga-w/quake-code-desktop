@@ -1105,3 +1105,361 @@
 @media (prefers-reduced-motion: reduce) {
   .settingsNav, .settingsContent, .navSearchWrap, .backToAppButton, .switch, .switchThumb { transition: none; }
 }
+
+/* ============================================================
+   Reference-aligned settings surfaces
+   General, Appearance and Browser define the product standard:
+   820px column · 30px section rhythm · 68px rows · 34px controls.
+   The legacy sections below intentionally inherit that same system.
+   ============================================================ */
+.settingsViewContent {
+  align-content: start;
+}
+
+.settingsViewContent .card {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--elev-1) 90%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--heading) 3%, transparent) inset;
+}
+
+.settingsViewContent .card > h3 {
+  margin: 0;
+  padding: 14px 15px 0;
+  color: var(--heading);
+  font-size: 13px;
+  font-weight: 680;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.settingsViewContent .card > .cardDesc {
+  max-width: 72ch;
+  margin: 0;
+  padding: 4px 15px 13px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.settingsViewContent .card > h3 + :not(.cardDesc) {
+  margin-top: 12px;
+}
+
+.settingsViewContent .card > .field,
+.settingsViewContent .card > .toggleRow,
+.settingsViewContent .card > .settingRow,
+.settingsViewContent .card > .actionRow {
+  box-sizing: border-box;
+  min-height: var(--settings-row-min-height);
+  margin: 0 !important;
+  padding: 11px 15px;
+  border-top: 1px solid var(--border);
+}
+
+.settingsViewContent .card > .field {
+  grid-template-columns: minmax(0, 1fr) minmax(148px, 270px);
+}
+
+.settingsViewContent .card > .facts,
+.settingsViewContent .card > .shortcuts,
+.settingsViewContent .card > .checkList,
+.settingsViewContent .card > .list {
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.settingsViewContent .card > .facts .factRow,
+.settingsViewContent .card > .shortcuts .shortcutRow,
+.settingsViewContent .card > .checkList .checkRow,
+.settingsViewContent .card > .list > .listItem,
+.settingsViewContent .card > .list > .listItemBtn,
+.settingsViewContent .card > .list > .listCol > .listItemBtn {
+  box-sizing: border-box;
+  min-height: var(--settings-row-min-height);
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  padding: 11px 15px;
+  background: transparent;
+}
+
+.settingsViewContent .card > .facts .factRow:first-child,
+.settingsViewContent .card > .shortcuts .shortcutRow:first-child,
+.settingsViewContent .card > .checkList .checkRow:first-child,
+.settingsViewContent .card > .list > .listItem:first-child,
+.settingsViewContent .card > .list > .listItemBtn:first-child,
+.settingsViewContent .card > .list > .listCol:first-child > .listItemBtn {
+  border-top: 0;
+}
+
+.settingsViewContent .card > .list > .listItem:hover,
+.settingsViewContent .card > .list > .listItemBtn:hover,
+.settingsViewContent .card > .list > .listCol > .listItemBtn:hover,
+.settingsViewContent .card > .checkList .checkRow:hover {
+  background: color-mix(in srgb, var(--heading) 4%, transparent);
+}
+
+.settingsViewContent .card > .list > .listCol {
+  gap: 0;
+}
+
+.settingsViewContent .card > .list > .listCol + .listCol > .listItemBtn {
+  border-top: 1px solid var(--border);
+}
+
+.settingsViewContent .card > .list > .listCol > .codePreview {
+  margin: 0 15px 13px;
+  border-radius: 9px;
+}
+
+.settingsViewContent .card > .mcpForm,
+.settingsViewContent .card > .feedUrlBlock {
+  margin: 0;
+  padding: 13px 15px;
+  border-top: 1px solid var(--border);
+}
+
+.settingsViewContent .card > .muted {
+  padding: 0 15px 14px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.settingsViewContent .card > .mcpForm + .muted,
+.settingsViewContent .card > .muted + .muted {
+  padding-top: 0;
+}
+
+.settingsViewContent .card > .inlineControl {
+  margin: 0 !important;
+  padding: 0 15px 14px;
+}
+
+.settingsViewContent .fieldLabel,
+.settingsViewContent .toggleLabel,
+.settingsViewContent .settingTitle,
+.settingsViewContent .actionText b,
+.settingsViewContent .listItemMain b,
+.settingsViewContent .shortcutAction {
+  color: var(--heading);
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1.3;
+}
+
+.settingsViewContent .fieldLabel small,
+.settingsViewContent .toggleLabel small,
+.settingsViewContent .settingDesc,
+.settingsViewContent .actionText span,
+.settingsViewContent .listItemMain span {
+  max-width: 68ch;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.settingsViewContent .select,
+.settingsViewContent .convSelect,
+.settingsViewContent .numberInput,
+.settingsViewContent .feedUrlInput,
+.settingsViewContent .mcpForm input,
+.settingsViewContent .mcpForm select {
+  min-height: var(--settings-control-height);
+  border-color: var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--elev-2) 80%, transparent);
+  color: var(--text);
+  font-size: 11.5px;
+}
+
+.settingsViewContent .select {
+  width: min(100%, 270px);
+  justify-self: end;
+  padding-block: 0;
+}
+
+.settingsViewContent .switch {
+  width: 38px;
+  height: 22px;
+  flex: 0 0 38px;
+  border: 1px solid var(--border-strong);
+  background: var(--elev-2);
+}
+
+.settingsViewContent .switchOn {
+  border-color: color-mix(in srgb, #d946ef 72%, transparent);
+  background: #d946ef;
+}
+
+.settingsViewContent .switchThumb {
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+}
+
+.settingsViewContent .smallBtn,
+.settingsViewContent .openBtn,
+.settingsViewContent .convOpenBtn,
+.settingsViewContent .presetBtn,
+.settingsViewContent .dangerBtn {
+  min-height: var(--settings-control-height);
+  border-radius: 9px;
+  padding: 0 11px;
+  font-size: 11.5px;
+  font-weight: 560;
+}
+
+.settingsViewContent .listItem,
+.settingsViewContent .listItemBtn {
+  min-width: 0;
+}
+
+.settingsViewContent .listItemMain span {
+  max-width: 64ch;
+  white-space: normal;
+}
+
+.settingsViewContent .badge,
+.settingsViewContent .pill {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.settingsViewContent .goalHero {
+  padding: 15px;
+  border-color: var(--border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--elev-1) 90%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--heading) 3%, transparent) inset;
+}
+
+.settingsViewContent .goalHero h3 {
+  margin: 3px 0 4px;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.settingsViewContent .goalHero p {
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.settingsViewContent .goalEyebrow {
+  color: var(--muted-2);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.settingsViewContent .activeGoalSummary {
+  border-radius: 13px;
+  background: var(--border);
+}
+
+.settingsViewContent .activeGoalSummary > div {
+  min-height: 58px;
+  padding: 11px 14px;
+  background: color-mix(in srgb, var(--elev-1) 90%, transparent);
+}
+
+.settingsViewContent .safetyNote {
+  gap: 10px;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-left-width: 1px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--elev-1) 90%, transparent);
+}
+
+.settingsViewContent .warningBanner {
+  margin: 0;
+  border-radius: 10px;
+  font-size: 11.5px;
+}
+
+.settingsViewContent .mcpForm {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.settingsViewContent .mcpDetails,
+.settingsViewContent .mcpMetadataList,
+.settingsViewContent .mcpLog {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--elev-2) 58%, transparent);
+}
+
+.settingsViewContent .mcpToolRow,
+.settingsViewContent .mcpResourceRow {
+  border-color: var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--elev-2) 62%, transparent);
+}
+
+.settingsViewContent .navSearch {
+  width: 112px;
+  min-height: var(--settings-control-height);
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--elev-2) 80%, transparent);
+  color: var(--text);
+  box-shadow: none;
+  font-size: 11.5px;
+}
+
+@media (max-width: 720px) {
+  .settingsViewContent .card > .field,
+  .settingsViewContent .card > .settingRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settingsViewContent .card > .field,
+  .settingsViewContent .card > .actionRow,
+  .settingsViewContent .card > .list > .listItem,
+  .settingsViewContent .card > .list > .listItemBtn {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .settingsViewContent .select,
+  .settingsViewContent .convSelect,
+  .settingsViewContent .numberInput {
+    justify-self: start;
+  }
+
+  .settingsViewContent .mcpForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settingsViewContent .mcpWideField {
+    grid-column: 1;
+  }
+}
+
+@media (pointer: coarse) {
+  .settingsViewContent .select,
+  .settingsViewContent .convSelect,
+  .settingsViewContent .numberInput,
+  .settingsViewContent .feedUrlInput,
+  .settingsViewContent .navSearch,
+  .settingsViewContent .mcpForm input,
+  .settingsViewContent .mcpForm select,
+  .settingsViewContent .smallBtn,
+  .settingsViewContent .openBtn,
+  .settingsViewContent .convOpenBtn,
+  .settingsViewContent .presetBtn,
+  .settingsViewContent .dangerBtn {
+    min-height: 40px;
+  }
+}

@@ -163,7 +163,7 @@ export function NavRail({
     <aside className={`${styles.navrail} ${leftOpen ? "" : styles.collapsed}`} aria-hidden={!leftOpen} aria-label="Gezinme">
       <div className={styles.topBar}>
         <div className={styles.brandMark} aria-label="Quake Code">
-          <b>Quake <span>Code</span></b>
+          <b>Quake Code</b>
         </div>
         <button type="button" className={styles.iconBtn} onClick={onSearch} aria-label="Sohbetlerde ara" title="Sohbetlerde ara">
           <Search size={15} strokeWidth={1.8} aria-hidden="true" />

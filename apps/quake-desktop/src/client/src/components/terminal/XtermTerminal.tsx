@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Terminal, type ITheme } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { SearchAddon } from "@xterm/addon-search";
-import { ChevronDown, Copy, Folder, Maximize2, PanelRight, Plus, Search, SquareTerminal, Trash2, X } from "lucide-react";
+import { ChevronDown, Copy, Folder, Link2, Maximize2, MessageSquareText, PanelRight, Plus, Search, SquareTerminal, Trash2, X } from "lucide-react";
 import "@xterm/xterm/css/xterm.css";
 import { authToken } from "../../lib/api";
+import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
 import { readStorageValue } from "../../lib/storage";
 import styles from "./XtermTerminal.module.css";
 
@@ -45,20 +46,16 @@ function tok(name: string, fallback: string): string {
 }
 function buildTheme(mode: Mode): ITheme {
   if (mode === "light") return {
-    background: tok("--panel", "#ffffff"), foreground: tok("--text", "#1c1c1c"), cursor: tok("--accent", "#1c1c1c"), cursorAccent: tok("--panel", "#ffffff"), selectionBackground: "rgba(0,0,0,0.13)",
-    black: "#3b3b3b", red: "#c0392b", green: "#1e8a4c", yellow: "#9a7d0a", blue: "#1f6fd6", magenta: "#8e44ad", cyan: "#0f8e91", white: "#cfcfcf",
-    brightBlack: "#6a6a6a", brightRed: "#e74c3c", brightGreen: "#27ae60", brightYellow: "#b7950b", brightBlue: "#2e86de", brightMagenta: "#a569bd", brightCyan: "#17a2a6", brightWhite: "#111111",
+    background: tok("--surface-terminal", "#fbfbfc"), foreground: tok("--text-terminal", "#24262a"), cursor: tok("--text-primary", "#111111"), cursorAccent: tok("--surface-terminal", "#fbfbfc"), selectionBackground: "rgba(20, 24, 30, 0.13)",
+    black: "#35383d", red: "#b4474f", green: "#3b7f50", yellow: "#8a6e25", blue: "#356fa8", magenta: "#77589b", cyan: "#367982", white: "#c8cacf",
+    brightBlack: "#6f7379", brightRed: "#c95760", brightGreen: "#4b9360", brightYellow: "#9d8134", brightBlue: "#467fb9", brightMagenta: "#8769aa", brightCyan: "#478a93", brightWhite: "#15171a",
   };
   return {
-    background: tok("--panel", "#0f0f0f"), foreground: tok("--text", "#ececec"), cursor: tok("--accent", "#e6e6e6"), cursorAccent: tok("--bg", "#0a0a0a"), selectionBackground: "rgba(255,255,255,0.18)",
-    black: "#3b3b3b", red: "#ff6b6b", green: "#6bdf8f", yellow: "#e8d36b", blue: "#6ba8ff", magenta: "#c78bff", cyan: "#6bdce8", white: "#d7d7d7",
-    brightBlack: "#6f6f6f", brightRed: "#ff8585", brightGreen: "#8bedab", brightYellow: "#f1e08a", brightBlue: "#8bbcff", brightMagenta: "#d6a6ff", brightCyan: "#8be8f1", brightWhite: "#ffffff",
+    background: tok("--surface-terminal", "#0d0e0f"), foreground: tok("--text-terminal", "#d8dade"), cursor: tok("--text-primary", "#f5f5f7"), cursorAccent: tok("--surface-terminal", "#0d0e0f"), selectionBackground: "rgba(216, 218, 222, 0.14)",
+    black: "#303338", red: "#df7279", green: "#8fcf9d", yellow: "#d6b86a", blue: "#7fa8d8", magenta: "#b39ad2", cyan: "#79b8c7", white: "#d0d3d8",
+    brightBlack: "#6f747b", brightRed: "#ed858c", brightGreen: "#a1dcad", brightYellow: "#e1c77d", brightBlue: "#91b7e2", brightMagenta: "#c2acdc", brightCyan: "#8bc7d2", brightWhite: "#f1f2f4",
   };
 }
-/** S-OS.3: interactive PTY is host-only (not OsSandbox / worktree-scoped). */
-const PTY_ISOLATION_NOTICE_TR =
-  "Uyarı: Etkileşimli terminal OS sandboxed değildir; ajan worktree izolasyonunu atlayabilir.";
-
 function newTab(index: number, profile: TerminalProfile = "default"): TerminalTab {
   return { id: `terminal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: `Terminal ${index}`, profile, metadata: { state: "connecting" } };
 }
@@ -73,7 +70,7 @@ function encodeProtocolToken(value: string): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-export function XtermTerminal({ onAsk, onAddContext }: { onAsk?: (text: string) => void; onAddContext?: (context: { label: string; text: string }) => void }) {
+export function XtermTerminal({ onAsk, onAddContext, panelControls }: { onAsk?: (text: string) => void; onAddContext?: (context: { label: string; text: string }) => void; panelControls?: React.ReactNode }) {
   const [tabs, setTabs] = useState<TerminalTab[]>(() => [newTab(1, defaultTerminalProfile())]);
   const [activeId, setActiveId] = useState(() => "");
   const [splitId, setSplitId] = useState<string>();
@@ -81,6 +78,8 @@ export function XtermTerminal({ onAsk, onAddContext }: { onAsk?: (text: string) 
   const [searchQuery, setSearchQuery] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const handles = useRef(new Map<string, TerminalHandle>());
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const effectiveActiveId = activeId || tabs[0]?.id || "";
   const active = tabs.find((tab) => tab.id === effectiveActiveId) || tabs[0];
 
@@ -117,6 +116,30 @@ export function XtermTerminal({ onAsk, onAddContext }: { onAsk?: (text: string) 
   const activeHandle = active ? handles.current.get(active.id) : undefined;
   const stateLabel = active?.metadata.state === "connected" ? "Bağlı" : active?.metadata.state === "connecting" ? "Bağlanıyor" : active?.metadata.state === "exited" ? "Süreç sonlandı" : active?.metadata.state === "error" ? "Hata" : "Bağlantı kesildi";
 
+  const closeProfileMenu = useCallback((restoreFocus = false) => {
+    setProfileMenuOpen(false);
+    if (restoreFocus) restoreMenuTriggerFocus(profileTriggerRef.current);
+  }, []);
+
+  const onTabListKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const target = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>('[role="tab"]') : null;
+    if (!target) return;
+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    const index = items.indexOf(target as HTMLButtonElement);
+    if (index < 0 || items.length === 0) return;
+    const nextIndex = event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? items.length - 1
+        : event.key === "ArrowRight"
+          ? (index + 1) % items.length
+          : (index - 1 + items.length) % items.length;
+    event.preventDefault();
+    items[nextIndex]?.focus({ preventScroll: true });
+    items[nextIndex]?.click();
+  }, []);
+
   useEffect(() => {
     if (!searchOpen) return;
     const onKey = (event: KeyboardEvent) => {
@@ -131,31 +154,42 @@ export function XtermTerminal({ onAsk, onAddContext }: { onAsk?: (text: string) 
     return () => window.removeEventListener("keydown", onKey);
   }, [activeHandle, searchOpen, searchQuery]);
 
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+    requestAnimationFrame(() => focusFirstMenuItem(profileMenuRef.current));
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target || profileMenuRef.current?.contains(target) || profileTriggerRef.current?.contains(target)) return;
+      closeProfileMenu();
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [closeProfileMenu, profileMenuOpen]);
+
   return <section className={styles.workbench} aria-label="Terminal çalışma alanı">
     <div className={styles.toolbar}>
-      <div className={styles.tabs} role="tablist" aria-label="Terminal oturumları">
-        {tabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={tab.id === effectiveActiveId} className={`${styles.tab} ${tab.id === effectiveActiveId ? styles.activeTab : ""}`} onClick={() => focus(tab.id)} onDoubleClick={() => setSplitId(splitId === tab.id ? undefined : tab.id)}>
-          <span className={`${styles.stateDot} ${styles[tab.metadata.state]}`} aria-hidden="true" />
-          <span>{tab.name}</span>
-          <span className={styles.tabClose} role="button" aria-label={`${tab.name} terminalini kapat`} onClick={(event) => { event.stopPropagation(); closeTab(tab.id); }}><X size={12} /></span>
-        </button>)}
+      <div className={styles.tabs} role="tablist" aria-label="Terminal oturumları" onKeyDown={onTabListKeyDown}>
+        {tabs.map((tab) => <div className={styles.tabShell} data-active={tab.id === effectiveActiveId ? "true" : undefined} key={tab.id}>
+          <button id={`terminal-tab-${tab.id}`} type="button" role="tab" tabIndex={tab.id === effectiveActiveId ? 0 : -1} aria-selected={tab.id === effectiveActiveId} aria-controls={`terminal-surface-${tab.id}`} className={styles.tab} onClick={() => focus(tab.id)} onDoubleClick={() => setSplitId(splitId === tab.id ? undefined : tab.id)}>
+            <span className={styles.tabLabel}>{tab.name}</span>
+          </button>
+          <button type="button" className={styles.tabClose} aria-label={`${tab.name} terminalini kapat`} onClick={() => closeTab(tab.id)}><X size={12} aria-hidden="true" /></button>
+        </div>)}
       </div>
-      <div className={styles.toolbarActions}>
-        <span className={styles.toolbarLabel}>OTURUM</span>
+      <div className={styles.toolbarActions} role="toolbar" aria-label="Terminal araçları">
         <div className={styles.profileMenu}>
-          <button type="button" className={styles.iconButton} title="Yeni terminal" aria-label="Yeni terminal" onClick={() => setProfileMenuOpen((value) => !value)}><Plus size={15} /><ChevronDown size={11} /></button>
-          {profileMenuOpen && <div className={styles.profilePopover} role="menu">
+          <button ref={profileTriggerRef} type="button" className={styles.iconButton} title="Yeni terminal" aria-label="Yeni terminal" aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((value) => !value)}><Plus size={15} /><ChevronDown size={11} /></button>
+          {profileMenuOpen && <div ref={profileMenuRef} className={styles.profilePopover} role="menu" onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: () => closeProfileMenu(true) })}>
             {(Object.keys(PROFILE_LABELS) as TerminalProfile[]).filter((profile) => /win/i.test(navigator.platform) ? profile !== "zsh" : profile !== "powershell" && profile !== "cmd").map((profile) => <button key={profile} type="button" role="menuitem" onClick={() => addTab(profile)}>{PROFILE_LABELS[profile]}</button>)}
           </div>}
         </div>
         <button type="button" className={styles.iconButton} title="Terminali böl" aria-label="Terminali böl" onClick={() => addTab(active?.profile || "default", true)}><PanelRight size={15} /></button>
+        <span className={styles.toolbarDivider} aria-hidden="true" />
         <button type="button" className={styles.iconButton} title="Terminalde ara" aria-label="Terminalde ara" onClick={() => setSearchOpen((value) => !value)}><Search size={15} /></button>
-        <button type="button" className={styles.iconButton} title="Seçimi kopyala" aria-label="Terminal seçimini kopyala" onClick={() => void activeHandle?.copySelection()}><Copy size={15} /></button>
-        <button type="button" className={styles.iconButton} title="Terminali temizle" aria-label="Terminali temizle" onClick={() => activeHandle?.clear()}><Trash2 size={15} /></button>
+        <button type="button" className={`${styles.iconButton} ${styles.secondaryTool}`} title="Seçimi kopyala" aria-label="Terminal seçimini kopyala" onClick={() => void activeHandle?.copySelection()}><Copy size={15} /></button>
+        <button type="button" className={`${styles.iconButton} ${styles.secondaryTool}`} title="Terminali temizle" aria-label="Terminali temizle" onClick={() => activeHandle?.clear()}><Trash2 size={15} /></button>
+        {panelControls ? <><span className={styles.toolbarDivider} aria-hidden="true" />{panelControls}</> : null}
       </div>
-    </div>
-    <div className={styles.isolationBanner} role="note" data-testid="pty-isolation-banner">
-      {PTY_ISOLATION_NOTICE_TR}
     </div>
     {searchOpen && <div className={styles.searchbar} role="search">
       <Search size={14} aria-hidden="true" />
@@ -176,12 +210,11 @@ export function XtermTerminal({ onAsk, onAddContext }: { onAsk?: (text: string) 
         <span className={styles.statusState}><span className={`${styles.stateDot} ${active ? styles[active.metadata.state] : ""}`} aria-hidden="true" />{stateLabel}</span>
         <span className={styles.statusItem}><SquareTerminal size={11} aria-hidden="true" />{active?.metadata.shell || PROFILE_LABELS[active?.profile || "default"]}</span>
         <span className={`${styles.statusItem} ${styles.cwd}`} title={active?.metadata.cwd}><Folder size={11} aria-hidden="true" />{active?.metadata.cwd || "Çalışma alanı"}</span>
-        <span className={styles.isolationChip} title={PTY_ISOLATION_NOTICE_TR}>OS sandbox dışı</span>
       </div>
       <div className={styles.contextActions}>
         {splitId && <span className={styles.splitBadge}>2 BÖLME</span>}
-        {onAddContext && <button type="button" onClick={() => active && onAddContext({ label: active.name, text: activeHandle?.snapshot(8000) || "" })}>Bağlama ekle</button>}
-        {onAsk && <button type="button" className={styles.primaryAction} onClick={() => onAsk(`Bu terminal çıktısını analiz et, hata varsa kök nedeni ve düzeltme planını yaz:\n\n${activeHandle?.snapshot(8000) || ""}`)}>Quake ile analiz et</button>}
+        {onAddContext && <button type="button" aria-label="Terminal çıktısını bağlama ekle" title="Bağlama ekle" onClick={() => active && onAddContext({ label: active.name, text: activeHandle?.snapshot(8000) || "" })}><Link2 size={12} aria-hidden="true" /><span className={styles.actionLabel}>Bağlama ekle</span></button>}
+        {onAsk && <button type="button" className={styles.primaryAction} aria-label="Terminal çıktısını Quake ile analiz et" title="Quake ile analiz et" onClick={() => onAsk(`Bu terminal çıktısını analiz et, hata varsa kök nedeni ve düzeltme planını yaz:\n\n${activeHandle?.snapshot(8000) || ""}`)}><MessageSquareText size={12} aria-hidden="true" /><span className={styles.actionLabel}>Quake ile analiz et</span></button>}
       </div>
     </footer>
   </section>;
@@ -199,7 +232,6 @@ function TerminalSurface({ tab, visible, active, onActivate, onMetadata, onRegis
     let intentionallyKilled = false;
     let reconnectTimer: number | undefined;
     let reconnectAttempts = 0;
-    let isolationBannerPainted = false;
     let socket: WebSocket | undefined;
     const term = new Terminal({
       fontFamily: tok("--font-mono", 'ui-monospace, "SFMono-Regular", Menlo, monospace'), fontSize: 13, lineHeight: 1.25, cursorBlink: true, cursorStyle: "bar", scrollback: 10_000, theme: buildTheme(currentMode()),
@@ -212,14 +244,6 @@ function TerminalSurface({ tab, visible, active, onActivate, onMetadata, onRegis
     }));
     term.loadAddon(search);
     term.open(host);
-
-    const paintIsolationBanner = (notice?: string) => {
-      if (isolationBannerPainted) return;
-      isolationBannerPainted = true;
-      const text = (typeof notice === "string" && notice.trim()) || PTY_ISOLATION_NOTICE_TR;
-      // Dim yellow client-side note — not sent to the shell process.
-      term.writeln(`\x1b[33m${text}\x1b[0m`);
-    };
 
     const fitAndResize = () => {
       if (disposed || !host.offsetParent) return;
@@ -235,13 +259,11 @@ function TerminalSurface({ tab, visible, active, onActivate, onMetadata, onRegis
       socket = new WebSocket(`${proto}://${location.host}/api/terminal?${params}`, protocols);
       socket.onopen = () => { reconnectAttempts = 0; metadataRef.current(tab.id, { state: "connected" }); fitAndResize(); if (active) term.focus(); };
       socket.onmessage = (event) => {
-        let message: { t: string; d?: string; code?: number; cwd?: string; shell?: string; message?: string; notice?: string; isolation?: string };
+        let message: { t: string; d?: string; code?: number; cwd?: string; shell?: string; message?: string };
         try { message = JSON.parse(typeof event.data === "string" ? event.data : ""); } catch { return; }
         if ((message.t === "o" || message.t === "replay") && typeof message.d === "string") term.write(message.d);
         else if (message.t === "ready") {
           metadataRef.current(tab.id, { state: "connected", cwd: message.cwd, shell: message.shell });
-          // S-OS.3: first connect / first paint honesty (once per tab surface).
-          paintIsolationBanner(message.notice);
         }
         else if (message.t === "x") { metadataRef.current(tab.id, { state: "exited" }); term.write(`\r\n\x1b[90m[süreç sonlandı: ${message.code}]\x1b[0m\r\n`); }
         else if (message.t === "e") { metadataRef.current(tab.id, { state: "error" }); term.write(`\r\n\x1b[31m[${message.message || "terminal hatası"}]\x1b[0m\r\n`); }
@@ -290,7 +312,7 @@ function TerminalSurface({ tab, visible, active, onActivate, onMetadata, onRegis
     });
   }, [visible]);
 
-  return <div ref={hostRef} className={`${styles.host} ${visible ? styles.visible : styles.hidden} ${active ? styles.activeSurface : ""}`} onMouseDown={onActivate} data-testid="terminal-surface" />;
+  return <div id={`terminal-surface-${tab.id}`} ref={hostRef} role="tabpanel" aria-labelledby={`terminal-tab-${tab.id}`} aria-hidden={!visible} className={`${styles.host} ${visible ? styles.visible : styles.hidden} ${active ? styles.activeSurface : ""}`} onMouseDown={onActivate} data-testid="terminal-surface" />;
 }
 
 export default XtermTerminal;

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const composer = readFileSync(join(process.cwd(), "src/client/src/components/composer/ChatComposer.tsx"), "utf8");
 const composerStyles = readFileSync(join(process.cwd(), "src/client/src/components/composer/ChatComposer.module.css"), "utf8");
+const appStyles = readFileSync(join(process.cwd(), "src/client/styles.css"), "utf8");
 
 describe("composer controls source contract", () => {
   it("keeps the composer surface fixed across hover and focus", () => {
@@ -17,6 +18,14 @@ describe("composer controls source contract", () => {
     expect(composerStyles).toContain("width: min(var(--composer-max-width, 720px)");
   });
 
+  it("uses the reference charcoal hierarchy in dark mode", () => {
+    expect(appStyles).toContain("--composer-surface: #242426");
+    expect(appStyles).toContain("--composer-project-surface: #18191b");
+    expect(appStyles).toContain("background: var(--composer-surface, #242426)");
+    expect(appStyles).toContain("background: var(--composer-project-surface, #18191b)");
+    expect(appStyles).toContain("--composer-focus-surface: #242426");
+  });
+
   it("matches the wide reference approval menu", () => {
     expect(composer).toContain("Daha fazla bilgi");
     expect(composer).toContain("styles.approvalHeaderTitle");
@@ -27,12 +36,33 @@ describe("composer controls source contract", () => {
     expect(composerStyles).not.toContain(".approvalOption.selected");
   });
 
+  it("matches the full-width reference add panel", () => {
+    expect(composer).toContain('aria-label="Ekle"');
+    expect(composer).toContain("className={styles.addPanelTitle}>Ekle");
+    expect(composer).toContain("<b>Dosyalar ve klasörler</b>");
+    expect(composer).toContain("<b>Proje</b><small>Yeni görevler için proje seç</small>");
+    expect(composer).toContain("<b>Hedef</b><small>Üzerinde çalışmak için bir hedef belirle</small>");
+    expect(composer).toContain("<b>Plan modu</b><small>Plan modunu aç</small>");
+    expect(composer).toContain('apiGet<{ skills?: WebSkillInfo[] }>("/api/skills")');
+    expect(composer).toContain("addMenuExtensions.map");
+    expect(composer).toContain("ComposerAddMenuExtensionIcon");
+    expect(composer).toContain("Dosyalar ve görevler");
+    expect(composer).toContain("Dosya veya görev aramak için yaz");
+    expect(composer).toContain("className={styles.addPopover}");
+    expect(composerStyles).toContain("bottom: calc(100% + 4px)");
+    expect(composerStyles).toContain("width: 100%");
+    expect(composerStyles).toContain("max-height: min(316px");
+    expect(composerStyles).toContain("overflow-y: auto");
+    expect(composerStyles).toContain(".addPanelTitle");
+    expect(composerStyles).toContain(".addActionText");
+    expect(composerStyles).toContain(".addExtensionIcon");
+    expect(composerStyles).toContain("@media (max-width: 400px)");
+    expect(composerStyles).toContain("grid-template-columns: 30px minmax(0, 1fr) 32px");
+    expect(composerStyles).toContain(".secondaryControls:not(:has(.contextUsageMeter)) .preferencesMenu");
+    expect(composerStyles).toContain("bottom: min(calc(184px + env(safe-area-inset-bottom)), 48dvh)");
+  });
+
   it("groups model and effort in the progressive composer picker", () => {
-    expect(composer).toContain('aria-label="Composer seçenekleri"');
-    expect(composer).toContain("<b>Plan</b>");
-    expect(composer).toContain("<b>Agent</b>");
-    expect(composer).toContain("<b>Goal</b>");
-    expect(composer).toContain("<b>Dosya ve bağlam</b>");
     expect(composer).toContain('className={`${styles.preferencesMenu} composer-menu`}');
     expect(composer).toContain("Model ve çaba ayarları");
     expect(composer).toContain("Gelişmiş");

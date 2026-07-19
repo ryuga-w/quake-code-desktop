@@ -43,4 +43,18 @@ describe("settings page layout consistency", () => {
     expect(providerStyles).toContain("font-size: 13px");
     expect(providerStyles).toContain("background: color-mix(in srgb, var(--elev-1) 90%, transparent)");
   });
+
+  it("normalizes legacy rows, controls, providers, and narrow layouts", () => {
+    expect(styles).toContain("Reference-aligned settings surfaces");
+    expect(styles).toContain(".settingsViewContent .card > h3");
+    expect(styles).toContain("min-height: var(--settings-row-min-height)");
+    expect(styles).toContain("min-height: var(--settings-control-height)");
+    expect(styles).toContain("background: #d946ef");
+    expect(styles).toContain(".settingsViewContent .mcpForm");
+    expect(styles).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(styles).toContain("@media (pointer: coarse)");
+    expect(providerStyles).toMatch(/\.grid\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/);
+    expect(providerStyles).toContain("min-height: 68px");
+    expect(providerStyles).toContain("border-top: 1px solid var(--border)");
+  });
 });

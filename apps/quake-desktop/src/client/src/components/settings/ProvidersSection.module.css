@@ -738,3 +738,267 @@
   .card { transition: none; }
   .spinning { animation: none; }
 }
+
+/* Reference-aligned provider settings: same rhythm as General/Browser. */
+.root {
+  gap: 30px;
+  width: 100%;
+}
+
+.toolbar,
+.toolbarSecondary {
+  gap: 8px;
+}
+
+.search,
+.modelSearch,
+.refreshBtn {
+  min-height: 34px;
+  border-color: var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--elev-2) 80%, transparent);
+  color: var(--text);
+  font-size: 11.5px;
+}
+
+.filters {
+  gap: 4px;
+}
+
+.chip {
+  min-height: 32px;
+  border-color: transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.chip:hover {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--heading);
+}
+
+.chipActive {
+  border-color: var(--border);
+  background: var(--elev-2);
+  color: var(--heading);
+}
+
+.summary {
+  min-height: 28px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.warnText { color: var(--warning); }
+.pendingText, .toast { color: var(--accent-2); }
+.inlineRetry { color: var(--error); }
+
+.error,
+.testFail {
+  border: 1px solid color-mix(in srgb, var(--error) 22%, var(--border));
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.testOk {
+  border: 1px solid color-mix(in srgb, var(--success) 20%, var(--border));
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.group {
+  gap: 9px;
+}
+
+.groupTitle {
+  margin: 0;
+  color: var(--heading);
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px;
+}
+
+.card {
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--elev-1) 90%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--heading) 3%, transparent) inset;
+}
+
+.card:hover {
+  border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--elev-1) 94%, transparent);
+}
+
+.cardSelected,
+.cardPending {
+  border-color: color-mix(in srgb, var(--accent-2) 46%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-2) 12%, transparent) inset;
+}
+
+.cardMain {
+  min-height: 68px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 15px;
+}
+
+.logo,
+.logoFallback {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--elev-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.logoFallback {
+  background: var(--heading);
+  color: var(--bg);
+  font-size: 14px;
+}
+
+.cardTitle {
+  color: var(--heading);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.hint,
+.accountMeta,
+.footerNote,
+.muted {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.cardActions {
+  min-height: 50px;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 15px;
+  border-top: 1px solid var(--border);
+}
+
+.primaryBtn,
+.secondaryBtn,
+.ghostBtn {
+  min-height: 34px;
+  border-radius: 9px;
+  padding: 0 11px;
+  font-size: 11.5px;
+  font-weight: 560;
+}
+
+.primaryBtn {
+  background: var(--heading);
+  color: var(--bg);
+}
+
+.secondaryBtn {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--elev-2) 80%, transparent);
+}
+
+.ghostBtn {
+  border-color: color-mix(in srgb, var(--error) 20%, var(--border));
+  color: var(--error);
+}
+
+.kindBadge,
+.pill {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.pillOk {
+  border-color: color-mix(in srgb, var(--success) 20%, transparent);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.pillWarn {
+  border-color: color-mix(in srgb, var(--warning) 22%, transparent);
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.pillMuted,
+.kindBadge {
+  border-color: var(--border);
+  background: var(--elev-2);
+  color: var(--muted);
+}
+
+.accountList,
+.modelList {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.accountRow,
+.modelRow {
+  min-height: 52px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  padding: 9px 11px;
+  background: transparent;
+}
+
+.accountRow:first-child,
+.modelRow:first-child {
+  border-top: 0;
+}
+
+.accountActive {
+  border-color: var(--border);
+  background: var(--success-soft);
+}
+
+.empty {
+  min-height: 132px;
+  border-style: solid;
+  background: color-mix(in srgb, var(--elev-1) 90%, transparent);
+}
+
+.modal {
+  border-radius: 13px;
+  background: var(--panel);
+}
+
+.modalSection {
+  border-color: var(--border);
+}
+
+.input,
+.tinyBtn {
+  min-height: 34px;
+  border-color: var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--elev-2) 80%, transparent);
+  color: var(--text);
+  font-size: 11.5px;
+}
+
+.docs,
+.accountRow,
+.modelRow {
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .root { gap: 24px; }
+  .cardMain { align-items: flex-start; }
+  .cardActions { align-items: stretch; }
+}

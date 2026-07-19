@@ -138,8 +138,8 @@
   .frame-topbar > span { display: flex; gap: 5px; }
   .frame-topbar i { width: 7px; height: 7px; border: 1px solid rgba(255,255,255,.4); border-radius: 50%; }
   .frame-topbar small { justify-self: end; color: var(--signal-bright); }
-  .product-screen { position: relative; aspect-ratio: 2560 / 1392; overflow: hidden; }
-  .product-screen img { width: 100%; height: 100%; object-fit: cover; }
+  .product-screen { position: relative; aspect-ratio: 2559 / 1398; overflow: hidden; }
+  .product-screen img { display: block; width: 100%; height: 100%; object-fit: contain; }
   .screen-scan { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, transparent 0%, rgba(255,77,28,.06) 50%, transparent 51%); background-size: 100% 18px; mix-blend-mode: screen; opacity: .32; }
   .activity-receipt { position: absolute; right: -24px; bottom: -48px; width: min(420px, 39vw); padding: 20px; border: 1px solid rgba(255,255,255,.15); background: rgba(10,10,10,.94); color: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.38); backdrop-filter: blur(20px); }
   .activity-receipt small { display: block; margin-bottom: 15px; color: rgba(255,255,255,.42); font: 8px/1 var(--mono); letter-spacing: .13em; }
@@ -272,8 +272,7 @@
     .product-frame { margin-top: 52px; }
     .frame-topbar { grid-template-columns: 1fr auto; }
     .frame-topbar b { display: none; }
-    .product-screen { aspect-ratio: 1 / .75; }
-    .product-screen img { object-position: 49% center; }
+    .product-screen { aspect-ratio: 2559 / 1398; }
     .activity-receipt { position: relative; right: auto; bottom: auto; width: 100%; border-inline: 0; }
     .product-facts { grid-template-columns: repeat(2, 1fr); margin-top: 68px; }
     .product-facts p:nth-child(2) { border-right: 0; }

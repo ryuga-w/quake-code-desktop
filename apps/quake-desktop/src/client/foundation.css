@@ -5,9 +5,9 @@
 :root {
   --titlebar-height: 36px;
   --surface-canvas: var(--bg);
-  --surface-navigation: #151617;
-  --surface-navigation-hover: #202224;
-  --surface-navigation-active: #2a2c2f;
+  --surface-navigation: #0d0e0f;
+  --surface-navigation-hover: #171819;
+  --surface-navigation-active: #202124;
   --surface-timeline: #101112;
   --surface-browser-chrome: #1d1c1d;
   --surface-browser-tab: #2a282a;
@@ -17,7 +17,14 @@
   --text-browser-muted: #969196;
   --surface-browser-note: #40213e;
   --text-browser-note: #f2a1ed;
-  --stroke-navigation: #292b2e;
+  --surface-terminal: var(--surface-navigation);
+  --surface-terminal-raised: var(--surface-navigation);
+  --surface-terminal-active: var(--surface-navigation-hover);
+  --stroke-terminal: var(--stroke-navigation);
+  --text-terminal: var(--text-navigation);
+  --text-terminal-muted: var(--text-navigation-muted);
+  --stroke-navigation: #202124;
+  --stroke-workspace: #252628;
   --text-navigation: #d8dade;
   --text-navigation-muted: #93979d;
   --font-navigation: 14.5px;
@@ -80,7 +87,14 @@
   --text-browser-muted: #8a858a;
   --surface-browser-note: #fbe7ff;
   --text-browser-note: #cf2bd8;
+  --surface-terminal: var(--surface-navigation);
+  --surface-terminal-raised: var(--surface-navigation);
+  --surface-terminal-active: var(--surface-navigation-hover);
+  --stroke-terminal: var(--stroke-navigation);
+  --text-terminal: var(--text-navigation);
+  --text-terminal-muted: var(--text-navigation-muted);
   --stroke-navigation: #d7d3d7;
+  --stroke-workspace: #d9dadd;
   --text-navigation: #2c292c;
   --text-navigation-muted: #716c71;
 }

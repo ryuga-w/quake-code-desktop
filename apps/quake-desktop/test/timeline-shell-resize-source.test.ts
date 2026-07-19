@@ -33,16 +33,20 @@ describe("timeline shell and left sidebar sizing", () => {
   it("frames only the desktop chat surface with the reference corner", () => {
     expect(shell).toContain('centerView === "chat" ? "chat-workspace"');
     expect(styles).toContain("#app.chat-workspace:not(.browser-layout-focus) > .main.chat-active");
-    expect(styles).toContain("border-radius: 16px 0 0 0");
+    expect(styles).toContain("border-radius: 14px 0 0 0");
     expect(styles).toContain("border-top: 1px solid");
     expect(styles).toContain("background: var(--surface-timeline, var(--bg))");
     expect(styles).toContain("background: var(--surface-navigation, var(--paper-soft))");
+    expect(styles).toContain("border-left: 1px solid var(--stroke-workspace, #252628)");
+    expect(styles).toContain("box-shadow: none");
     expect(foundation).toContain("--surface-navigation: #f1eff1");
     expect(foundation).toContain("--surface-timeline: #ffffff");
+    expect(foundation).toContain("--stroke-workspace: #252628");
     expect(responsive).toContain("border-radius: 0");
   });
 
   it("keeps the dark right dock on the exact timeline surface", () => {
+    expect(foundation).toContain("--surface-timeline: #101112");
     expect(styles).toMatch(
       /\[data-theme="dark"\] \.rightbar \{[\s\S]*?background: var\(--surface-timeline, var\(--bg\)\);/,
     );
@@ -64,10 +68,11 @@ describe("timeline shell and left sidebar sizing", () => {
     expect(LEFT_SIDEBAR_CLOSE_THRESHOLD).toBe(240);
     expect(LEFT_SIDEBAR_MIN_WIDTH).toBe(280);
     expect(LEFT_SIDEBAR_DEFAULT_WIDTH).toBe(340);
-    expect(LEFT_SIDEBAR_MAX_WIDTH).toBe(420);
+    expect(LEFT_SIDEBAR_MAX_WIDTH).toBe(500);
     expect(clampLeftSidebarWidth(120)).toBe(280);
     expect(clampLeftSidebarWidth(352.4)).toBe(352);
-    expect(clampLeftSidebarWidth(900)).toBe(420);
+    expect(clampLeftSidebarWidth(480)).toBe(480);
+    expect(clampLeftSidebarWidth(900)).toBe(500);
     expect(clampLeftSidebarWidth(Number.NaN)).toBe(340);
   });
 
@@ -112,5 +117,10 @@ describe("timeline shell and left sidebar sizing", () => {
     expect(navStyles).toContain(':global([data-theme="light"]) .settingsRow:hover');
     expect(navStyles).toContain("background: var(--surface-navigation-hover, #e5e2e5)");
     expect(navStyles).toContain("color: var(--text-navigation, #2c292c) !important");
+  });
+
+  it("keeps the resize hit target invisible until interaction", () => {
+    expect(styles).toMatch(/\.left-resize-handle::after \{[\s\S]*?background: transparent;/);
+    expect(styles).toMatch(/\.left-resize-handle:hover::after,[\s\S]*?background: var\(--stroke-workspace, #252628\);/);
   });
 });

@@ -82,6 +82,10 @@ describe("reference subagent execution workspace", () => {
     expect(globalStyles).toContain('[data-theme="light"] .workspace-context-card');
     expect(responsiveStyles).toContain(".app-shell:has(#app.subagents-layout-split) .workspace-chrome");
     expect(responsiveStyles).toContain("@media (max-width: 720px)");
+    expect(responsiveStyles).toContain("left: max(8px, env(safe-area-inset-left))");
+    expect(responsiveStyles).toContain("max-height: min(68dvh");
+    expect(responsiveStyles).toContain(".app-shell:has(#app:not(.right-collapsed)) .workspace-chrome");
+    expect(responsiveStyles).toContain("grid-template-columns: 20px minmax(0, 1fr) auto");
     expect(outputs).not.toContain("openRightPanel");
     expect(shell).toContain("openSubagentWorkspace");
   });

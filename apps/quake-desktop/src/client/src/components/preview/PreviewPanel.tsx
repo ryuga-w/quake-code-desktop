@@ -1,15 +1,16 @@
-import React, { useMemo, useState } from "react";
-import { Copy, ExternalLink, Minus, Plus, WrapText, X } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Code2, Copy, ExternalLink, FolderOpen, Minus, Plus, WrapText, X } from "lucide-react";
 import { normalizeThemeId } from "../settings/SettingsPanels";
 import { readStorageValue, writeStorageValue } from "../../lib/storage";
 import { DEFAULT_THEME, monacoThemeFor } from "../../lib/theme";
 import { detectLanguage, isBinaryPath } from "../../lib/path-utils";
 import { formatBytes } from "../../lib/format-utils";
 import { copyTextWithToast } from "../../lib/copy-toast";
+import { MarkdownContent } from "../markdown/MarkdownContent";
 
 const Editor = React.lazy(() => import("@monaco-editor/react").then((m) => ({ default: m.default })));
 
-export function PreviewPanel({ filePreview, onOpen, onClose }: { filePreview: { path?: string; content: string }; onOpen: () => void; onClose?: () => void }) {
+export function PreviewPanel({ filePreview, onOpen, onClose, onOpenFile }: { filePreview: { path?: string; content: string }; onOpen: () => void; onClose?: () => void; onOpenFile?: (path: string) => void }) {
   const monacoTheme = monacoThemeFor(normalizeThemeId(readStorageValue("quake-web:theme", DEFAULT_THEME)));
   const [fontSize, setFontSize] = useState(() => Number(readStorageValue("quake-web:previewFontSize", "13")) || 13);
   const [wordWrap, setWordWrap] = useState(() => readStorageValue("quake-web:previewWordWrap") === "1");
@@ -17,15 +18,48 @@ export function PreviewPanel({ filePreview, onOpen, onClose }: { filePreview: { 
   const content = filePreview.content || "";
   const isBinary = isBinaryPath(path);
   const language = useMemo(() => detectLanguage(path), [path]);
+  const isMarkdown = language === "markdown";
+  const [showMarkdownSource, setShowMarkdownSource] = useState(false);
   const pathParts = path.replace(/[\/]/g, "\\").split("\\").filter(Boolean);
   const fileName = pathParts.pop() || "Önizleme";
   const dirPath = pathParts.join(" \u003e ");
   const copy = (text: string, msg: string) => copyTextWithToast(text, msg);
 
+  useEffect(() => setShowMarkdownSource(false), [path]);
+
   function handleFontSize(delta: number) {
     const next = Math.min(24, Math.max(10, fontSize + delta));
     setFontSize(next);
     writeStorageValue("quake-web:previewFontSize", String(next));
+  }
+
+  if (isMarkdown) {
+    return <div className="preview-panel-github preview-document-shell">
+      <div className="preview-document-header">
+        <div className="preview-document-path" title={path}>
+          <span>{dirPath || "quake code"}</span><b>/</b><strong>{fileName}</strong>
+        </div>
+        <div className="preview-document-actions">
+          <button type="button" onClick={() => setShowMarkdownSource((value) => !value)} aria-pressed={showMarkdownSource}>
+            <Code2 size={13} aria-hidden="true" />
+            {showMarkdownSource ? "Belgeyi görüntüle" : "Kaynağı görüntüle"}
+          </button>
+          <button type="button" className="preview-document-open" onClick={onOpen}>Aç <ChevronDown size={12} aria-hidden="true" /></button>
+          {onClose && <button type="button" className="preview-icon-btn" onClick={onClose} aria-label="Önizlemeyi kapat" title="Önizlemeyi kapat"><X size={14} /></button>}
+        </div>
+      </div>
+      {showMarkdownSource ? (
+        <div className="preview-monaco-container">
+          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%"}}>Yükleniyor…</div>}>
+            <Editor theme={monacoTheme} language="markdown" value={content} options={{ readOnly: true, minimap: { enabled: false }, lineNumbers: "on", fontSize, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace", wordWrap: wordWrap ? "on" : "off", scrollBeyondLastLine: false, automaticLayout: true, overviewRulerLanes: 0, hideCursorInOverviewRuler: true, overviewRulerBorder: false, padding: { top: 12, bottom: 12 } }} />
+          </React.Suspense>
+        </div>
+      ) : (
+        <article className="preview-markdown-document">
+          <MarkdownContent content={content} isStreaming={false} onOpenFile={onOpenFile || (() => undefined)} />
+        </article>
+      )}
+    </div>;
   }
 
   function handleToggleWordWrap() {
@@ -35,7 +69,10 @@ export function PreviewPanel({ filePreview, onOpen, onClose }: { filePreview: { 
   }
 
   if (!path) {
-    return <div className="preview-panel-github preview-empty"><div className="preview-empty-icon" aria-hidden="true">‹/›</div><strong>Dosya aç</strong><span>Çalışma alanı ağacından bir dosya seç</span></div>;
+    return <div className="preview-panel-github preview-empty-shell">
+      <div className="preview-empty-path">/</div>
+      <div className="preview-empty"><FolderOpen size={25} strokeWidth={1.45} aria-hidden="true" /><strong>Dosya aç</strong><span>Çalışma alanı ağacından bir dosya seç</span></div>
+    </div>;
   }
 
   if (isBinary) {

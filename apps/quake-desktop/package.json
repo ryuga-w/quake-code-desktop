@@ -18,7 +18,7 @@
     "start": "node dist/server/index.js",
     "desktop:build:main": "tsc -p tsconfig.electron.json && node scripts/electron-cjs-marker.mjs",
     "desktop:brand-electron": "node scripts/ensure-branded-electron.mjs",
-    "desktop:dev": "npm run desktop:build:main && concurrently -n server,web,electron -c green,cyan,magenta \"cross-env QUAKE_BROWSER_EMBEDDED=1 QUAKE_BROWSER_BRIDGE_PORT=9223 QUAKE_CDP_PORT=9222 QUAKE_COMPUTER_USE_BRIDGE_PORT=9224 tsx src/server/index.ts\" \"vite --config vite.config.ts --host 127.0.0.1 --port 5173 --strictPort\" \"node scripts/run-electron-dev.mjs\"",
+    "desktop:dev": "npm run desktop:build:main && concurrently -n server,web,electron -c green,cyan,magenta \"cross-env QUAKE_BROWSER_EMBEDDED=1 QUAKE_BROWSER_BRIDGE_PORT=9223 QUAKE_CDP_PORT=9222 QUAKE_COMPUTER_USE_BRIDGE_PORT=9224 tsx scripts/run-desktop-server.mjs\" \"vite --config vite.config.ts --host 127.0.0.1 --port 5173 --strictPort\" \"node scripts/run-electron-dev.mjs\"",
     "desktop:electron": "npm run desktop:build:main && node scripts/run-electron-dev.mjs",
     "desktop:build:runtime": "npm --prefix ../../packages/tui run build && npm --prefix ../../packages/ai run build && npm --prefix ../../packages/agent run build && npm --prefix ../../packages/jiti run build && npm --prefix ../../packages/coding-agent run build",
     "desktop:build:production": "npm run desktop:build:runtime && npm run build && npm run desktop:build:main",

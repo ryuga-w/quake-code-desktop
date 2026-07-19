@@ -1027,6 +1027,9 @@ export function App() {
     if (action === "open-folder") { void handleOpenFolderNative(); return; }
     if (action === "settings") { openSettingsPage(); return; }
     if (action === "about") { openSettingsPage("about"); return; }
+    if (action === "toggle-sidebar") { toggleLeftPanel(); return; }
+    if (action === "toggle-bottom-panel") { toggleBottomPanel(); return; }
+    if (action === "toggle-right-panel") { toggleRightPanel(); return; }
     if (action === "toggle-theme") toggleTheme();
   }
 

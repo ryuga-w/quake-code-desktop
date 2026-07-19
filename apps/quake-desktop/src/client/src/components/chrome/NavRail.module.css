@@ -1,13 +1,15 @@
 .navrail {
+  --nav-row-height: 29px;
+  --nav-thread-label-max-width: 340px;
   display: flex !important;
   flex-direction: column !important;
   min-width: 0;
   width: 100%;
   height: 100%;
-  padding: 10px 7px 0;
+  padding: 8px 8px 0;
   background: var(--surface-navigation, #201e20);
-  border-right: 1px solid var(--stroke-navigation, #343134);
-  color: #d9d6d9;
+  border-right: 0;
+  color: var(--text-navigation, #d8dade);
   overflow: hidden;
   user-select: none;
   box-sizing: border-box;
@@ -31,38 +33,34 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 38px;
-  padding: 0 6px;
+  height: 40px;
+  padding: 0 5px;
   flex: 0 0 auto;
 }
 
 .brandMark {
   min-width: 0;
-  color: #f0edf0;
+  color: var(--text-navigation, #d8dade);
   line-height: 1;
 }
 
 .brandMark b {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.035em;
+  font-size: 13.5px;
+  font-weight: 620;
+  letter-spacing: -0.025em;
   white-space: nowrap;
-}
-
-.brandMark b span {
-  color: #b06cf5;
 }
 
 .iconBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 27px;
-  height: 27px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border-radius: 6px;
   background: transparent;
-  color: #969196;
+  color: var(--text-navigation-muted, #93979d);
   cursor: pointer;
 }
 
@@ -75,7 +73,7 @@
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  padding: 5px 0 0;
+  padding: 4px 0 0;
 }
 
 .newChat,
@@ -83,32 +81,45 @@
   display: flex !important;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 9px;
   width: 100%;
-  height: 28px;
-  min-height: 28px;
-  padding: 0 7px !important;
+  height: var(--nav-row-height);
+  min-height: var(--nav-row-height);
+  padding: 0 8px !important;
   border-radius: 6px !important;
   background: transparent !important;
-  color: #d8d5d8 !important;
-  font-size: var(--font-navigation, 14.5px) !important;
-  font-weight: 450 !important;
+  color: var(--text-navigation, #d8dade) !important;
+  font-size: var(--font-navigation, 13px) !important;
+  font-weight: 440 !important;
   text-align: left;
   cursor: pointer;
 }
 
 .newChat:hover,
-.navItem:hover,
-.navItemActive {
+.navItem:hover {
   background: var(--surface-navigation-hover, #302d30) !important;
   color: #f1eef1 !important;
   transform: none !important;
 }
 
+.navItemActive {
+  background: var(--surface-navigation-active, #454145) !important;
+  color: #f1eef1 !important;
+}
+
+.newChat:focus-visible,
+.navItem:focus-visible,
+.iconBtn:focus-visible,
+.settingsRow:focus-visible,
+.showMore:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--text-navigation, #d8dade) 46%, transparent);
+  outline-offset: -1px;
+}
+
 .newChat svg,
 .navItem svg {
   flex: 0 0 auto;
-  color: #aaa5aa;
+  color: var(--text-navigation-muted, #93979d);
 }
 
 .newChat span,
@@ -141,7 +152,7 @@
 
 .navItemTrailing {
   position: absolute;
-  top: 3px;
+  top: 4px;
   right: 4px;
   display: inline-flex;
   align-items: center;
@@ -178,7 +189,7 @@
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  margin-top: 13px;
+  margin-top: 15px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -202,12 +213,13 @@
 }
 
 .sectionHead {
-  height: 23px;
-  padding: 3px 5px 4px;
-  color: #777277;
-  font-size: var(--font-navigation-section, 12.5px);
-  font-weight: 650;
+  height: 24px;
+  padding: 4px 8px;
+  color: var(--text-navigation-muted, #777c83);
+  font-size: var(--font-navigation-section, 11.5px);
+  font-weight: 560;
   line-height: 16px;
+  letter-spacing: 0.01em;
 }
 
 .threads {
@@ -223,9 +235,9 @@
 }
 
 .empty {
-  padding: 6px 7px;
-  color: #777277;
-  font-size: var(--font-navigation, 14.5px);
+  padding: 6px 8px;
+  color: var(--text-navigation-muted, #777c83);
+  font-size: var(--font-navigation, 13px);
 }
 
 .thread {
@@ -233,19 +245,19 @@
   align-items: center;
   gap: 4px;
   width: 100%;
-  height: 28px;
-  min-height: 28px;
-  padding: 0 7px;
+  height: var(--nav-row-height);
+  min-height: var(--nav-row-height);
+  padding: 0 8px;
   border-radius: 6px;
   background: transparent;
-  color: #d2cfd2;
-  font-size: 12.5px;
-  line-height: 1;
+  color: color-mix(in srgb, var(--text-navigation, #d8dade) 92%, transparent);
+  font-size: var(--font-navigation, 13px);
+  line-height: 1.25;
   transition: background 100ms ease, color 100ms ease;
 }
 
 .threadFlat {
-  padding-left: 7px;
+  padding-left: 8px;
 }
 
 .thread:hover {
@@ -255,7 +267,8 @@
 
 .threadActive {
   background: var(--surface-navigation-active, #363336);
-  color: #fff;
+  color: var(--text-navigation, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-navigation, #fff) 2.5%, transparent);
 }
 
 .threadMain {
@@ -269,7 +282,7 @@
   background: transparent !important;
   color: inherit !important;
   font: inherit !important;
-  font-weight: 450 !important;
+  font-weight: 440 !important;
   text-align: left;
   cursor: pointer;
 }
@@ -281,8 +294,9 @@
 }
 
 .threadName {
-  flex: 1 1 auto;
+  flex: 0 1 var(--nav-thread-label-max-width);
   min-width: 0;
+  max-width: min(100%, var(--nav-thread-label-max-width));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -394,8 +408,8 @@
   align-items: center;
   gap: 7px;
   width: 100%;
-  height: 29px;
-  padding: 0 7px !important;
+  height: var(--nav-row-height);
+  padding: 0 8px !important;
   border-radius: 6px;
   background: transparent;
   color: #918c91;
@@ -493,8 +507,8 @@
 
 .bottom {
   flex: 0 0 auto;
-  margin: 0 -7px;
-  padding: 5px 7px;
+  margin: 0 -8px;
+  padding: 5px 8px 6px;
   border-top: 1px solid var(--stroke-navigation, #343134);
 }
 
@@ -504,8 +518,8 @@
   gap: 9px;
   width: 100%;
   height: 30px;
-  padding: 0 7px;
-  border-radius: 5px;
+  padding: 0 8px;
+  border-radius: 6px;
   background: transparent;
   color: #ddd9dd;
   text-align: left;
@@ -527,8 +541,8 @@
 }
 
 .settingsLabel {
-  font-size: var(--font-navigation, 14.5px);
-  font-weight: 450;
+  font-size: var(--font-navigation, 13px);
+  font-weight: 440;
 }
 
 /* Existing project tree helpers remain available for compatibility. */
@@ -559,7 +573,6 @@
 
 :global([data-theme="light"]) .navrail {
   background: var(--surface-navigation, #f1eff1);
-  border-right-color: var(--stroke-navigation, #d7d3d7);
   color: #2c292c;
 }
 :global([data-theme="light"]) .brandMark { color: #1e1b1e; }

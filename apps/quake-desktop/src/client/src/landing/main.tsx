@@ -249,8 +249,9 @@ function ProductStage(): React.JSX.Element {
         <div className="product-screen">
           <img
             src="/landing/quake-workspace.png"
-            alt="Quake Code desktop workspace showing the conversation, project navigation, and tool panel"
+            alt="Quake Code desktop workspace showing project navigation, a live conversation, change summaries, the composer, and an embedded browser"
             loading="lazy"
+            decoding="async"
           />
           <div className="screen-scan" aria-hidden="true" />
         </div>

@@ -65,13 +65,11 @@ describe("a11y smoke source contracts", () => {
     expect(src).toContain("Tümünü temizle");
   });
 
-  it("PTY isolation banner keeps role/note and honest Turkish notice", () => {
+  it("keeps PTY isolation metadata server-side without repeating a terminal warning", () => {
     const terminal = read("src/client/src/components/terminal/XtermTerminal.tsx");
-    expect(terminal).toContain('data-testid="pty-isolation-banner"');
-    expect(terminal).toMatch(/role=["']note["']/);
-    expect(terminal).toContain("PTY_ISOLATION_NOTICE_TR");
-    expect(terminal).toMatch(/Etkileşimli terminal OS sandboxed değildir/);
-    expect(terminal).toMatch(/worktree izolasyonunu atlayabilir/);
+    expect(terminal).not.toContain('data-testid="pty-isolation-banner"');
+    expect(terminal).not.toContain("PTY_ISOLATION_NOTICE_TR");
+    expect(terminal).not.toContain("OS sandbox dışı");
 
     const server = read("src/server/terminal-pty.ts");
     expect(server).toContain("PTY_ISOLATION_NOTICE_TR");

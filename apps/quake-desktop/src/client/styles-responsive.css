@@ -13,14 +13,17 @@
   .workspace-chrome {
     --workspace-context-width: clamp(276px, 32vw, 312px);
     right: max(14px, env(safe-area-inset-right));
+    max-width: calc(100vw - 28px);
   }
 
   .workspace-context-card {
     max-width: calc(100vw - 28px);
   }
 
+  /* Regular dock panels become a bottom sheet here. Keep the compact controls,
+     but hide the card itself instead of squeezing it into an unusable strip. */
   .app-shell:has(#app:not(.right-collapsed):not(.subagents-layout-split)) .workspace-context-card {
-    max-height: min(360px, calc(100dvh - min(72dvh, 620px) - var(--titlebar-height, 36px) - 78px));
+    display: none;
   }
 
   #app,
@@ -191,9 +194,48 @@
     --chat-column-gutter: 12px;
   }
 
-  /* The narrow layout already exposes panel controls in the titlebar and uses
-     a full-height sheet; hiding the floating card prevents double overlays. */
+  /* The pinned summary becomes a viewport-safe top sheet instead of vanishing.
+     Its own toggle stays reachable while the timeline remains underneath. */
   .workspace-chrome {
+    --workspace-context-width: auto;
+    top: calc(var(--titlebar-height, 36px) + 8px);
+    right: max(8px, env(safe-area-inset-right));
+    left: max(8px, env(safe-area-inset-left));
+    z-index: calc(var(--z-titlebar, 40) - 1);
+    display: grid;
+    width: auto;
+    max-width: none;
+    justify-items: stretch;
+    gap: 8px;
+  }
+
+  .workspace-chrome-controls {
+    justify-self: end;
+  }
+
+  .workspace-context-card {
+    width: 100%;
+    max-width: none;
+    max-height: min(68dvh, max(180px, calc(100dvh - var(--titlebar-height, 36px) - 104px)));
+    border-radius: 14px;
+    padding: 10px 9px 9px;
+  }
+
+  .workspace-context-plan-items {
+    max-height: min(180px, 24dvh);
+  }
+
+  .workspace-context-card:not(.workspace-context-plan) .workspace-context-items {
+    max-height: min(360px, 42dvh);
+  }
+
+  .workspace-context-plan .workspace-context-items {
+    max-height: min(210px, 26dvh);
+  }
+
+  /* A narrow right panel is a full-height sheet, so showing both surfaces would
+     produce two competing overlays. Closing the sheet restores this card. */
+  .app-shell:has(#app:not(.right-collapsed)) .workspace-chrome {
     display: none;
   }
 
@@ -306,6 +348,25 @@
 }
 
 @media (max-width: 560px) {
+  .workspace-context-card {
+    border-radius: 12px;
+    padding-inline: 8px;
+  }
+
+  .workspace-context-head {
+    padding-inline: 3px;
+  }
+
+  .workspace-context-row {
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    gap: 7px;
+    padding-inline: 5px;
+  }
+
+  .workspace-context-row b {
+    max-width: 72px;
+  }
+
   .composer-footer-right {
     width: 100%;
     justify-content: space-between;
