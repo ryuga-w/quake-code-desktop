@@ -1,4 +1,0 @@
-interface:
-  display_name: "Quake Release"
-  short_description: "Turn diffs into release notes"
-  default_prompt: "Use $quake-release to inspect these changes and produce concise release notes with highlights, fixes, and any upgrade or migration callouts."

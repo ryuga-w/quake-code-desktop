@@ -1,4 +1,0 @@
-interface:
-  display_name: "Quake Security"
-  short_description: "Audit code, auth, and config for real risks"
-  default_prompt: "Use $quake-security to inspect this project for meaningful security issues across auth, secrets, config, trust boundaries, and exposed routes, then prioritize fixes by risk."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Quake Fix"
-  short_description: "Explain failures and rank likely fixes"
-  default_prompt: "Use $quake-fix to analyze this error, rank the most likely root causes, point me to the right files, and propose the safest fix path."

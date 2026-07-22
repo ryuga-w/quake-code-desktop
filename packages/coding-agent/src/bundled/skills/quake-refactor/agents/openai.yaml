@@ -1,4 +1,0 @@
-interface:
-  display_name: "Quake Refactor"
-  short_description: "Analyze hotspots and plan safe refactors"
-  default_prompt: "Use $quake-refactor to inspect this module and produce a safe, step-by-step refactor plan with extraction seams, risks, and validation steps."

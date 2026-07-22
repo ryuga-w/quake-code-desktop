@@ -59,12 +59,12 @@ describe("timeline markdown rendering contract", () => {
     expect(styles).not.toMatch(
       /\.streamdown-scope :where\(:not\(pre\) > code\),\s*\.inline-code \{[^}]*background: transparent !important;/,
     );
-    expect(styles).toContain("--chat-column-max-width: 736px;");
+    expect(styles).toContain("--codex-chat-copy: 15.5px;");
     expect(styles).toContain("--composer-max-width: 736px;");
-    expect(styles).toContain("--codex-chat-copy: 15px;");
+    expect(styles).toContain("--codex-chat-copy: 15.5px;");
     expect(styles).toContain("--codex-chat-line: 1.62;");
-    expect(styles).toContain("font: 13px/1.62 var(--font-mono);");
-    expect(styles).toContain("font-size: 14px;");
+    expect(styles).toContain("font: 13.5px/1.62 var(--font-mono);");
+    expect(styles).toContain("font-size: 14.5px;");
     expect(styles).toContain('.qc-md-ul.contains-task-list > .qc-md-li.task-list-item');
     expect(styles).toContain('input[type="checkbox"]:checked');
     expect(styles).toContain("list-style-position: outside !important;");

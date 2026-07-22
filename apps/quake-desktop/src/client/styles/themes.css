@@ -1,0 +1,344 @@
+/* ============================================================
+   Themes — professional monochrome.
+   Default / dark: near-true black, subtle elevation (Cursor/Linear vibe).
+   Light: clean white product theme.
+   ============================================================ */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Surfaces: Codex-style warm charcoal, with restrained elevation steps */
+  --bg: #171716;
+  --paper: #1a1919;
+  --paper-soft: #201d1f;
+  --panel: #1d1d1c;
+  --panel-2: #252524;
+  --surface: #20201f;
+  --surface-strong: #2b2b2a;
+  --text: #e8e8ea;
+  --heading: #f5f5f7;
+  --muted: #a0a0a6;
+  --muted-2: #6e6e76;
+  --accent: #f0f0f2;
+  --accent-2: #c8c8ce;
+  --accent-bright: #ffffff;
+  --accent-soft: rgba(255, 255, 255, 0.07);
+  --accent-wash: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.035) inset, 0 8px 28px rgba(0, 0, 0, 0.32);
+  --error: #ff6b63;
+  --error-soft: rgba(255, 107, 99, 0.14);
+  --warning: #e6b84d;
+  --warning-soft: rgba(230, 184, 77, 0.14);
+  --success: #3ecf8e;
+  --success-soft: rgba(62, 207, 142, 0.14);
+  --elev-1: #1c1c1b;
+  --elev-2: #242423;
+  --shimmer-base: rgba(255, 255, 255, 0.04);
+  --shimmer-hi: rgba(255, 255, 255, 0.09);
+  /* Markdown / code */
+  --code-bg: #1c1c1b;
+  --code-header-bg: #222221;
+  --code-border: rgba(255, 255, 255, 0.1);
+  --code-fg: #e6e6e8;
+  --code-inline-bg: #1a1a1a;
+  --code-inline-fg: #f0f0f2;
+  /* Composer and user message surfaces. */
+  --composer-surface: #242426;
+  --composer-project-surface: #18191b;
+  --composer-text: #f5f5f7;
+  --composer-placeholder: #8d8d94;
+  --composer-compact-surface: #242426;
+  --composer-compact-border: rgba(255, 255, 255, 0.12);
+  --composer-compact-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+  --composer-focus-surface: #242426;
+  --composer-focus-border: #3a383a;
+  --composer-focus-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  --user-bubble-bg: #1b1b1d;
+  --user-bubble-fg: #f5f5f7;
+  --user-bubble-shadow: none;
+  --thinking-fg: #7a7a82;
+  --tool-card-bg: #222221;
+  --tool-card-fg: #c8c8ce;
+  --chat-column-max-width: 736px;
+  --chat-column-gutter: 24px;
+  --radius-lg: 10px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-size: 14px;
+  --animation-speed: 1;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  interpolate-size: allow-keywords;
+  /* Titlebar / chrome */
+  --titlebar-bg: color-mix(in srgb, var(--paper) 88%, transparent);
+  --overlay-chrome: #171716;
+  --overlay-content: #e8e8ea;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f0f0f0;
+  --paper: #f5f5f5;
+  --paper-soft: #ececec;
+  --panel: #ffffff;
+  --panel-2: #f7f7f7;
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --text: #2c2c2e;
+  --heading: #111111;
+  --muted: #6b6b70;
+  --muted-2: #8e8e93;
+  --accent: #1c1c1e;
+  --accent-2: #3a3a3c;
+  --accent-bright: #000000;
+  --accent-soft: rgba(0, 0, 0, 0.06);
+  --accent-wash: rgba(0, 0, 0, 0.04);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --error: #d12f26;
+  --error-soft: rgba(209, 47, 38, 0.12);
+  --warning: #9a6a00;
+  --warning-soft: rgba(154, 106, 0, 0.14);
+  --success: #0a7a4f;
+  --success-soft: rgba(10, 122, 79, 0.14);
+  --elev-1: #ffffff;
+  --elev-2: #f3f3f3;
+  --shimmer-base: rgba(0, 0, 0, 0.04);
+  --shimmer-hi: rgba(0, 0, 0, 0.08);
+  --code-bg: #f7f7f8;
+  --code-header-bg: #efeff1;
+  --code-border: rgba(0, 0, 0, 0.1);
+  --code-fg: #1f2328;
+  --code-inline-bg: #ececef;
+  --code-inline-fg: #1c1c1e;
+  --composer-surface: #ffffff;
+  --composer-text: #1c1c1e;
+  --composer-placeholder: #747479;
+  --composer-compact-surface: #ffffff;
+  --composer-compact-border: rgba(0, 0, 0, 0.1);
+  --composer-compact-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --composer-focus-surface: #ffffff;
+  --composer-focus-border: rgba(0, 0, 0, 0.12);
+  --composer-focus-shadow: 0 8px 26px rgba(0, 0, 0, 0.1);
+  --user-bubble-bg: var(--surface-navigation);
+  --user-bubble-fg: #1c1c1e;
+  --user-bubble-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.06);
+  --thinking-fg: #8a8a8f;
+  --tool-card-bg: #f5f5f7;
+  --tool-card-fg: #3a3a3c;
+  --chat-column-max-width: 736px;
+  --chat-column-gutter: 24px;
+  --radius-lg: 10px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-size: 14px;
+  --animation-speed: 1;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  interpolate-size: allow-keywords;
+  --titlebar-bg: color-mix(in srgb, var(--paper) 88%, transparent);
+  --overlay-chrome: #ffffff;
+  --overlay-content: #1a1a1a;
+}
+
+/* Dark chrome polish */
+[data-theme="dark"] .main.empty-chat,
+[data-theme="dark"] #app,
+[data-theme="dark"] .main {
+  background: var(--bg);
+  background-image: none;
+}
+[data-theme="dark"] .status-bar {
+  background: var(--paper);
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="dark"] .message.assistant,
+[data-theme="dark"] .message.clean-assistant {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+[data-theme="dark"] .user-msg-bubble {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--user-bubble-bg);
+  color: var(--user-bubble-fg);
+  box-shadow: var(--user-bubble-shadow);
+}
+[data-theme="dark"] .user-msg-text {
+  color: var(--user-bubble-fg) !important;
+}
+[data-theme="dark"] .user-msg-time {
+  color: var(--muted-2);
+}
+[data-theme="light"] .user-msg-text {
+  color: var(--user-bubble-fg) !important;
+}
+[data-theme="dark"] .streamdown-scope :where(:not(pre) > code),
+[data-theme="dark"] .inline-code {
+  background: transparent !important;
+  color: inherit !important;
+  border-color: transparent !important;
+}
+[data-theme="dark"] .composer {
+  background: var(--panel);
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+}
+[data-theme="dark"] .composer:hover,
+[data-theme="dark"] .composer:focus-within {
+  border-color: var(--border-strong);
+  background: var(--surface-strong);
+}
+[data-theme="dark"] .composer textarea,
+[data-theme="dark"] .composer.expanded textarea,
+[data-theme="dark"] .composer.has-images textarea {
+  color: var(--heading);
+}
+[data-theme="dark"] .composer textarea::placeholder {
+  color: var(--muted-2);
+}
+[data-theme="dark"] .sidebar {
+  background: var(--paper-soft);
+  border-color: var(--border);
+}
+[data-theme="dark"] .rightbar {
+  background: var(--surface-timeline, var(--bg));
+  border-color: var(--border);
+}
+[data-theme="dark"] .rightbar .panel-search,
+[data-theme="dark"] .rightbar .select {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+[data-theme="dark"] .rightbar .list-item:hover,
+[data-theme="dark"] .rightbar .list-item:focus-within,
+[data-theme="dark"] .tree-row:hover,
+[data-theme="dark"] .tree-row.selected,
+[data-theme="dark"] .rightbar .tree-row:hover,
+[data-theme="dark"] .rightbar .tree-row.selected {
+  background: var(--accent-soft);
+}
+[data-theme="dark"] .workspace-switcher {
+  background: var(--panel) !important;
+  border: 1px solid var(--border);
+}
+[data-theme="dark"] .settings-dialog,
+[data-theme="dark"] .modal-card,
+[data-theme="dark"] .gemini-modal {
+  background: linear-gradient(180deg, #121212 0%, #0a0a0a 100%);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="light"] .main.empty-chat {
+  background: var(--bg);
+  background-image: none;
+  animation: none;
+}
+[data-theme="light"] #app {
+  background: var(--bg);
+}
+[data-theme="light"] .main {
+  background: var(--bg);
+}
+[data-theme="light"] .status-bar {
+  background: var(--paper);
+  border-color: var(--border);
+  color: var(--text);
+}
+/* Titlebar: module CSS'te soft fade + blur — burada ezip soluklatma */
+/* Light chat markdown: flat content, no dark residue */
+[data-theme="light"] .message.assistant,
+[data-theme="light"] .message.clean-assistant {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+[data-theme="light"] .user-msg-bubble {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--user-bubble-bg, #ffffff);
+  color: var(--user-bubble-fg, #1c1c1e);
+  box-shadow: var(--user-bubble-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+[data-theme="light"] .user-msg-action:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #1c1c1e !important;
+}
+[data-theme="light"] .streamdown-scope :where(:not(pre) > code),
+[data-theme="light"] .inline-code {
+  background: transparent !important;
+  color: inherit !important;
+  border-color: transparent !important;
+}
+[data-theme="light"] .streaming-thinking-body {
+  color: var(--thinking-fg, #8a8a8f);
+}
+/* Light surfaces that still used dark hardcodes */
+[data-theme="light"] .rightbar .panel-search,
+[data-theme="light"] .rightbar .select {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--text);
+}
+[data-theme="light"] .rightbar .list-item:hover,
+[data-theme="light"] .rightbar .list-item:focus-within,
+[data-theme="light"] .tree-row:hover,
+[data-theme="light"] .tree-row.selected,
+[data-theme="light"] .rightbar .tree-row:hover,
+[data-theme="light"] .rightbar .tree-row.selected {
+  background: rgba(0, 0, 0, 0.05);
+}
+[data-theme="light"] .sidebar-rail-toggle:hover,
+[data-theme="light"] .sidebar-primary button:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .workspace-switcher {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .tree-load-more,
+[data-theme="light"] .timeline-load-older {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #3a3a3c;
+}
+[data-theme="light"] .tree-load-more:hover,
+[data-theme="light"] .timeline-load-older:hover {
+  background: #f5f5f7;
+  border-color: rgba(0, 0, 0, 0.14);
+  color: #111;
+}
+[data-theme="light"] .tree-load-more span,
+[data-theme="light"] .timeline-load-older span {
+  color: #8e8e93;
+}
+[data-theme="light"] .rightbar .preview-panel .preview,
+[data-theme="light"] .preview-panel .preview {
+  background: #f7f7f8;
+  color: #2c2c2e;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .sidebar,
+[data-theme="light"] .rightbar {
+  background: #f3f3f3;
+  border-color: rgba(0, 0, 0, 0.07);
+}
+[data-theme="light"] .rightbar[data-active-panel="launcher"] {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.07);
+}

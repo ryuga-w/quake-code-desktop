@@ -1,0 +1,72 @@
+/* ============================================ */
+/* Modal Panel Overrides                       */
+/* ============================================ */
+
+.gemini-modal .panel {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+.gemini-modal .panel-title-row {
+  display: none;
+}
+
+.gemini-modal .panel-search {
+  background: color-mix(in srgb, var(--heading) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #e6e6e6;
+  margin-bottom: 12px;
+}
+
+.gemini-modal .panel-search::placeholder {
+  color: #666;
+}
+
+.gemini-modal .session-item {
+  background: color-mix(in srgb, var(--heading) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--heading) 6%, transparent);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.gemini-modal .session-item:hover {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+  border-color: color-mix(in srgb, var(--heading) 10%, transparent);
+}
+
+.gemini-modal .session-item .title {
+  color: #e6e6e6;
+}
+
+.gemini-modal .session-item .sub {
+  color: #888;
+}
+
+.gemini-modal .session-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gemini-modal .session-toolbar button {
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--heading) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  border-radius: 8px;
+  color: #aaa;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gemini-modal .session-toolbar button:hover,
+.gemini-modal .session-toolbar button.active {
+  background: color-mix(in srgb, var(--heading) 10%, transparent);
+  border-color: color-mix(in srgb, var(--heading) 12%, transparent);
+  color: #fff;
+}

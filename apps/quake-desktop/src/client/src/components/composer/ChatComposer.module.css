@@ -2155,3 +2155,73 @@
     animation: none;
   }
 }
+
+.quickActionsContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 12px auto 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: var(--composer-max-width, 720px);
+}
+
+.quickActionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 480;
+  line-height: 1;
+  background: color-mix(in srgb, var(--heading, #ffffff) 4%, var(--panel, #1d1d1c));
+  border: 1px solid color-mix(in srgb, var(--heading, #ffffff) 9%, transparent);
+  color: var(--text-muted, var(--muted, #9ca3af));
+  box-shadow: none !important;
+  cursor: pointer;
+  user-select: none;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.quickActionIcon {
+  flex: 0 0 auto;
+  opacity: 0.75;
+  transition: opacity 140ms ease;
+}
+
+.quickActionPill:hover {
+  background: color-mix(in srgb, var(--heading, #ffffff) 9%, var(--panel, #1d1d1c));
+  border-color: color-mix(in srgb, var(--heading, #ffffff) 18%, transparent);
+  color: var(--heading, #ffffff);
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.quickActionPill:hover .quickActionIcon {
+  opacity: 1;
+}
+
+/* Light mode ChatGPT / Claude ultra-minimalist style: zero drop shadow, crisp thin border */
+:global([data-theme="light"]) .quickActionPill {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  color: #4b5563;
+  box-shadow: none !important;
+}
+
+:global([data-theme="light"]) .quickActionPill:hover {
+  background: #f3f4f6;
+  border-color: rgba(0, 0, 0, 0.16);
+  color: #111827;
+}
+
+:global([data-theme="light"]) .quickActionIcon {
+  color: #6b7280;
+}
+
+:global([data-theme="light"]) .quickActionPill:hover .quickActionIcon {
+  color: #111827;
+}
+

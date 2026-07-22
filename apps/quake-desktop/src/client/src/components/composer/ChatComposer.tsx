@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUp, Box, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X, type LucideIcon } from "lucide-react";
+import { ArrowUp, Box, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X, Sparkles, Bug, TestTube, type LucideIcon } from "lucide-react";
 import type { WebContextUsage, WebPlanState, WebSkillInfo } from "../../../../shared/protocol";
 import type { ComposerImage, QueuedUserMessage } from "../../types";
 import { THINKING_OPTIONS } from "../../constants";
@@ -364,6 +364,40 @@ export function ChatComposer({
       cancelLabel: "Kapat",
     });
   }, [closeApprovalMenu, confirm]);
+
+  const renderQuickActions = () => {
+    if (hasVisibleMessages || compact) return null;
+    const actions = [
+      { label: "Kodu Açıkla", command: "/explain", icon: Sparkles },
+      { label: "Hata Bul", command: "/debug", icon: Bug },
+      { label: "Test Yaz", command: "/test", icon: TestTube },
+      { label: "Dokümante Et", command: "/doc", icon: FileText },
+    ];
+    return (
+      <div className={styles.quickActionsContainer}>
+        {actions.map((act) => {
+          const IconComponent = act.icon;
+          return (
+            <button
+              key={act.command}
+              type="button"
+              className={styles.quickActionPill}
+              onClick={() => {
+                onPromptChange(act.command);
+                requestAnimationFrame(() => {
+                  promptRef.current?.focus();
+                  onSubmitCurrent();
+                });
+              }}
+            >
+              <IconComponent size={13.5} strokeWidth={1.75} className={styles.quickActionIcon} />
+              <span>{act.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   return <>
     {!compact && plan?.steps.some((step) => !step.completed && step.status !== "completed")
@@ -971,6 +1005,7 @@ export function ChatComposer({
         </div>
       </footer>
     </form>
+    {renderQuickActions()}
   </>;
 }
 

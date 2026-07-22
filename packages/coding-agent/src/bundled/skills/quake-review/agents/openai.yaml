@@ -1,4 +1,0 @@
-interface:
-  display_name: "Quake Review"
-  short_description: "Give high-signal senior code review feedback"
-  default_prompt: "Use $quake-review to review this PR or the current branch/uncommitted changes. Follow references/rubric.md. Produce merge readiness, high-severity issues, medium concerns, testing gaps, optional polish, and next action. Prefer fewer stronger findings."

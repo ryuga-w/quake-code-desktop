@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
-const appStyles = readFileSync(join(root, "src/client/styles.css"), "utf8");
+const appStyles = readFileSync(join(root, "src/client/styles.css"), "utf8") + readFileSync(join(root, "src/client/styles/themes.css"), "utf8");
 const composerStyles = readFileSync(join(root, "src/client/src/components/composer/ChatComposer.module.css"), "utf8");
 const queueStyles = readFileSync(join(root, "src/client/src/components/composer/ComposerQueue.module.css"), "utf8");
 const planQuestionStyles = readFileSync(join(root, "src/client/src/components/plan/PlanQuestionsPanel.module.css"), "utf8");

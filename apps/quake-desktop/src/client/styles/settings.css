@@ -1,0 +1,51 @@
+/* ============================================================
+   Settings Modal — theme-aware floating card
+   ============================================================ */
+.settings-backdrop {
+  position: fixed;
+  inset: var(--titlebar-height, 36px) 0 0;
+  z-index: 1200;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
+  /* Solid overlay — avoid backdrop-filter blur (expensive while chat streams under modal) */
+  background: rgba(0, 0, 0, 0.62);
+  contain: layout paint;
+}
+
+.settings-dialog {
+  position: relative;
+  z-index: 1201;
+  width: 100vw;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  flex-shrink: 0;
+  background: var(--panel, #0c0c0c);
+  color: var(--text, #e8e8ea);
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  font-size: 13.2px;
+  /* Isolate repaints from the live chat underneath */
+  contain: layout paint style;
+}
+[data-theme="light"] .settings-backdrop {
+  background: rgba(28, 28, 32, 0.55);
+}
+[data-theme="light"] .settings-dialog {
+  background: #ffffff;
+  color: #1c1c1e;
+  box-shadow:
+    0 28px 80px -16px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.settings-dialog > * {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}

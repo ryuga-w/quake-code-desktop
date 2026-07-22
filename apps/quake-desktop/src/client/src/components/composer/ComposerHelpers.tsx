@@ -137,21 +137,30 @@ export const SlashAutocomplete = React.forwardRef<SlashAutocompleteHandle, Slash
   </div>;
 });
 
+import { FileCode, Terminal, Wrench } from "lucide-react";
+
 export function ContextChips({ chips, onRemove }: { chips: Array<{ id: string; type: string; label: string; text: string }>; onRemove: (id: string) => void }) {
   // Browser annotations are already represented by their numbered preview
   // inside the composer. Keep legacy annotation chips model-only so the UI
   // does not show the same attachment twice.
   const visibleChips = chips.filter((chip) => chip.type !== "annotation");
   if (!visibleChips.length) return null;
+
+  const getChipIcon = (type: string) => {
+    if (type === "file") return <FileCode size={13} strokeWidth={2} />;
+    if (type === "terminal") return <Terminal size={13} strokeWidth={2} />;
+    return <Wrench size={13} strokeWidth={2} />;
+  };
+
   return <div className="context-chips">
     <span>Bağlam</span>
-    {visibleChips.map((chip) => <button type="button" key={chip.id} className={`context-chip ${chip.type}`} onClick={() => onRemove(chip.id)}><b>{contextTypeLabel(chip.type)}</b>{chip.label}<em>×</em></button>)}
+    {visibleChips.map((chip) => (
+      <button type="button" key={chip.id} className={`context-chip ${chip.type}`} onClick={() => onRemove(chip.id)}>
+        <span className="chip-icon-wrapper">{getChipIcon(chip.type)}</span>
+        <span className="chip-label-text">{chip.label}</span>
+        <em>×</em>
+      </button>
+    ))}
   </div>;
 }
 
-function contextTypeLabel(type: string): string {
-  if (type === "file") return "dosya";
-  if (type === "terminal") return "terminal";
-  if (type === "tool") return "araç";
-  return type;
-}

@@ -6,7 +6,7 @@ const root = process.cwd();
 
 describe("settings navigation", () => {
   it("keeps the application titlebar visible above full-page settings", () => {
-    const shellCss = readFileSync(join(root, "src/client/styles.css"), "utf8");
+    const shellCss = readFileSync(join(root, "src/client/styles.css"), "utf8") + readFileSync(join(root, "src/client/styles/settings.css"), "utf8");
 
     expect(shellCss).toContain("inset: var(--titlebar-height, 36px) 0 0");
     expect(shellCss).toMatch(/\.settings-dialog\s*\{[\s\S]*?height:\s*100%;/);

@@ -18,7 +18,7 @@ const titlebarStyles = readFileSync(join(root, "src/client/src/components/chrome
 const navStyles = readFileSync(join(root, "src/client/src/components/chrome/NavRail.module.css"), "utf8");
 const foundation = readFileSync(join(root, "src/client/foundation.css"), "utf8");
 const settings = readFileSync(join(root, "src/client/src/components/settings/SettingsPanels.tsx"), "utf8");
-const styles = readFileSync(join(root, "src/client/styles.css"), "utf8");
+const styles = readFileSync(join(root, "src/client/styles.css"), "utf8") + readFileSync(join(root, "src/client/styles/themes.css"), "utf8");
 const responsive = readFileSync(join(root, "src/client/styles-responsive.css"), "utf8");
 
 describe("timeline shell and left sidebar sizing", () => {

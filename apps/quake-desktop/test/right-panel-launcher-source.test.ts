@@ -9,7 +9,7 @@ const rightTabs = readFileSync(join(root, "src/client/src/components/shell/Right
 const shell = readFileSync(join(root, "src/client/src/app/AppShell.tsx"), "utf8");
 const dock = readFileSync(join(root, "src/client/src/app/hooks/useRightDock.ts"), "utf8");
 const keyboard = readFileSync(join(root, "src/client/src/app/hooks/useAppKeyboard.ts"), "utf8");
-const globalStyles = readFileSync(join(root, "src/client/styles.css"), "utf8");
+const globalStyles = readFileSync(join(root, "src/client/styles.css"), "utf8") + readFileSync(join(root, "src/client/styles/themes.css"), "utf8");
 
 describe("Codex reference right-panel launcher", () => {
   it("uses the reference item order, labels, and shortcuts", () => {

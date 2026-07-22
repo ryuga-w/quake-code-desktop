@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Reverse-engineering / unlock tooling (not for this repo)
+.codex-*
+*.asar
+.codex-asar-verify/
+.codex-asar-verify-v2/
+.codex-antigravity-asar-*/
+.codex-extract-antigravity-proto.cjs
+.codex-find-pe-xrefs.py
+.codex-generate-native-byom-state.cjs
+.codex-native-byom-state.template.pbtxt
+.codex-patch-embedded-mainjs.cjs
+.codex-patch-zip-mainjs.cjs
+.codex-unlock-native-byom.cjs
+
+# Game / application cheat & injection tooling (not for this repo)
+plugins/
+manwe_qa_menu.*
+
+# Stray files
+=
+
+# Screenshots
+*.png

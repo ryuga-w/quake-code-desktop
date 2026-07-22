@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const composer = readFileSync(join(process.cwd(), "src/client/src/components/composer/ChatComposer.tsx"), "utf8");
 const composerStyles = readFileSync(join(process.cwd(), "src/client/src/components/composer/ChatComposer.module.css"), "utf8");
-const appStyles = readFileSync(join(process.cwd(), "src/client/styles.css"), "utf8");
+const appStyles = readFileSync(join(process.cwd(), "src/client/styles.css"), "utf8") + readFileSync(join(process.cwd(), "src/client/styles/themes.css"), "utf8");
 
 describe("composer controls source contract", () => {
   it("keeps the composer surface fixed across hover and focus", () => {
