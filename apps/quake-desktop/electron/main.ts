@@ -298,6 +298,7 @@ async function startBackend(cwd: string): Promise<string> {
     host: HOST,
     secrets: loadMcpSecrets(),
     agentDir: serverAgentDir(),
+    publicDir: app.isPackaged ? path.join(app.getAppPath(), "dist", "client") : undefined,
   });
   ipcMain.handle("workspace:pickFolders", async () => pickWorkspaces(mainWindow ?? undefined));
   ipcMain.handle("workspace:rememberRoots", (_event, roots: unknown, activeRoot: unknown) => {

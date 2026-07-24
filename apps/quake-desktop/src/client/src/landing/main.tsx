@@ -14,6 +14,8 @@ import {
 import "../../landing.css";
 
 const installCommand = "npm install -g @mrquake/quakecode-cli";
+const releaseVersion = "0.1.1";
+const releaseUrl = "https://github.com/mrquakex/quake-code/releases";
 
 const providers = [
   { name: "Anthropic", src: "/providers/anthropic.svg" },
@@ -80,8 +82,8 @@ function Navigation(): React.JSX.Element {
         <a href="#surfaces" onClick={close}>Surfaces</a>
         <a href="#principles" onClick={close}>Principles</a>
         <a className="nav-signin" href="/auth.html?mode=login" onClick={close}>Sign in</a>
-        <a className="nav-cta" href="/auth.html?mode=signup" onClick={close}>
-          Create account <ArrowRight aria-hidden="true" />
+        <a className="nav-cta" href={releaseUrl} target="_blank" rel="noreferrer" onClick={close}>
+          Download preview <ArrowRight aria-hidden="true" />
         </a>
       </nav>
     </header>
@@ -149,7 +151,7 @@ function Hero(): React.JSX.Element {
       <div className="hero-shade" aria-hidden="true" />
       <div className="hero-grid" aria-hidden="true" />
       <div className="hero-content">
-        <p className="eyebrow"><span /> Agentic development environment / Runtime 1.11.2</p>
+        <p className="eyebrow"><span /> Windows preview / v{releaseVersion} / Bring your own key</p>
         <h1 id="hero-title">
           <span>DON&apos;T JUST</span>
           <span>WRITE CODE.</span>
@@ -158,11 +160,12 @@ function Hero(): React.JSX.Element {
         <div className="hero-bottom">
           <p>
             Quake Code sees the workspace, runs the tools, and turns intent into
-            verified change—across terminal, desktop, and mobile.
+            verified change. Start with the Windows preview and bring the models
+            you already trust.
           </p>
           <div className="hero-actions">
-            <a className="button button-primary" href="/auth.html?mode=signup">
-              Start building <ArrowRight aria-hidden="true" />
+            <a className="button button-primary" href={releaseUrl} target="_blank" rel="noreferrer">
+              Download Windows Preview <ArrowRight aria-hidden="true" />
             </a>
             <a className="button button-quiet" href="#product">See the system</a>
           </div>
@@ -188,6 +191,25 @@ function ActionTicker(): React.JSX.Element {
         ))}
       </div>
     </div>
+  );
+}
+
+function LaunchStrip(): React.JSX.Element {
+  return (
+    <aside className="launch-strip" aria-label={`Quake Code Windows preview version ${releaseVersion}`}>
+      <div className="launch-strip-main">
+        <span>LATEST BUILD</span>
+        <strong>Windows Preview <em>v{releaseVersion}</em></strong>
+      </div>
+      <div className="launch-strip-meta" aria-label="Release details">
+        <span>Windows 10/11 x64</span>
+        <span>BYOK</span>
+        <span>SHA-256 available</span>
+      </div>
+      <a className="launch-strip-link" href={releaseUrl} target="_blank" rel="noreferrer">
+        Get the preview <ArrowRight aria-hidden="true" />
+      </a>
+    </aside>
   );
 }
 
@@ -375,8 +397,22 @@ function Install(): React.JSX.Element {
       <div className="install-orbit" aria-hidden="true"><i /><i /><i /></div>
       <div className="install-content" data-reveal>
         <img src="/quake-code-q.png" width="96" height="96" alt="" />
-        <p className="eyebrow"><span /> THE NEXT BUILD STARTS HERE</p>
-        <h2>MAKE THE<br /><em>WHOLE SYSTEM</em><br />MOVE.</h2>
+        <p className="eyebrow"><span /> WINDOWS PREVIEW / v{releaseVersion}</p>
+        <h2>START WITH<br /><em>THE PREVIEW.</em></h2>
+        <p className="install-lede">
+          Download the first public build, connect your own provider key, and put the
+          whole development system in motion.
+        </p>
+        <div className="install-actions">
+          <a className="button button-primary" href={releaseUrl} target="_blank" rel="noreferrer">
+            Download Windows Preview <ArrowRight aria-hidden="true" />
+          </a>
+          <a className="button button-quiet" href={releaseUrl} target="_blank" rel="noreferrer">
+            Release notes
+          </a>
+        </div>
+        <p className="install-meta">v{releaseVersion} · Windows 10/11 x64 · 162 MB · SHA-256 available</p>
+        <div className="install-divider"><span>For terminal users</span></div>
         <CopyInstallCommand />
         <div className="install-notes">
           <span><Check /> Node.js 20+</span>
@@ -407,6 +443,7 @@ function LandingPage(): React.JSX.Element {
       <main id="main">
         <Hero />
         <ActionTicker />
+        <LaunchStrip />
         <SystemManifesto />
         <ProductStage />
         <Surfaces />

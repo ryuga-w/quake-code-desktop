@@ -17,6 +17,11 @@ import {
   X,
 } from "lucide-react";
 import { formatSessionTitle } from "../../lib/render";
+import {
+  leftSidebarSizeLabel,
+  nextLeftSidebarSize,
+  type LeftSidebarSize,
+} from "../../lib/layout-sizing";
 import { useContextMenu, type MenuItem } from "./ContextMenu";
 import styles from "./NavRail.module.css";
 
@@ -57,6 +62,8 @@ export type NavView = "chat" | "search" | "history" | "projects" | "scheduled" |
 export function NavRail({
   leftOpen,
   onToggle,
+  sidebarSize,
+  onCycleSidebarSize,
   workspaceName,
   workspacePath,
   onOpenWorkspace,
@@ -87,6 +94,8 @@ export function NavRail({
 }: {
   leftOpen: boolean;
   onToggle: () => void;
+  sidebarSize: LeftSidebarSize;
+  onCycleSidebarSize: () => void;
   workspaceName: string;
   workspacePath: string;
   onOpenWorkspace: () => void;
@@ -120,6 +129,7 @@ export function NavRail({
   onRemoveProject?: (cwd: string) => void;
 }) {
   void _onOpenSessions;
+  void onToggle;
   const navMenu = useContextMenu();
   const [showAllSessions, setShowAllSessions] = useState(false);
   const [renamingSession, setRenamingSession] = useState<NavSession>();
@@ -158,6 +168,9 @@ export function NavRail({
   );
   const displayedSessions = showAllSessions ? sortedSessions : sortedSessions.slice(0, 10);
   const hasMoreSessions = sortedSessions.length > 10;
+  const sidebarSizeLabel = leftSidebarSizeLabel(sidebarSize);
+  const nextSidebarSizeLabel = leftSidebarSizeLabel(nextLeftSidebarSize(sidebarSize));
+  const sidebarSizeGlyph = sidebarSize === "quarter" ? "¼" : "½";
 
   return (
     <aside className={`${styles.navrail} ${leftOpen ? "" : styles.collapsed}`} aria-hidden={!leftOpen} aria-label="Gezinme">
@@ -165,9 +178,20 @@ export function NavRail({
         <div className={styles.brandMark} aria-label="Quake Code">
           <b>Quake Code</b>
         </div>
-        <button type="button" className={styles.iconBtn} onClick={onSearch} aria-label="Sohbetlerde ara" title="Sohbetlerde ara">
-          <Search size={15} strokeWidth={1.8} aria-hidden="true" />
-        </button>
+        <div className={styles.topActions}>
+          <button
+            type="button"
+            className={styles.panelSizeButton}
+            onClick={onCycleSidebarSize}
+            aria-label={`Sol panel genişliği: ${sidebarSizeLabel}. Sonraki: ${nextSidebarSizeLabel}`}
+            title={`Sol panel: ${sidebarSizeLabel} → ${nextSidebarSizeLabel}`}
+          >
+            <span aria-hidden="true">{sidebarSizeGlyph}</span>
+          </button>
+          <button type="button" className={styles.iconBtn} onClick={onSearch} aria-label="Sohbetlerde ara" title="Sohbetlerde ara">
+            <Search size={15} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       <div className={styles.primaryBlock}>

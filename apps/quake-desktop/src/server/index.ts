@@ -136,7 +136,10 @@ function redactMcpSnapshot(snapshot: any): any {
 
 const sourceClientDir = join(projectRoot, "src", "client");
 const builtClientDir = join(projectRoot, "dist", "client");
-const publicDir = existsSync(builtClientDir) ? builtClientDir : sourceClientDir;
+// Electron passes the exact asar path for packaged builds. Do not fall back to
+// src/client there: that page is a Vite development warning, not a production UI.
+const configuredPublicDir = process.env.QUAKE_WEB_PUBLIC_DIR?.trim();
+const publicDir = configuredPublicDir || (existsSync(join(builtClientDir, "index.html")) ? builtClientDir : sourceClientDir);
 const port = Number(process.env.QUAKE_WEB_PORT ?? 3737);
 const host = process.env.QUAKE_WEB_HOST ?? "127.0.0.1";
 

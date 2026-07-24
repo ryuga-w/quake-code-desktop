@@ -6,11 +6,14 @@ import { copyTextWithToast } from "../lib/copy-toast";
 import { formatComposerModelLabel, thinkingLabel } from "../lib/format-utils";
 import { normalizeClientPath } from "../lib/path-utils";
 import {
-  clampLeftSidebarWidth,
+  getLeftSidebarSnapWidth,
+  isLeftSidebarSize,
+  leftSidebarSizeLabel,
+  nearestLeftSidebarSize,
+  nextLeftSidebarSize,
   LEFT_SIDEBAR_CLOSE_THRESHOLD,
-  LEFT_SIDEBAR_DEFAULT_WIDTH,
-  LEFT_SIDEBAR_MAX_WIDTH,
-  LEFT_SIDEBAR_MIN_WIDTH,
+  LEFT_SIDEBAR_SIZES,
+  type LeftSidebarSize,
 } from "../lib/layout-sizing";
 import { useModalFocusTrap } from "../lib/modal-focus";
 import { readLastSessionByWorkspace } from "../lib/session-projects";
@@ -124,6 +127,10 @@ const FILES_TREE_DEFAULT_WIDTH = 190;
 export type AppShellBrowserLayout = "dock" | "split" | "focus";
 export type AppShellBrowserFocusComposer = "hidden" | "mini" | "open";
 export type AppShellFilesLayout = "dock" | "split" | "focus";
+
+function viewportWidth(): number {
+  return typeof window === "undefined" ? 1440 : Math.max(1, window.innerWidth);
+}
 
 export type AppShellContextChip = {
   id: string;
@@ -622,11 +629,27 @@ export function AppShell(props: AppShellProps) {
   const filesWorkbenchRef = React.useRef<HTMLDivElement>(null);
   const slashAutocompleteRef = React.useRef<SlashAutocompleteHandle>(null);
   const mentionMenuRef = React.useRef<ComposerMentionMenuHandle>(null);
+  const [appViewportWidth, setAppViewportWidth] = React.useState(viewportWidth);
+  const [leftSidebarSize, setLeftSidebarSize] = React.useState<LeftSidebarSize>(() => {
+    const stored = readStorageValue("quake-web:leftSidebarSize");
+    return isLeftSidebarSize(stored)
+      ? stored
+      : nearestLeftSidebarSize(leftWidth, viewportWidth());
+  });
   const [filesTreeOpen, setFilesTreeOpen] = React.useState(() => readStorageValue("quake-web:filesTreeOpen", "1") !== "0");
   const [filesTreeWidth, setFilesTreeWidth] = React.useState(() => {
     const stored = Number(readStorageValue("quake-web:filesTreeWidth", String(FILES_TREE_DEFAULT_WIDTH)));
     return Math.min(FILES_TREE_MAX_WIDTH, Math.max(FILES_TREE_MIN_WIDTH, Number.isFinite(stored) ? stored : FILES_TREE_DEFAULT_WIDTH));
   });
+  const leftSidebarWidth = getLeftSidebarSnapWidth(leftSidebarSize, appViewportWidth);
+  const setPersistedLeftSidebarSize = React.useCallback((size: LeftSidebarSize) => {
+    setLeftSidebarSize(size);
+    writeStorageValue("quake-web:leftSidebarSize", size);
+    onLeftWidthChange(getLeftSidebarSnapWidth(size, appViewportWidth));
+  }, [appViewportWidth, onLeftWidthChange]);
+  const cycleLeftSidebarSize = React.useCallback(() => {
+    setPersistedLeftSidebarSize(nextLeftSidebarSize(leftSidebarSize));
+  }, [leftSidebarSize, setPersistedLeftSidebarSize]);
   const scheduleDialogRef = useModalFocusTrap<HTMLDivElement>(scheduleOpen);
   const closeScheduleDialog = React.useCallback(() => setScheduleOpen(false), [setScheduleOpen]);
   const handleScheduleDialogKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -740,11 +763,22 @@ export function AppShell(props: AppShellProps) {
     writeStorageValue("quake-web:filesTreeWidth", String(Math.round(clamped)));
   }, [clampFilesTreeWidth, filesTreeWidth]);
 
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncViewportWidth = () => setAppViewportWidth(viewportWidth());
+    window.addEventListener("resize", syncViewportWidth);
+    return () => window.removeEventListener("resize", syncViewportWidth);
+  }, []);
+
+  React.useEffect(() => {
+    if (leftWidth !== leftSidebarWidth) onLeftWidthChange(leftSidebarWidth);
+  }, [leftSidebarSize, leftSidebarWidth, leftWidth, onLeftWidthChange]);
+
   // Older drag previews wrote the transient width directly onto #app. Remove
   // that override so reopening always falls back to the persisted shell width.
   React.useLayoutEffect(() => {
     appGridRef.current?.style.removeProperty("--left-sidebar-width");
-  }, [leftOpen, leftWidth]);
+  }, [leftOpen, leftSidebarWidth]);
 
   const handleLeftDragStart = React.useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -753,8 +787,9 @@ export function AppShell(props: AppShellProps) {
     const app = handle.closest<HTMLElement>("#app");
     const shell = handle.closest<HTMLElement>(".app-shell");
     const startX = event.clientX;
-    const startWidth = leftWidth;
+    const startWidth = leftSidebarWidth;
     let nextWidth = startWidth;
+    let nextSize = leftSidebarSize;
     let collapseReady = false;
     let frame: number | undefined;
 
@@ -765,13 +800,14 @@ export function AppShell(props: AppShellProps) {
       frame = undefined;
       const previewWidth = collapseReady
         ? 0
-        : Math.min(LEFT_SIDEBAR_MAX_WIDTH, Math.max(0, nextWidth));
+        : Math.min(getLeftSidebarSnapWidth("half", appViewportWidth), Math.max(0, nextWidth));
       const value = `${Math.round(previewWidth)}px`;
       shell?.style.setProperty("--left-sidebar-preview-width", value);
     };
     const onMove = (moveEvent: PointerEvent) => {
       nextWidth = startWidth + moveEvent.clientX - startX;
       collapseReady = nextWidth <= LEFT_SIDEBAR_CLOSE_THRESHOLD;
+      nextSize = nearestLeftSidebarSize(nextWidth, appViewportWidth);
       document.body.classList.toggle("left-sidebar-collapse-ready", collapseReady);
       if (frame === undefined) frame = window.requestAnimationFrame(applyWidth);
     };
@@ -790,10 +826,8 @@ export function AppShell(props: AppShellProps) {
         toggleLeftPanel();
         return;
       }
-      const finalWidth = clampLeftSidebarWidth(nextWidth);
-      shell?.style.setProperty("--left-sidebar-width", `${finalWidth}px`);
       cleanup();
-      onLeftWidthChange(finalWidth);
+      setPersistedLeftSidebarSize(nextSize);
     };
     const onCancel = () => {
       if (frame !== undefined) window.cancelAnimationFrame(frame);
@@ -803,24 +837,24 @@ export function AppShell(props: AppShellProps) {
     handle.addEventListener("pointermove", onMove);
     handle.addEventListener("pointerup", onUp, { once: true });
     handle.addEventListener("pointercancel", onCancel, { once: true });
-  }, [leftWidth, onLeftWidthChange, toggleLeftPanel]);
+  }, [appViewportWidth, leftSidebarSize, leftSidebarWidth, setPersistedLeftSidebarSize, toggleLeftPanel]);
 
   const handleLeftResizeKey = React.useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-    const step = event.shiftKey ? 20 : 8;
-    let next: number | undefined;
-    if (event.key === "ArrowLeft" && leftWidth <= LEFT_SIDEBAR_MIN_WIDTH) {
+    const currentIndex = LEFT_SIDEBAR_SIZES.indexOf(leftSidebarSize);
+    if (event.key === "ArrowLeft" && currentIndex === 0) {
       event.preventDefault();
       toggleLeftPanel();
       return;
     }
-    if (event.key === "ArrowLeft") next = leftWidth - step;
-    else if (event.key === "ArrowRight") next = leftWidth + step;
-    else if (event.key === "Home") next = LEFT_SIDEBAR_MIN_WIDTH;
-    else if (event.key === "End") next = LEFT_SIDEBAR_MAX_WIDTH;
-    if (next === undefined) return;
+    let nextSize: LeftSidebarSize | undefined;
+    if (event.key === "ArrowLeft") nextSize = LEFT_SIDEBAR_SIZES[Math.max(0, currentIndex - 1)];
+    else if (event.key === "ArrowRight") nextSize = LEFT_SIDEBAR_SIZES[Math.min(LEFT_SIDEBAR_SIZES.length - 1, currentIndex + 1)];
+    else if (event.key === "Home") nextSize = "quarter";
+    else if (event.key === "End") nextSize = "half";
+    if (!nextSize) return;
     event.preventDefault();
-    onLeftWidthChange(next);
-  }, [leftWidth, onLeftWidthChange, toggleLeftPanel]);
+    setPersistedLeftSidebarSize(nextSize);
+  }, [leftSidebarSize, setPersistedLeftSidebarSize, toggleLeftPanel]);
 
   return <ConfirmProvider>
     {confirmPortal}
@@ -881,7 +915,7 @@ export function AppShell(props: AppShellProps) {
 
 
     <DropZone onFilesUploaded={() => void refreshFiles(currentFileDir)}>
-    <div className={`app-shell ${centerView === "chat" && !hasVisibleMessages ? "new-chat" : ""}`} style={{ "--dock-w": rightOpen ? `${rightWidth}px` : "0px", "--left-sidebar-width": `${leftWidth}px`, "--active-left-sidebar-width": leftOpen ? `${leftWidth}px` : "0px" } as React.CSSProperties}>
+    <div className={`app-shell ${centerView === "chat" && !hasVisibleMessages ? "new-chat" : ""}`} style={{ "--dock-w": rightOpen ? `${rightWidth}px` : "0px", "--left-sidebar-width": `${leftSidebarWidth}px`, "--active-left-sidebar-width": leftOpen ? `${leftSidebarWidth}px` : "0px" } as React.CSSProperties}>
     <Titlebar
       leftOpen={leftOpen}
       onToggleSidebar={toggleLeftPanel}
@@ -915,6 +949,8 @@ export function AppShell(props: AppShellProps) {
       <NavRail
         leftOpen={leftOpen}
         onToggle={toggleLeftPanel}
+        sidebarSize={leftSidebarSize}
+        onCycleSidebarSize={cycleLeftSidebarSize}
         workspaceName={workspaceName}
         workspacePath={currentWorkspace}
         onOpenWorkspace={() => void handleOpenFolderNative()}
@@ -946,15 +982,16 @@ export function AppShell(props: AppShellProps) {
         <div
           className="left-resize-handle"
           onPointerDown={handleLeftDragStart}
-          onDoubleClick={() => onLeftWidthChange(LEFT_SIDEBAR_DEFAULT_WIDTH)}
+          onDoubleClick={cycleLeftSidebarSize}
           onKeyDown={handleLeftResizeKey}
           role="separator"
           aria-orientation="vertical"
-          aria-valuemin={LEFT_SIDEBAR_MIN_WIDTH}
-          aria-valuemax={LEFT_SIDEBAR_MAX_WIDTH}
-          aria-valuenow={Math.round(leftWidth)}
-          aria-label="Sol kenar çubuğunu yeniden boyutlandır; sola sürükleyerek kapat"
-          title="Sola sürükleyerek kapat · çift tıklayarak sıfırla"
+          aria-valuemin={getLeftSidebarSnapWidth("quarter", appViewportWidth)}
+          aria-valuemax={getLeftSidebarSnapWidth("half", appViewportWidth)}
+          aria-valuenow={Math.round(leftSidebarWidth)}
+          aria-valuetext={`${leftSidebarSizeLabel(leftSidebarSize)} genişlik`}
+          aria-label="Sol panel boyutu; sürükleyerek çeyrek veya yarım genişliğe getir; sola sürükleyerek kapat"
+          title="Sola sürükleyerek kapat · bırakınca çeyrek veya yarım genişliğe oturur · çift tıklayarak sonraki boyuta geç"
           tabIndex={0}
         />
       )}

@@ -51,6 +51,13 @@
   white-space: nowrap;
 }
 
+.topActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.panelSizeButton,
 .iconBtn {
   display: inline-flex;
   align-items: center;
@@ -64,6 +71,14 @@
   cursor: pointer;
 }
 
+.panelSizeButton {
+  font-family: var(--font-mono, ui-monospace, monospace) !important;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.panelSizeButton:hover,
 .iconBtn:hover {
   background: var(--surface-navigation-hover, #302d30);
   color: var(--text-navigation, #ddd9dd);

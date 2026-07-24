@@ -108,6 +108,18 @@
   .action-ticker b { font-size: 10px; }
   @keyframes ticker { to { transform: translateX(-50%); } }
 
+  .launch-strip { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 17px clamp(20px, 5.5vw, 94px); border-bottom: 1px solid var(--line); background: #0d0d0c; }
+  .launch-strip-main { display: flex; align-items: baseline; gap: 16px; white-space: nowrap; }
+  .launch-strip-main > span { color: var(--signal-bright); font: 9px/1 var(--mono); letter-spacing: .16em; }
+  .launch-strip-main strong { font: 680 15px/1 var(--display); letter-spacing: .02em; }
+  .launch-strip-main em { color: var(--signal-bright); font-style: normal; }
+  .launch-strip-meta { display: flex; align-items: center; gap: 18px; color: #77736d; font: 9px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .launch-strip-meta span + span::before { content: "·"; margin-right: 18px; color: var(--signal); }
+  .launch-strip-link { display: inline-flex; align-items: center; gap: 10px; color: var(--paper); font: 650 11px/1 var(--mono); letter-spacing: .04em; white-space: nowrap; }
+  .launch-strip-link svg { width: 14px; transition: transform 160ms ease; }
+  .launch-strip-link:hover { color: var(--signal-bright); }
+  .launch-strip-link:hover svg { transform: translateX(4px); }
+
   .section-shell { padding: 128px clamp(20px, 5.5vw, 94px); }
   .section-label { display: flex; align-items: center; gap: 16px; color: var(--muted); font: 630 10px/1 var(--mono); letter-spacing: .17em; }
   .section-label span { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid currentColor; border-radius: 50%; }
@@ -209,6 +221,12 @@
   .install-content .eyebrow { justify-content: center; }
   .install-content h2 { margin-top: 36px; font: 740 clamp(58px, 8vw, 118px)/.82 var(--display); letter-spacing: -.07em; }
   .install-content h2 em { color: var(--signal); font-style: normal; }
+  .install-lede { max-width: 520px; margin: 28px auto 0; color: #99938b; font-size: 15px; line-height: 1.6; }
+  .install-actions { display: flex; justify-content: center; gap: 10px; margin-top: 34px; flex-wrap: wrap; }
+  .install-meta { margin-top: 18px; color: #716e69; font: 9px/1 var(--mono); letter-spacing: .08em; }
+  .install-divider { display: flex; align-items: center; gap: 14px; width: min(720px, 100%); margin: 48px auto 0; color: #716e69; font: 9px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+  .install-divider::before, .install-divider::after { content: ""; height: 1px; flex: 1; background: rgba(255,255,255,.12); }
+  .install-divider + .install-command { margin-top: 18px; }
   .install-command { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; width: min(720px, 100%); min-height: 68px; margin: 54px auto 0; padding: 8px 9px 8px 20px; border: 1px solid rgba(255,255,255,.18); background: rgba(10,10,10,.72); text-align: left; backdrop-filter: blur(14px); }
   .install-command > span:first-child { color: var(--signal); font: 14px/1 var(--mono); }
   .install-command code { overflow: hidden; color: #d8d4cc; font: 12px/1 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
@@ -232,6 +250,8 @@
     .site-nav.is-open { display: flex; }
     .site-nav > a { padding: 17px 4px; border-bottom: 1px solid var(--line); }
     .site-nav .nav-cta { justify-content: space-between; margin-top: 12px; padding-inline: 16px; }
+    .launch-strip { flex-wrap: wrap; }
+    .launch-strip-meta { order: 3; width: 100%; }
     .hero-bottom { grid-template-columns: 1fr; }
     .scroll-cue { display: none; }
     .manifesto { grid-template-columns: 110px 1fr; }
@@ -260,6 +280,11 @@
     .hero h1 { margin-top: 28px; font-size: clamp(52px, 16vw, 82px); line-height: .84; }
     .hero-bottom { margin-top: 38px; }
     .hero-actions { align-items: stretch; flex-direction: column; }
+    .launch-strip { align-items: flex-start; flex-direction: column; gap: 14px; }
+    .launch-strip-main { flex-wrap: wrap; gap: 8px 14px; }
+    .launch-strip-meta { flex-wrap: wrap; gap: 9px 16px; }
+    .launch-strip-meta span + span::before { margin-right: 16px; }
+    .launch-strip-link { padding-top: 4px; }
     .hero-index { top: 95px; }
     .section-shell { padding-block: 88px; }
     .manifesto { display: block; }

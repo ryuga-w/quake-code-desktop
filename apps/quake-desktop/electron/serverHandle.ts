@@ -10,6 +10,8 @@ export interface ServerOptions {
   secrets?: Record<string, string>;
   /** Packaged Desktop'a ait agent ayar dizini; global/eski CLI kurulumundan bağımsızdır. */
   agentDir?: string;
+  /** Packaged Desktop içindeki derlenmiş client klasörü. */
+  publicDir?: string;
 }
 
 let child: UtilityProcess | undefined;
@@ -26,6 +28,7 @@ export function startServer(opts: ServerOptions): UtilityProcess {
       ...process.env,
       ...(opts.secrets || {}),
       ...(opts.agentDir ? { QUAKE_CODE_CODING_AGENT_DIR: opts.agentDir } : {}),
+      ...(opts.publicDir ? { QUAKE_WEB_PUBLIC_DIR: opts.publicDir } : {}),
       QUAKE_WEB_PORT: String(opts.port),
       QUAKE_WEB_HOST: opts.host ?? "127.0.0.1",
       QUAKE_WEB_CWD: opts.cwd,

@@ -767,6 +767,10 @@
   transition: transform 100ms ease, opacity 120ms ease, background 120ms ease;
 }
 
+button[type="submit"].sendButton > svg {
+  color: #000;
+}
+
 .sendButton:hover:not(:disabled) {
   transform: translateY(-1px);
   background: var(--heading);

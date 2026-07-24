@@ -9,7 +9,11 @@ import { loadNotificationConfig } from "../lib/notifications";
 import { useConfirm } from "../components/common/ConfirmDialog";
 import type { MenuAction } from "../components/chrome/Titlebar";
 import { desktop } from "../lib/desktop";
-import { clampLeftSidebarWidth, LEFT_SIDEBAR_DEFAULT_WIDTH } from "../lib/layout-sizing";
+import {
+  clampLeftSidebarWidth,
+  getLeftSidebarMaximumWidth,
+  LEFT_SIDEBAR_DEFAULT_WIDTH,
+} from "../lib/layout-sizing";
 import { loadGoalUiSettings } from "../components/settings/SettingsPanels";
 import type { ModalRequest, FileTab, MonacoModal, MainView, ComposerImage, TurnReviewView, QueuedMessages, QueuedUserMessage } from "../types";
 import {
@@ -271,10 +275,10 @@ export function App() {
   const [leftOpen, setLeftOpen] = useState(() => readStorageValue("quake-web:leftOpen", "1") !== "0");
   const [leftWidth, setLeftWidth] = useState(() => {
     const stored = Number(readStorageValue("quake-web:leftWidth"));
-    return clampLeftSidebarWidth(stored || LEFT_SIDEBAR_DEFAULT_WIDTH);
+    return clampLeftSidebarWidth(stored || LEFT_SIDEBAR_DEFAULT_WIDTH, getLeftSidebarMaximumWidth(window.innerWidth));
   });
   const persistLeftWidth = useCallback((width: number) => {
-    const next = clampLeftSidebarWidth(width);
+    const next = clampLeftSidebarWidth(width, getLeftSidebarMaximumWidth(window.innerWidth));
     setLeftWidth(next);
     writeStorageValue("quake-web:leftWidth", String(next));
   }, []);

@@ -47,12 +47,18 @@
         var hasVite = !!document.querySelector('script[src*="@vite/client"]');
         if (hasVite) return;
         var port = String(location.port || "");
+        var isDevAddress = hasVite || port === "5173";
+        var title = isDevAddress ? 'Yanlış adres — UI buradan yüklenmez' : 'Quake Code arayüzü yüklenemedi';
+        var detail = isDevAddress
+          ? '<p style="margin:0 0 8px;color:#bbb">Şu an <b>' + location.host + '</b> (port ' + (port || '?') + '). Bu API sunucusu; arayüz <b>dist</b> değil, <b>src/client</b> + Vite.</p>'
+          : '<p style="margin:0 0 8px;color:#bbb">Üretim arayüzü yüklenemedi (API: <b>' + location.host + '</b>). Uygulamayı kapatıp yeniden başlatın; devam ederse yeni installer sürümünü kurun.</p>';
+        var solution = isDevAddress
+          ? '<p style="margin:0;color:#9cf">Çözüm: terminalde <code style="background:#222;padding:2px 6px">npm run desktop:dev</code> çalıştır veya <a href="http://127.0.0.1:5173/" style="color:#7df">http://127.0.0.1:5173</a> aç.</p>'
+          : '<p style="margin:0;color:#9cf">Çözüm: Quake Code’u yeniden başlatın. Bu hata yeni kurulumda sürerse hata ekranının görüntüsünü paylaşın.</p>';
         document.body.innerHTML =
           '<div style="font:14px/1.5 system-ui,sans-serif;max-width:520px;margin:48px auto;padding:24px;border:1px solid #444;border-radius:12px;background:#111;color:#eee">' +
-          '<h1 style="margin:0 0 12px;font-size:18px">Yanlış adres — UI buradan yüklenmez</h1>' +
-          '<p style="margin:0 0 8px;color:#bbb">Şu an <b>' + location.host + '</b> (port ' + (port || '?') + '). Bu API sunucusu; arayüz <b>dist</b> değil, <b>src/client</b> + Vite.</p>' +
-          '<p style="margin:0 0 16px;color:#bbb"><b>dist/client</b> klasörü yok — derlenmiş eski paket değil.</p>' +
-          '<p style="margin:0;color:#9cf">Çözüm: terminalde <code style="background:#222;padding:2px 6px;border-radius:4px">npm run desktop:dev</code> çalıştır veya <a href="http://127.0.0.1:5173/" style="color:#7df">http://127.0.0.1:5173</a> aç.</p></div>';
+          '<h1 style="margin:0 0 12px;font-size:18px">' + title + '</h1>' + detail +
+          '<p style="margin:0 0 16px;color:#bbb"><b>Quake Code</b> başlatma tanısı port ' + (port || '?') + ' üzerinden alındı.</p>' + solution + '</div>';
       }, 3500);
     </script>
     <script type="module" src="/src/main.tsx"></script>

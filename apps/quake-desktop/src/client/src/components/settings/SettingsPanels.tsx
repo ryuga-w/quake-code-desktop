@@ -29,6 +29,7 @@ const LOCAL_UI_STATE_KEYS = [
   "quake-web:theme",
   "quake-web:leftOpen",
   "quake-web:leftWidth",
+  "quake-web:leftSidebarSize",
   "quake-web:rightOpen",
   "quake-web:rightTab",
   "quake-web:rightWidth",
