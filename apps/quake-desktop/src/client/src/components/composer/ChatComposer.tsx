@@ -26,8 +26,8 @@ type ComposerModel = {
 };
 
 type ComposerThinkingOption = (typeof THINKING_OPTIONS)[number];
-type PreferencesView = "quick" | "advanced";
 type PreferencesSubmenu = "model" | "effort";
+type PreferencesSubmenuPlacement = "right" | "left" | "stacked";
 export type TerminalPolicyMode = "safe" | "allow-all" | "disabled";
 
 /** Codex-style approval mode options (maps to terminal policy / guardian presets). */
@@ -176,16 +176,15 @@ export function ChatComposer({
   const editablePrompt = githubLink?.rest ?? visiblePrompt;
   const expanded = editablePrompt.length > 120 || editablePrompt.includes("\n");
   const availableThinkingOptions = getAvailableThinkingOptions(currentModel);
-  const quickThinkingOptions = getQuickThinkingOptions(availableThinkingOptions, currentThinking);
   const currentEffortLabel = currentModel?.reasoning ? formatThinkingLabel(currentThinking) : "Standart";
-  const [preferencesView, setPreferencesView] = React.useState<PreferencesView>("quick");
   const [preferencesSubmenu, setPreferencesSubmenu] = React.useState<PreferencesSubmenu>();
+  const [preferencesSubmenuPlacement, setPreferencesSubmenuPlacement] = React.useState<PreferencesSubmenuPlacement>("right");
   const [addMenuOpen, setAddMenuOpen] = React.useState(false);
   const [addMenuExtensions, setAddMenuExtensions] = React.useState<ComposerAddMenuExtension[]>(() => getComposerAddMenuExtensions([]));
   const addMenuRef = React.useRef<HTMLDetailsElement>(null);
   const preferencesMenuRef = React.useRef<HTMLDetailsElement>(null);
+  const preferencesPopoverRef = React.useRef<HTMLDivElement>(null);
   const approvalMenuRef = React.useRef<HTMLDetailsElement>(null);
-  const advancedEntryRef = React.useRef<HTMLButtonElement>(null);
   const advancedPreferencesMenuRef = React.useRef<HTMLDivElement>(null);
   const modelSubmenuRef = React.useRef<HTMLDivElement>(null);
   const effortSubmenuRef = React.useRef<HTMLDivElement>(null);
@@ -318,8 +317,8 @@ export function ChatComposer({
   );
 
   const resetPreferencesSurface = React.useCallback(() => {
-    setPreferencesView("quick");
     setPreferencesSubmenu(undefined);
+    setPreferencesSubmenuPlacement("right");
   }, []);
 
   const closePreferencesMenu = React.useCallback(() => {
@@ -335,11 +334,6 @@ export function ChatComposer({
     if (restoreFocus) restoreMenuTriggerFocus(details?.querySelector<HTMLElement>("summary") ?? null);
   }, []);
 
-  const openAdvancedPreferences = React.useCallback(() => {
-    setPreferencesView("advanced");
-    requestAnimationFrame(() => focusFirstMenuItem(advancedPreferencesMenuRef.current));
-  }, []);
-
   const openPreferencesSubmenu = React.useCallback((submenu: PreferencesSubmenu) => {
     setPreferencesSubmenu(submenu);
     requestAnimationFrame(() => {
@@ -353,6 +347,53 @@ export function ChatComposer({
       submenu === "model" ? modelSubmenuTriggerRef.current : effortSubmenuTriggerRef.current,
     );
   }, []);
+
+  React.useEffect(() => {
+    if (!preferencesSubmenu) {
+      setPreferencesSubmenuPlacement("right");
+      return;
+    }
+
+    let frameId = 0;
+    const updatePlacement = () => {
+      const popover = preferencesPopoverRef.current;
+      if (!popover) return;
+
+      const surfaceBounds = popover.closest(".main")?.getBoundingClientRect();
+      const visualViewport = window.visualViewport;
+      const viewportLeft = visualViewport?.offsetLeft ?? 0;
+      const viewportRight = viewportLeft + (visualViewport?.width ?? window.innerWidth);
+      const boundaryLeft = Math.max(viewportLeft + 8, surfaceBounds?.left ?? viewportLeft + 8);
+      const boundaryRight = Math.min(viewportRight - 8, surfaceBounds?.right ?? viewportRight - 8);
+      const popoverBounds = popover.getBoundingClientRect();
+      const submenuWidth = preferencesSubmenu === "model" ? 282 : 182;
+      const fitsRight = boundaryRight - popoverBounds.right >= submenuWidth - 2;
+      const fitsLeft = popoverBounds.left - boundaryLeft >= submenuWidth - 2;
+
+      setPreferencesSubmenuPlacement(fitsRight ? "right" : fitsLeft ? "left" : "stacked");
+    };
+
+    const schedulePlacementUpdate = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(updatePlacement);
+    };
+
+    schedulePlacementUpdate();
+    window.addEventListener("resize", schedulePlacementUpdate);
+    window.visualViewport?.addEventListener("resize", schedulePlacementUpdate);
+    const surface = preferencesPopoverRef.current?.closest(".main");
+    const observer = surface && typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(schedulePlacementUpdate)
+      : undefined;
+    if (observer && surface) observer.observe(surface);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", schedulePlacementUpdate);
+      window.visualViewport?.removeEventListener("resize", schedulePlacementUpdate);
+      observer?.disconnect();
+    };
+  }, [preferencesSubmenu]);
 
   const showApprovalHelp = React.useCallback(() => {
     closeApprovalMenu();
@@ -374,7 +415,7 @@ export function ChatComposer({
       { label: "Dokümante Et", command: "/doc", icon: FileText },
     ];
     return (
-      <div className={styles.quickActionsContainer}>
+      <div className={styles.quickActionsContainer} aria-label="Hızlı başlangıçlar">
         {actions.map((act) => {
           const IconComponent = act.icon;
           return (
@@ -382,6 +423,7 @@ export function ChatComposer({
               key={act.command}
               type="button"
               className={styles.quickActionPill}
+              title={act.label}
               onClick={() => {
                 onPromptChange(act.command);
                 requestAnimationFrame(() => {
@@ -768,7 +810,12 @@ export function ChatComposer({
             name="composer-control-menu"
             className={`${styles.preferencesMenu} composer-menu`}
             onToggle={(event) => {
-              if (!event.currentTarget.open) resetPreferencesSurface();
+              if (!event.currentTarget.open) {
+                resetPreferencesSurface();
+                return;
+              }
+              setPreferencesSubmenu(undefined);
+              setPreferencesSubmenuPlacement("right");
             }}
             onKeyDown={(event) => {
               if (event.key !== "Escape") return;
@@ -786,9 +833,10 @@ export function ChatComposer({
             </summary>
 
             <div
+              ref={preferencesPopoverRef}
               className={styles.preferencesPopover}
-              data-view={preferencesView}
               data-submenu={preferencesSubmenu}
+              data-submenu-placement={preferencesSubmenuPlacement}
               aria-label="Model ve çaba ayarları"
               onKeyDown={(event) => {
                 if (event.key === "Escape") {
@@ -799,40 +847,10 @@ export function ChatComposer({
                   event.preventDefault();
                   event.stopPropagation();
                   closePreferencesSubmenu(preferencesSubmenu);
-                } else if (event.key === "ArrowLeft" && preferencesView === "advanced") {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  setPreferencesView("quick");
-                  requestAnimationFrame(() => advancedEntryRef.current?.focus({ preventScroll: true }));
                 }
               }}
             >
-              {preferencesView === "quick" ? (
-                <div className={styles.quickPreferencesPanel}>
-                  <button
-                    ref={advancedEntryRef}
-                    type="button"
-                    className={styles.advancedEntry}
-                    aria-label="Gelişmiş model ve çaba ayarlarını aç"
-                    onClick={openAdvancedPreferences}
-                  >
-                    <span>Gelişmiş</span>
-                    <ChevronRight size={14} strokeWidth={1.8} aria-hidden="true" />
-                  </button>
-
-                  {currentModel?.reasoning && quickThinkingOptions.length > 0 ? (
-                    <EffortSlider
-                      options={quickThinkingOptions}
-                      currentValue={currentThinking}
-                      onChange={onSetThinking}
-                    />
-                  ) : (
-                    <div className={styles.unsupportedThinking}>Bu model ayarlanabilir bir çaba seviyesi sunmuyor.</div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div
+              <div
                     ref={advancedPreferencesMenuRef}
                     className={styles.advancedPreferencesPanel}
                     role="menu"
@@ -899,7 +917,7 @@ export function ChatComposer({
                       <span>Varsayılana sıfırla</span>
                       <RotateCcw size={14} strokeWidth={1.65} aria-hidden="true" />
                     </button>
-                  </div>
+              </div>
 
                   {preferencesSubmenu === "model" ? (
                     <div
@@ -988,8 +1006,6 @@ export function ChatComposer({
                       </div>
                     </div>
                   ) : null}
-                </>
-              )}
             </div>
           </details>
 
@@ -1094,84 +1110,6 @@ function ComposerPlanPill({ plan, onOpenPlan }: { plan: WebPlanState; onOpenPlan
   </section>;
 }
 
-function EffortSlider({
-  options,
-  currentValue,
-  onChange,
-}: {
-  options: ComposerThinkingOption[];
-  currentValue: string;
-  onChange: (value: string) => void;
-}) {
-  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === currentValue));
-  const [draftIndex, setDraftIndex] = React.useState(selectedIndex);
-  const pointerActiveRef = React.useRef(false);
-  const lastRequestedValueRef = React.useRef(currentValue);
-  const optionKey = options.map((option) => option.value).join(":");
-  const visibleIndex = Math.min(draftIndex, Math.max(0, options.length - 1));
-  const visibleOption = options[visibleIndex] ?? options[0];
-  const effortProgress = options.length > 1
-    ? `${(visibleIndex / (options.length - 1)) * 100}%`
-    : "0%";
-
-  React.useEffect(() => {
-    lastRequestedValueRef.current = currentValue;
-    if (!pointerActiveRef.current) setDraftIndex(selectedIndex);
-  }, [currentValue, optionKey, selectedIndex]);
-
-  const commitIndex = (rawIndex: number) => {
-    const nextIndex = Math.max(0, Math.min(options.length - 1, Math.round(rawIndex)));
-    const nextOption = options[nextIndex];
-    setDraftIndex(nextIndex);
-    if (!nextOption || lastRequestedValueRef.current === nextOption.value) return;
-    lastRequestedValueRef.current = nextOption.value;
-    onChange(nextOption.value);
-  };
-
-  return (
-    <div
-      className={styles.effortRail}
-      data-level={visibleOption?.value}
-      style={{ "--effort-progress": effortProgress } as React.CSSProperties}
-    >
-      <input
-        className={styles.effortSlider}
-        type="range"
-        min={0}
-        max={Math.max(0, options.length - 1)}
-        step={1}
-        value={visibleIndex}
-        aria-label="Çaba seviyesi"
-        aria-valuetext={visibleOption?.label}
-        title={visibleOption?.label}
-        onPointerDown={() => {
-          pointerActiveRef.current = true;
-        }}
-        onPointerUp={(event) => {
-          pointerActiveRef.current = false;
-          commitIndex(Number(event.currentTarget.value));
-        }}
-        onPointerCancel={() => {
-          pointerActiveRef.current = false;
-          setDraftIndex(selectedIndex);
-        }}
-        onChange={(event) => {
-          const nextIndex = Number(event.currentTarget.value);
-          setDraftIndex(nextIndex);
-          if (!pointerActiveRef.current) commitIndex(nextIndex);
-        }}
-      />
-      <div className={styles.effortRailVisual} aria-hidden="true">
-        <span className={styles.effortRailFill} />
-        <div className={styles.effortStops}>
-          {options.map((option) => <span className={styles.effortStop} key={option.value} />)}
-        </div>
-        <span className={styles.effortThumb} />
-      </div>
-    </div>
-  );
-}
-
 function closeDetails(event: React.MouseEvent<HTMLElement>) {
   const details = event.currentTarget.closest("details");
   closeDetailsElement(details);
@@ -1198,29 +1136,4 @@ function getAvailableThinkingOptions(model?: ComposerModel): ComposerThinkingOpt
     (option.value !== "xhigh" || model.supportsXhigh)
     && (option.value !== "max" || model.supportsMax)
   ));
-}
-
-function getQuickThinkingOptions(options: ComposerThinkingOption[], currentValue: string): ComposerThinkingOption[] {
-  if (options.length <= 4) return options;
-
-  const byValue = new Map<string, ComposerThinkingOption>(options.map((option) => [option.value, option]));
-  const lastValue = byValue.has("max") ? "max" : byValue.has("xhigh") ? "xhigh" : options.at(-1)?.value;
-  const preferredValues = ["minimal", "medium", "high", lastValue].filter((value): value is string => Boolean(value));
-
-  if (currentValue === "low" && byValue.has("low")) preferredValues[0] = "low";
-  if (currentValue === "xhigh" && byValue.has("xhigh")) preferredValues[preferredValues.length - 1] = "xhigh";
-
-  const preferred = preferredValues
-    .map((value) => byValue.get(value))
-    .filter((option): option is ComposerThinkingOption => Boolean(option));
-
-  for (const option of options) {
-    if (preferred.length >= 4) break;
-    if (!preferred.includes(option)) preferred.push(option);
-  }
-
-  return preferred
-    .filter((option, index, all) => all.indexOf(option) === index)
-    .sort((left, right) => options.indexOf(left) - options.indexOf(right))
-    .slice(0, 4);
 }

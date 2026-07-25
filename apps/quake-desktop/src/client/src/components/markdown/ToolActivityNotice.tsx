@@ -140,6 +140,43 @@ export function TurnWorkDisclosure({
   );
 }
 
+/** Live companion to the settled turn disclosure. Keeps the elapsed counter
+ * compact and stable while a turn is still producing commands and narration. */
+export function LiveTurnWorkStatus({
+  tools,
+  fallbackStartedAt,
+}: {
+  tools: ToolCardState[];
+  fallbackStartedAt?: number;
+}) {
+  const fallbackRef = useRef(Date.now());
+  const startedAt = useMemo(() => {
+    let earliest = Number.POSITIVE_INFINITY;
+    for (const tool of tools) {
+      const timestamp = Number(tool.startedAt || 0);
+      if (timestamp > 0) earliest = Math.min(earliest, timestamp);
+    }
+    if (Number.isFinite(earliest)) return earliest;
+    const fallback = Number(fallbackStartedAt || 0);
+    return fallback > 0 ? fallback : fallbackRef.current;
+  }, [fallbackStartedAt, tools]);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [startedAt]);
+
+  const elapsed = Math.max(0, now - startedAt);
+  return (
+    <div className={styles.liveTurnWorkStatus} aria-label={formatLiveTurnWorkDurationLabel(elapsed)}>
+      <span>{formatLiveTurnWorkDurationLabel(elapsed)}</span>
+    </div>
+  );
+}
+
 export function computeTurnDurationMs(tools: ToolCardState[]): number | undefined {
   let start = Number.POSITIVE_INFINITY;
   let end = Number.NEGATIVE_INFINITY;
@@ -169,6 +206,14 @@ export function formatTurnWorkDurationLabel(durationMs?: number): string {
   const seconds = Math.round((durationMs % 60_000) / 1000);
   if (seconds === 0) return `${minutes}m boyunca çalıştı`;
   return `${minutes}m ${seconds}s boyunca çalıştı`;
+}
+
+export function formatLiveTurnWorkDurationLabel(durationMs: number): string {
+  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
+  if (totalSeconds < 60) return `${totalSeconds}s süredir çalışıyor`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${String(seconds).padStart(2, "0")}s süredir çalışıyor`;
 }
 
 export function TurnSemanticFlow({ hasThinking, isStreaming, names, thinkingPreview, turnId, toolSnapshots }: { hasThinking: boolean; isStreaming: boolean; names: string[]; thinkingPreview?: string; turnId?: number; toolSnapshots: ToolCardState[] }) {
@@ -500,8 +545,8 @@ function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, onInspectF
     : commandFailed
       ? commands.length === 1 ? "bir komut başarısız oldu" : "bazı komutlar başarısız oldu"
       : commandActive
-        ? commands.length === 1 ? "bir komut çalıştırılıyor" : "komutlar çalıştırılıyor"
-        : commands.length === 1 ? "bir komutu çalıştırdı" : "komutları çalıştırdı";
+        ? commands.length === 1 ? "Running command" : `Running ${commands.length} commands`
+        : `Ran ${commands.length} ${commands.length === 1 ? "command" : "commands"}`;
   const showPendingStats = fileActive && totals.added === 0 && totals.removed === 0;
   const inspectSingleFile = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!singleRow || !onInspectFileChange) return;

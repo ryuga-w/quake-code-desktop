@@ -16,7 +16,7 @@ describe("compact tool activity group source contract", () => {
     expect(toolActivity).toContain("rows={mutationRows}");
     expect(toolActivity).toContain("commands={inlineCommandTools}");
     expect(toolActivity).toContain("compactCommand={inlineActivityBatch || isCommandTool(tool.toolName)}");
-    expect(toolActivity).toContain('commands.length === 1 ? "bir komutu çalıştırdı" : "komutları çalıştırdı"');
+    expect(toolActivity).toContain('`Ran ${commands.length} ${commands.length === 1 ? "command" : "commands"}`');
     expect(toolActivity).toContain("function CommandTerminalIcon");
   });
 

@@ -17,7 +17,6 @@ import {
 import { playDemoSound, SOUND_OPTIONS, stopDemoSound, type SoundID } from "../../lib/sound";
 import { useConfirmAction } from "../common/ConfirmContext";
 import { AppearanceSettings } from "./AppearanceSettings";
-import { BrowserSettings } from "./BrowserSettings";
 import { GeneralSettings } from "./GeneralSettings";
 import styles from "./SettingsPanels.module.css";
 import { ProvidersSection } from "./ProvidersSection";
@@ -50,7 +49,6 @@ const LOCAL_UI_STATE_KEYS = [
   "quake-web:fontSize",
   "quake-web:animationSpeed",
   "quake-web:appearancePreferences",
-  "quake-web:browserPreferences",
   "quake-web:generalPreferences",
   "quake-web:terminalShell",
   "quake-web:workMode",
@@ -89,7 +87,6 @@ export type SettingsView =
   | "customizations"
   | "shortcuts"
   | "mcp"
-  | "browser"
   | "computer-use"
   | "permissions"
   | "goal-mode"
@@ -111,7 +108,6 @@ const NAV_PRIMARY: NavItem[] = [
   { id: "models", label: "Modeller", title: "Modeller", desc: "Model seçimi ve düşünme seviyesi." },
   { id: "providers", label: "Provider’lar", title: "Provider’lar", desc: "OAuth, API key ve bulut sağlayıcı bağlantıları." },
   { id: "customizations", label: "Kişiselleştirme", title: "Kişiselleştirme", desc: "Uzantılar, promptlar ve komutlar." },
-  { id: "browser", label: "Tarayıcı", title: "Tarayıcı", desc: "" },
   { id: "computer-use", label: "Computer Use", title: "Computer Use", desc: "Masaüstü etkileşim araçları ve güvenlik sınırları." },
 ];
 
@@ -146,7 +142,6 @@ const SEARCH_INDEX: { label: string; section: SettingsView; keywords: string }[]
   { label: "Terminal", section: "permissions", keywords: "terminal güvenlik komut" },
   { label: "Bildirimler", section: "app", keywords: "bildirim ses hata yanıt arka plan" },
   { label: "Görünüm", section: "appearance", keywords: "yoğunluk sohbet araç etkinliği açık koyu" },
-  { label: "Tarayıcı", section: "browser", keywords: "web url bağlantı indirme parola site kamera mikrofon tarama verileri" },
   { label: "Klavye kısayolları", section: "shortcuts", keywords: "klavye kısayol shortcut tuş" },
   { label: "Dışa aktar", section: "advanced", keywords: "dışa aktar export arşiv içe aktar sıfırla sıkıştırma geçmiş" },
   { label: "Hakkında", section: "about", keywords: "sürüm platform runtime yazar mustafa mrquake" },
@@ -176,7 +171,6 @@ const SectionIcon = memo(function SectionIcon({ id }: { id: SettingsView }) {
     case "mcp":
       return <svg {...p}><path d="M10 4a2 2 0 1 1 4 0v2h2a1 1 0 0 1 1 1v2h2a2 2 0 1 1 0 4h-2v3a1 1 0 0 1-1 1h-3v-2a2 2 0 1 0-4 0v2H6a1 1 0 0 1-1-1v-3a2 2 0 1 1 0-4V7a1 1 0 0 1 1-1h4z" /></svg>;
     case "app":
-    case "browser":
     case "computer-use":
       return <svg {...p}><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8" /></svg>;
     case "general":
@@ -350,7 +344,7 @@ function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onS
         </div>
 
         {view === "general" && (
-          <GeneralSettings onTerminalPolicy={onTerminalPolicy} onOpenPermissions={() => goTo("permissions")} />
+          <GeneralSettings />
         )}
 
         {view === "appearance" && (
@@ -416,10 +410,6 @@ function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onS
             <ExtensionsSection />
             <PromptsSection />
           </div>
-        )}
-
-        {view === "browser" && (
-          <BrowserSettings onOpenComputerUse={() => goTo("computer-use")} onOpenPermissions={() => goTo("permissions")} />
         )}
 
         {view === "app" && (

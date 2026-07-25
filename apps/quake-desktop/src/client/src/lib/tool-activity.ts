@@ -155,7 +155,7 @@ export function summarizeToolArgs(name: string, args: unknown, options: Summariz
     const cmd = value.command ?? value.CommandLine;
     return cmd ? `$ ${String(cmd).slice(0, 140)}` : undefined;
   }
-  if (isReadTool(name)) return path ? `Okunuyor ${shortPath(path)}` : undefined;
+  if (isReadTool(name)) return path ? `Reading ${shortPath(path)}` : undefined;
   if (isWriteTool(name)) return path ? `${writeVerb} ${shortPath(path)}` : undefined;
   if (isEditTool(name)) return path ? `Düzenleniyor ${shortPath(path)}` : undefined;
   if (isBrowserTool(name)) return value.url ? String(value.url).slice(0, 140) : value.target ? `Hedef: ${String(value.target).slice(0, 80)}` : undefined;
@@ -172,7 +172,7 @@ export function summarizeToolBatch(tools: ToolCardState[], fallbackNames: string
   const summary = collectToolBatchSummary(tools, fallbackNames);
   const total = Math.max(1, summary.total || fallbackNames.length || 1);
   const categories: Array<{ count: number; label: string }> = [];
-  if (summary.commands) categories.push({ count: summary.commands, label: summary.commands === 1 ? "komut çalıştırıldı" : "komut çalıştırıldı" });
+  if (summary.commands) categories.push({ count: summary.commands, label: summary.commands === 1 ? "command" : "commands" });
   if (summary.creates) categories.push({ count: summary.creates, label: summary.creates === 1 ? "dosya oluşturuldu" : "dosya oluşturuldu" });
   if (summary.edits) categories.push({ count: summary.edits, label: summary.edits === 1 ? "dosya düzenlendi" : "dosya düzenlendi" });
   if (summary.deletes) categories.push({ count: summary.deletes, label: summary.deletes === 1 ? "dosya kaldırıldı" : "dosya kaldırıldı" });
@@ -186,6 +186,7 @@ export function summarizeToolBatch(tools: ToolCardState[], fallbackNames: string
   // One category owns the whole batch → single clean line ("10 komut çalıştırıldı").
   if (categories.length === 1 && other === 0) {
     const only = categories[0];
+    if (summary.commands) return `Ran ${only.count} ${only.label}`;
     return `${only.count} ${only.label}`;
   }
 
@@ -396,9 +397,16 @@ function countDiffLinesSimple(text: string): { added: number; removed: number } 
 
 export function toolRunActionLabel(tool: ToolCardState): string {
   if (isSubagentTool(tool.toolName)) return pastStatus(tool, "Oluşturuluyor", "Oluşturuldu");
-  if (isCommandTool(tool.toolName) && tool.status === "error" && isNoResultCommand(tool)) return "Sonuç yok";
-  if (isCommandTool(tool.toolName)) return pastStatus(tool, "Çalıştırılıyor", "Çalıştırıldı");
-  if (isReadTool(tool.toolName)) return pastStatus(tool, "Okunuyor", "Okundu");
+  if (isCommandTool(tool.toolName)) {
+    if (isActiveTool(tool)) return "Running command";
+    if (tool.status === "error") return "Command failed";
+    return "Ran";
+  }
+  if (isReadTool(tool.toolName)) {
+    if (isActiveTool(tool)) return "Reading";
+    if (tool.status === "error") return "Read failed";
+    return "Read";
+  }
 
   const kind = toolMutationKind(tool);
   if (kind === "create") return pastStatus(tool, "Oluşturuluyor", "Oluşturuldu");

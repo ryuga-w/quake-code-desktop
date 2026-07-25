@@ -252,10 +252,10 @@ function buildConcurrentToolHeadline(activeTools: ToolCardState[]): ToolNoticeHe
   const mutations = counts.creates + counts.edits + counts.deletes;
   let kind: ToolNoticeHeadline["kind"] = "thinking";
   let verb = "İşleniyor";
-  if (categories === 1 && counts.reads) { kind = "read"; verb = "Okunuyor"; }
+  if (categories === 1 && counts.reads) { kind = "read"; verb = "Reading"; }
   else if (categories === 1 && counts.searches) { kind = "search"; verb = "Aranıyor"; }
   else if (categories === 1 && mutations) { kind = "edit"; verb = "Düzenleniyor"; }
-  else if (categories === 1 && counts.commands) { kind = "command"; verb = "Çalıştırılıyor"; }
+  else if (categories === 1 && counts.commands) { kind = "command"; verb = "Running commands"; }
   else if (categories === 1 && counts.browsers) { kind = "browser"; verb = "Geziniyor"; }
   else if (counts.reads && counts.searches && categories === 2) { kind = "search"; verb = "İnceleniyor"; }
   else if (mutations) kind = "edit";
@@ -286,7 +286,7 @@ function buildConcurrentToolHeadline(activeTools: ToolCardState[]): ToolNoticeHe
 function toolNoticeMutationSubject(activity: ReturnType<typeof getToolActivity>): string {
   const candidates = [activity.panelSubject, activity.subject, activity.argsSummary]
     .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-    .map((value) => String(value).replace(/^(okunuyor|yazılıyor|oluşturuluyor|düzenleniyor|siliniyor)\s+/i, "").trim())
+    .map((value) => String(value).replace(/^(reading|okunuyor|yazılıyor|oluşturuluyor|düzenleniyor|siliniyor)\s+/i, "").trim())
     .filter((value) => value && !/^(yeni\s*dosya|new\s*file|dosya|file|unnamed|untitled)$/i.test(value));
 
   const candidate = candidates[0];

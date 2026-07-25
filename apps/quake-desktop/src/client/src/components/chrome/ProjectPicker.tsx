@@ -43,6 +43,7 @@ export function ProjectPicker({
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
+  const [menuBounds, setMenuBounds] = React.useState<{ placement: "above" | "below"; maxHeight: number } | null>(null);
 
   const closeAndRestoreFocus = React.useCallback(() => {
     onClose();
@@ -81,6 +82,42 @@ export function ProjectPicker({
       document.removeEventListener("mousedown", onPointerDown, true);
     };
   }, [open, onClose, closeAndRestoreFocus]);
+
+  useEffect(() => {
+    if (!open) {
+      setMenuBounds(null);
+      return;
+    }
+
+    const updateMenuBounds = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+
+      const rect = trigger.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+      const edgeGap = 16;
+      const menuGap = 6;
+      const roomBelow = viewportBottom - rect.bottom - edgeGap - menuGap;
+      const roomAbove = rect.top - viewportTop - edgeGap - menuGap;
+      const placement = roomBelow < 260 && roomAbove > roomBelow ? "above" : "below";
+      const availableHeight = placement === "above" ? roomAbove : roomBelow;
+
+      setMenuBounds({
+        placement,
+        maxHeight: Math.max(160, Math.min(440, Math.floor(availableHeight))),
+      });
+    };
+
+    updateMenuBounds();
+    window.addEventListener("resize", updateMenuBounds);
+    window.visualViewport?.addEventListener("resize", updateMenuBounds);
+    return () => {
+      window.removeEventListener("resize", updateMenuBounds);
+      window.visualViewport?.removeEventListener("resize", updateMenuBounds);
+    };
+  }, [open]);
 
   const activeKey = activePath.replace(/[\\/]+$/, "").toLowerCase();
   const activeFromList = projects.find(
@@ -141,7 +178,8 @@ export function ProjectPicker({
       {open && (
         <div
           ref={menuRef}
-          className={styles.menu}
+          className={`${styles.menu} ${menuBounds?.placement === "above" ? styles.menuAbove : ""}`}
+          style={menuBounds ? { maxHeight: menuBounds.maxHeight } : undefined}
           role="menu"
           aria-label="Proje seç"
           onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: closeAndRestoreFocus })}

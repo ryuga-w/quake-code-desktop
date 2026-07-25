@@ -5,22 +5,22 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 
 describe("titlebar panel controls", () => {
-  it("hides both panel toggles in a new chat and while settings are open", () => {
+  it("keeps direct panel controls out of the titlebar", () => {
     const titlebar = readFileSync(
       join(root, "src/client/src/components/chrome/Titlebar.tsx"),
       "utf8",
     );
     const shell = readFileSync(join(root, "src/client/src/app/AppShell.tsx"), "utf8");
 
-    expect(titlebar).toContain("showPanelToggles = true");
-    expect(titlebar).toContain("{showPanelToggles && (");
+    expect(titlebar).not.toContain("showPanelToggles");
+    expect(titlebar).not.toContain('aria-label="Alt paneli aç/kapat"');
+    expect(titlebar).not.toContain('aria-label="Sağ paneli aç/kapat"');
     expect(titlebar).toContain('label: "Görünüm"');
     expect(titlebar).toContain('action: "toggle-sidebar"');
     expect(titlebar).toContain('action: "toggle-bottom-panel"');
     expect(titlebar).toContain('action: "toggle-right-panel"');
-    expect(shell).toContain(
-      'showPanelToggles={!settingsModalOpen && !(centerView === "chat" && !hasVisibleMessages)}',
-    );
+    expect(shell).toContain("onToggleTerminal={toggleBottomPanel}");
+    expect(shell).toContain("terminalOpen={bottomOpen}");
   });
 
   it("uses one opaque navigation surface for the titlebar, sidebar and window controls", () => {

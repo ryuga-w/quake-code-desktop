@@ -5,48 +5,44 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 const general = readFileSync(join(root, "src/client/src/components/settings/GeneralSettings.tsx"), "utf8");
 const terminal = readFileSync(join(root, "src/client/src/components/terminal/XtermTerminal.tsx"), "utf8");
+const contextUsage = readFileSync(join(root, "src/client/src/components/composer/ContextUsageIndicator.tsx"), "utf8");
 const styles = readFileSync(join(root, "src/client/src/components/settings/GeneralSettings.module.css"), "utf8");
 
-describe("general settings reference contract", () => {
-  it("keeps every referenced General section and row", () => {
+describe("general settings live-controls contract", () => {
+  it("keeps only preferences with active runtime consumers", () => {
     for (const label of [
-      "İzinler",
-      "Varsayılan izinler",
-      "Otomatik inceleme",
-      "Tam erişim",
-      "Varsayılan dosya açma hedefi",
-      "Otonom ajan ortamı",
+      "Terminal",
       "Entegre terminal kabuğu",
-      "Dil",
-      "Alt panel",
-      "Diğer AI uygulamalarından çalışmaları içe aktar",
-      "Açık kaynak lisansları",
       "Oluşturucu",
       "Bağlam penceresi kullanımını göster",
+    ]) {
+      expect(general).toContain(label);
+    }
+
+    for (const removedLabel of [
+      "Otonom ajan ortamı",
+      "Varsayılan dosya açma hedefi",
       "Gönderme kısayolu",
       "Takip davranışı",
       "Açılır Pencere",
       "Projesiz görev için varsayılan yap",
-      "Bildirimler",
-      "Tur tamamlama bildirimlerini etkinleştir",
-      "İzin bildirimlerini etkinleştir",
-      "Soru bildirimlerini etkinleştir",
+      "Diğer AI uygulamalarından çalışmaları içe aktar",
+      "Açık kaynak lisansları",
     ]) {
-      expect(general).toContain(label);
+      expect(general).not.toContain(removedLabel);
     }
   });
 
-  it("wires real permission, notification and terminal preferences", () => {
-    expect(general).toContain("onTerminalPolicy");
-    expect(general).toContain("saveNotificationConfig");
+  it("wires the remaining terminal and composer preferences", () => {
     expect(general).toContain('writeStorageValue("quake-web:terminalShell"');
     expect(terminal).toContain('readStorageValue("quake-web:terminalShell"');
     expect(terminal).toContain("defaultTerminalProfile()");
+    expect(general).toContain("emitGeneralPreferencesChanged(next)");
+    expect(contextUsage).toContain("GENERAL_PREFERENCES_CHANGED_EVENT");
   });
 
-  it("uses readable desktop sizing and accessible controls", () => {
+  it("keeps readable desktop sizing and accessible controls", () => {
     expect(general).toContain('role="switch"');
-    expect(general).toContain('role="group"');
     expect(styles).toContain("width: min(100%, 820px)");
     expect(styles).toContain("font-size: 13px");
     expect(styles).toContain("min-height: 68px");

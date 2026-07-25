@@ -922,11 +922,6 @@ export function AppShell(props: AppShellProps) {
       onOpenSessions={() => setCenterView("history")}
       workspaceName={workspaceName}
       workspacePath={currentWorkspace}
-      onToggleDock={toggleRightPanel}
-      onToggleBottomPanel={toggleBottomPanel}
-      dockOpen={rightOpen}
-      bottomPanelOpen={bottomOpen}
-      showPanelToggles={!settingsModalOpen && !(centerView === "chat" && !hasVisibleMessages)}
       showTimelineFade={!settingsModalOpen && centerView === "chat" && hasVisibleMessages && !(rightOpen && ((rightTab === "browser" && browserLayout === "focus") || (rightTab === "files" && filesLayout === "focus")))}
       onMenuAction={handleMenuAction}
     />
@@ -938,6 +933,8 @@ export function AppShell(props: AppShellProps) {
         workspacePath={currentWorkspace}
         plan={sessionSurfacePending ? undefined : sessionPlan}
         onToggleRight={toggleRightPanel}
+        onToggleTerminal={toggleBottomPanel}
+        terminalOpen={bottomOpen}
         onOpenFiles={() => openRightPanel("files")}
         onOpenBrowser={() => openRightPanel("browser")}
         onOpenPlan={() => openRightPanel("plan")}

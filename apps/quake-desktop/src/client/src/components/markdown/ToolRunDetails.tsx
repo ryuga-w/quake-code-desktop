@@ -4,6 +4,7 @@ import {
   getToolExecutionBody,
   toolContextText,
   isReadTool,
+  isCommandTool,
   isSubagentTool,
   type ToolLineStats,
 } from "../../lib/tool-activity";
@@ -60,6 +61,15 @@ function CommandTerminalIcon() {
     <svg viewBox="0 0 16 16" fill="none">
       <rect x="1.7" y="2.2" width="12.6" height="11.6" rx="1.8" />
       <path d="m4.3 6 2 2-2 2M8.2 10.1h3.2" />
+    </svg>
+  </span>;
+}
+
+function ReadFileIcon() {
+  return <span className={styles.compactCommandIcon} aria-hidden="true">
+    <svg viewBox="0 0 16 16" fill="none">
+      <path d="M4 1.8h5.1L12.5 5v9.2H4z" />
+      <path d="M9.1 1.8V5h3.4M6.2 7.4h4M6.2 9.6h4M6.2 11.8h2.5" />
     </svg>
   </span>;
 }
@@ -128,21 +138,25 @@ export function ToolRunDetails({
     else window.dispatchEvent(new CustomEvent("quake:open-tool-file", { detail: { path: filePath } }));
   };
 
-  const showStats = showLineStats || !compactCommand;
-  const displaySubject = compactCommand ? subject : compactToolSubject(subject);
+  const isRead = isReadTool(tool.toolName);
+  const compactActivity = compactCommand || isCommandTool(tool.toolName) || isRead;
+  const showStats = showLineStats || !compactActivity;
+  const displaySubject = compactActivity ? subject : compactToolSubject(subject);
+  const hideActiveCommandSubject = compactActivity && active && isCommandTool(tool.toolName);
 
   return <details
-    className={`${styles.toolRun} ${compactCommand ? styles.compactCommandRun : ""} ${compactMutation ? styles.compactMutationRun : ""} ${active ? styles.toolRunLive : ""}`}
+    className={`${styles.toolRun} ${compactActivity ? styles.compactCommandRun : ""} ${compactMutation ? styles.compactMutationRun : ""} ${active ? styles.toolRunLive : ""}`}
     open={open}
     onToggle={(event) => setOpen(event.currentTarget.open)}
     data-active={active ? "true" : "false"}
+    data-command={isCommandTool(tool.toolName) ? "true" : undefined}
     data-mutation={compactMutation ? "true" : undefined}
   >
     <summary aria-label={`${action} ${subject}`}>
-      {compactCommand && (compactMutation ? <MutationPencilIcon compact /> : <CommandTerminalIcon />)}
-      {!compactCommand && semanticIcon}
+      {compactActivity && (compactMutation ? <MutationPencilIcon compact /> : isRead ? <ReadFileIcon /> : <CommandTerminalIcon />)}
+      {!compactActivity && semanticIcon}
       <span className={styles.toolRunAction}>{action}</span>
-      {openFileOnSubjectClick && filePath ? (
+      {!hideActiveCommandSubject && openFileOnSubjectClick && filePath ? (
         <button
           type="button"
           className={`${styles.toolRunSubject} ${styles.toolRunSubjectLink} ${active ? styles.textShimmer : ""}`.trim()}
@@ -156,14 +170,14 @@ export function ToolRunDetails({
         >
           {displaySubject}
         </button>
-      ) : (
-        <span className={`${styles.toolRunSubject} ${active && !compactCommand ? styles.textShimmer : ""}`.trim()} title={subject}>
+      ) : !hideActiveCommandSubject ? (
+        <span className={`${styles.toolRunSubject} ${active && !compactActivity ? styles.textShimmer : ""}`.trim()} title={subject}>
           {displaySubject}
         </span>
-      )}
+      ) : null}
       {showStats && <LineStatsMeter stats={lineStats} active={active} />}
-      {compactCommand && active && <span className={styles.fileMutationLiveDot} aria-hidden="true" />}
-      {compactCommand && !active && tool.status === "error" && (
+      {compactActivity && active && <span className={styles.fileMutationLiveDot} aria-hidden="true" />}
+      {compactActivity && !active && tool.status === "error" && (
         <span className={`${styles.fileMutationResultMark} ${styles.fileMutationResultError}`} aria-hidden="true">!</span>
       )}
     </summary>

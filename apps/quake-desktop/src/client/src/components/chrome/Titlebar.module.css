@@ -116,14 +116,6 @@
   min-width: 12px;
 }
 
-/* Sag kume: duzen ikonlari (genislet / alt-panel / sag-panel). */
-.right {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  -webkit-app-region: no-drag;
-}
-
 /* Ikon butonu (toggle / ok / duzen). */
 .iconBtn {
   display: inline-flex;

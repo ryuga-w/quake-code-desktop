@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, ChevronRight, FolderCode, ListTree, PanelRight, Plus } from "lucide-react";
+import { Bot, ChevronRight, FolderCode, ListTree, PanelBottom, PanelRight, Plus } from "lucide-react";
 import type { WebSubagentSummary } from "../../../../shared/protocol";
 import { apiGet } from "../../lib/api";
 import { readStorageValue, writeStorageValue } from "../../lib/storage";
@@ -17,6 +17,8 @@ export function WorkspaceChrome({
   workspacePath,
   plan,
   onToggleRight,
+  onToggleTerminal,
+  terminalOpen,
   onOpenFiles,
   onOpenBrowser: _onOpenBrowser,
   onOpenPlan,
@@ -29,6 +31,8 @@ export function WorkspaceChrome({
   workspacePath: string;
   plan?: import("../../../../shared/protocol").WebPlanState;
   onToggleRight: () => void;
+  onToggleTerminal: () => void;
+  terminalOpen: boolean;
   onOpenFiles: () => void;
   onOpenBrowser: () => void;
   onOpenPlan: () => void;
@@ -94,8 +98,8 @@ export function WorkspaceChrome({
 
   return <div className="workspace-chrome">
     <div className="workspace-chrome-controls">
-      <button type="button" className="workspace-control-project" onClick={onOpenFiles} title={workspacePath} aria-label="Çalışma alanını aç"><span>▣</span><span>⌄</span></button>
       <button type="button" className={summaryOpen ? "active" : ""} onClick={() => setSummaryVisibility(!summaryOpen)} title="Çıktıları aç/kapat" aria-label="Çıktıları aç/kapat" aria-pressed={summaryOpen}><ListTree size={14} /></button>
+      <button type="button" className={terminalOpen ? "active" : ""} onClick={onToggleTerminal} title="Terminali aç/kapat (Ctrl+J)" aria-label="Terminali aç/kapat" aria-pressed={terminalOpen}><PanelBottom size={15} /></button>
       <button type="button" className={rightOpen ? "active" : ""} onClick={onToggleRight} title="Yan paneli aç/kapat" aria-label="Yan paneli aç/kapat" aria-pressed={rightOpen}><PanelRight size={15} /></button>
     </div>
     {summaryOpen && <WorkspaceContextCard

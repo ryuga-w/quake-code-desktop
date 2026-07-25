@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { StickToBottom, type StickToBottomContext } from "use-stick-to-bottom";
-import { Box, Copy, FileText } from "lucide-react";
+import { Box, FileText } from "lucide-react";
 import { textFromMessage } from "../../lib/render";
 import {
   artifactTemplateMessageMeta,
@@ -10,6 +10,7 @@ import {
 import { useAppStore, type ToolCardState } from "../../state/app-store";
 import {
   computeTurnDurationMs,
+  LiveTurnWorkStatus,
   MarkdownMessage,
   StreamingThinkingIndicator,
   ToolCallNotice,
@@ -277,7 +278,12 @@ export function TimelineInner({
       // File-change summary card is rendered on the final assistant answer (MarkdownMessage)
       // to avoid double cards for the same turn.
       const body = item.pending
-        ? workEntries
+        ? (
+          <div className="turn-work-live">
+            <LiveTurnWorkStatus tools={item.toolSnapshots} fallbackStartedAt={item.time} />
+            {workEntries}
+          </div>
+        )
         : (
           <TurnWorkDisclosure
             openKey={`group:${item.turnId ?? "x"}:${item.key}`}
@@ -430,7 +436,6 @@ export function TimelineInner({
     const legacyAbortPlaceholder = isAbortedAssistant && /^_?\(Yanıt durduruldu\)_?$/i.test(text.trim());
     if (legacyAbortPlaceholder) text = "";
     const abortedStatusLabel = formatAbortedTurnLabel(abortedTurnDurations.get(item.message) || 0);
-    const canCopyAssistant = isAssistant && !item.message.__streaming && !toolOnly && Boolean(text.trim());
     const isStreamingAssistant = Boolean(item.message.__streaming && isAssistant);
     const showStreamingThink = isStreamingAssistant && !text.trim();
     const isLatestAssistant =
@@ -470,14 +475,6 @@ export function TimelineInner({
         {isAbortedAssistant && (
           <div className={`aborted-message-status ${text.trim() ? "has-response" : ""}`} role="status">
             <span>{abortedStatusLabel}</span>
-          </div>
-        )}
-        {canCopyAssistant && (
-          <div className="assistant-message-actions">
-            <button type="button" onClick={() => copyTextWithToast(text, "Yanıt kopyalandı")}>
-              <Copy size={14} aria-hidden="true" />
-              <span>Kopyala</span>
-            </button>
           </div>
         )}
       </div>
@@ -567,15 +564,9 @@ export function TimelineInner({
     void stickContextRef.current?.scrollToBottom({ animation: "smooth" });
   }, [scrollRequest]);
 
-  // Streaming metin buyudukce: zaten dipteyse (preserve) alta kaydir.
-  // use-stick-to-bottom ResizeObserver da yonetir; bu ekstra token-chunk garantisi.
-  useEffect(() => {
-    if (!streamingItem) return;
-    void stickContextRef.current?.scrollToBottom({
-      animation: { damping: 0.72, stiffness: 0.08, mass: 0.9 },
-      preserveScrollPosition: true,
-    });
-  }, [streamingItem, streamingText, timelineRows.length]);
+  // StickToBottom's ResizeObserver is the sole owner of stream-time scrolling.
+  // A second explicit spring here competed with its resize spring whenever a
+  // token or tool row arrived, which made the timeline visibly jitter.
 
   useEffect(() => {
     if (!pendingMessages.length) return;
@@ -633,7 +624,7 @@ export function TimelineInner({
       id="timeline"
       className={`timeline stick-to-bottom ${compactOverlay ? "timeline-compact-overlay" : ""}`}
       contextRef={stickContextRef}
-      resize="smooth"
+      resize={streamingItem ? "instant" : "smooth"}
       initial="smooth"
       damping={0.7}
       stiffness={0.06}

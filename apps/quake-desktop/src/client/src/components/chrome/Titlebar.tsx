@@ -1,8 +1,6 @@
 import React from "react";
 import {
   PanelLeft,
-  PanelRight,
-  PanelBottom,
   Folder,
 } from "lucide-react";
 import styles from "./Titlebar.module.css";
@@ -33,11 +31,6 @@ export function Titlebar({
   onOpenSessions,
   workspaceName,
   workspacePath,
-  onToggleDock,
-  onToggleBottomPanel,
-  dockOpen,
-  bottomPanelOpen,
-  showPanelToggles = true,
   showTimelineFade = false,
   onMenuAction,
 }: {
@@ -46,11 +39,6 @@ export function Titlebar({
   onOpenSessions: () => void;
   workspaceName: string;
   workspacePath: string;
-  onToggleDock?: () => void;
-  onToggleBottomPanel?: () => void;
-  dockOpen?: boolean;
-  bottomPanelOpen?: boolean;
-  showPanelToggles?: boolean;
   showTimelineFade?: boolean;
   onMenuAction?: (action: MenuAction) => void;
 }) {
@@ -212,31 +200,6 @@ export function Titlebar({
         </nav>
 
         <div className={styles.spacer} />
-
-        {showPanelToggles && (
-          <div className={styles.right}>
-            <button
-              type="button"
-              className={`${styles.iconBtn} ${bottomPanelOpen ? styles.active : ""}`}
-              onClick={onToggleBottomPanel}
-              aria-label="Alt paneli aç/kapat"
-              aria-pressed={Boolean(bottomPanelOpen)}
-              title="Alt paneli aç/kapat (Ctrl+J)"
-            >
-              <PanelBottom size={16} strokeWidth={2} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className={`${styles.iconBtn} ${dockOpen ? styles.active : ""}`}
-              onClick={onToggleDock}
-              aria-label="Sağ paneli aç/kapat"
-              aria-pressed={Boolean(dockOpen)}
-              title="Sağ paneli aç/kapat"
-            >
-              <PanelRight size={16} strokeWidth={2} aria-hidden="true" />
-            </button>
-          </div>
-        )}
       </header>
       {/* Yalnızca timeline metin sütununa denk gelen üst fade. */}
       {showTimelineFade && <div className={styles.edgeFade} aria-hidden="true" />}

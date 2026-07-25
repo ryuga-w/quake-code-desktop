@@ -92,11 +92,10 @@ describe("timeline markdown rendering contract", () => {
     expect(styles).toMatch(/\.streamdown-scope th \{\s*background: transparent;/);
   });
 
-  it("reveals assistant copy actions without changing row height", () => {
-    expect(timelineStyles).toMatch(/\.assistant-message-actions \{[\s\S]*?min-height: 24px;[\s\S]*?max-height: 24px;[\s\S]*?margin-top: 4px;/);
-    expect(timelineStyles).toMatch(/\.message\.assistant:hover \.assistant-message-actions,[\s\S]*?opacity: 1;[\s\S]*?pointer-events: auto;/);
-    expect(timelineStyles).not.toMatch(/\.message\.assistant:hover \.assistant-message-actions,[\s\S]*?max-height:/);
-    expect(timelineStyles).not.toContain("transition: opacity var(--duration-fast, 120ms) ease, max-height");
+  it("keeps assistant text selectable without a redundant copy action", () => {
+    expect(timelineStyles).not.toContain(".assistant-message-actions");
+    expect(timeline).toContain('label: "Metni kopyala"');
+    expect(timeline).toContain("copyTextWithToast(text, \"Yanıt kopyalandı\")");
   });
 
   it("draws a stable divider below each worked-duration heading", () => {

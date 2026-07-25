@@ -8,32 +8,28 @@ import { Titlebar } from "../src/client/src/components/chrome/Titlebar";
 const root = process.cwd();
 
 describe("titlebar panel controls", () => {
-  const renderTitlebar = (showPanelToggles: boolean) => renderToStaticMarkup(
+  const renderTitlebar = () => renderToStaticMarkup(
     React.createElement(Titlebar, {
       leftOpen: true,
       onToggleSidebar: () => {},
       onOpenSessions: () => {},
       workspaceName: "quake-desktop",
       workspacePath: root,
-      showPanelToggles,
     }),
   );
 
-  it("omits both panel toggle buttons when controls are hidden", () => {
-    const hidden = renderTitlebar(false);
-    const visible = renderTitlebar(true);
+  it("does not render direct panel toggle buttons in the titlebar", () => {
+    const markup = renderTitlebar();
 
-    expect(hidden).not.toContain('aria-label="Alt paneli aç/kapat"');
-    expect(hidden).not.toContain('aria-label="Sağ paneli aç/kapat"');
-    expect(visible).toContain('aria-label="Alt paneli aç/kapat"');
-    expect(visible).toContain('aria-label="Sağ paneli aç/kapat"');
+    expect(markup).not.toContain('aria-label="Alt paneli aç/kapat"');
+    expect(markup).not.toContain('aria-label="Sağ paneli aç/kapat"');
   });
 
-  it("hides both panel toggles in a new chat and while settings are open", () => {
+  it("routes the terminal control through the workspace controls", () => {
     const shell = readFileSync(join(root, "src/client/src/app/AppShell.tsx"), "utf8");
 
-    expect(shell).toContain(
-      'showPanelToggles={!settingsModalOpen && !(centerView === "chat" && !hasVisibleMessages)}',
-    );
+    expect(shell).toContain("onToggleTerminal={toggleBottomPanel}");
+    expect(shell).toContain("terminalOpen={bottomOpen}");
+    expect(shell).not.toContain("showPanelToggles=");
   });
 });

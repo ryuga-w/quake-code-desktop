@@ -1260,9 +1260,17 @@
   color: var(--danger, #dc2626);
 }
 .compactCommandRun summary {
-  max-width: 100%;
+  display: grid;
+  grid-template-columns: 15px max-content minmax(0, 1fr) auto;
+  max-width: min(760px, 84vw);
   min-height: 20px;
   gap: 5px;
+  color: color-mix(in srgb, var(--heading) 48%, transparent);
+  transition: color 120ms ease, background 120ms ease;
+}
+.compactCommandRun summary:hover,
+.compactCommandRun summary:focus-visible {
+  color: var(--heading);
 }
 .compactMutationRun summary {
   gap: 6px;
@@ -1300,9 +1308,9 @@
   width: 13px;
   height: 13px;
   flex: 0 0 auto;
-  margin-right: 2px;
-  color: var(--muted);
-  opacity: .82;
+  margin-right: 0;
+  color: inherit;
+  opacity: 1;
 }
 .compactCommandIcon svg {
   width: 13px;
@@ -1313,11 +1321,16 @@
   stroke-linejoin: round;
 }
 .compactCommandRun .toolRunAction {
+  min-width: 0;
+  color: inherit;
   font-weight: 480;
 }
 .compactCommandRun .toolRunSubject {
-  max-width: min(520px, 56vw);
+  max-width: none;
+  color: inherit;
 }
+.compactCommandRun .toolRunSubjectLink { color: inherit; }
+.compactCommandRun .fileMutationLiveDot { justify-self: start; }
 .compactCommandRun .toolExecutionCard {
   width: calc(100% - 20px);
   margin-left: 20px;

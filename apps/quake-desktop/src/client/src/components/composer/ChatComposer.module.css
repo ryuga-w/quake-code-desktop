@@ -2,6 +2,7 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  container-type: inline-size;
   width: min(var(--composer-max-width, 720px), calc(100% - (var(--chat-column-gutter) * 2)));
   min-height: 104px;
   margin: 0 auto 14px;
@@ -1263,6 +1264,7 @@ button[type="submit"].sendButton > svg {
   z-index: 70;
   width: 226px;
   min-width: 226px;
+  max-width: calc(100cqw - 20px);
   overflow: visible;
   color: var(--text-primary, var(--heading));
 }
@@ -1572,16 +1574,57 @@ button[type="submit"].sendButton > svg {
   padding: 7px;
 }
 
+.preferencesPopover[data-submenu-placement="left"] .preferencesSubmenu {
+  right: calc(100% - 1px);
+  left: auto;
+}
+
+.preferencesPopover[data-submenu-placement="stacked"] {
+  width: min(282px, calc(100cqw - 20px));
+  min-width: 0;
+}
+
+.preferencesPopover[data-submenu-placement="stacked"] .advancedPreferencesPanel {
+  display: none;
+}
+
+.preferencesPopover[data-submenu-placement="stacked"] .preferencesSubmenu,
+.preferencesPopover[data-submenu-placement="stacked"] .modelSubmenu,
+.preferencesPopover[data-submenu-placement="stacked"] .effortSubmenu {
+  position: static;
+  box-sizing: border-box;
+  width: 100%;
+  max-height: min(360px, calc(100dvh - 152px));
+  transform: none;
+}
+
+.preferencesPopover[data-submenu-placement="stacked"] .submenuHeading {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.preferencesPopover[data-submenu-placement="stacked"] .submenuHeading::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin: 0 4px 0 2px;
+  border-bottom: 1.4px solid currentColor;
+  border-left: 1.4px solid currentColor;
+  transform: rotate(45deg);
+}
+
 .modelSubmenu {
   top: 0;
   width: 282px;
   max-height: min(360px, 58vh);
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .effortSubmenu {
   top: 50%;
   width: 182px;
   transform: translateY(-50%);
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .submenuHeading {
@@ -1831,20 +1874,29 @@ button[type="submit"].sendButton > svg {
 
 :global(.main.empty-chat) :global(#composer).composer {
   width: 100%;
-  max-width: 680px;
-  min-height: 104px;
+  max-width: 640px;
+  min-height: 108px;
   margin: 0;
-  border-radius: 19px;
+  border-radius: 20px;
+}
+
+/* Empty-chat project picker lives above the composer by default. When a
+   composer menu opens, lift the full composer stacking context so picker text
+   cannot render through the menu surface. */
+:global(.main.empty-chat) :global(#composer).composer:has(.addMenu[open]),
+:global(.main.empty-chat) :global(#composer).composer:has(.approvalMenu[open]),
+:global(.main.empty-chat) :global(#composer).composer:has(.preferencesMenu[open]) {
+  z-index: 40;
 }
 
 :global(.main.empty-chat) :global(#composer).composer .inputRow {
-  min-height: 64px;
+  min-height: 66px;
   padding-top: 12px;
 }
 
 :global(.main.empty-chat) :global(#composer).composer .inputRow textarea {
-  min-height: 50px;
-  font-size: 14px;
+  min-height: 46px;
+  font-size: 14.5px;
 }
 
 :global([data-theme="light"]) :global(#composer).composer {
@@ -2171,6 +2223,12 @@ button[type="submit"].sendButton > svg {
   max-width: var(--composer-max-width, 720px);
 }
 
+:global(.main.empty-chat) .quickActionsContainer {
+  max-width: 640px;
+  gap: 8px;
+  margin: 14px auto 0;
+}
+
 .quickActionPill {
   display: inline-flex;
   align-items: center;
@@ -2189,10 +2247,24 @@ button[type="submit"].sendButton > svg {
   transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
+:global(.main.empty-chat) .quickActionPill {
+  min-height: 34px;
+  padding: 0 13px;
+  border-color: color-mix(in srgb, var(--border) 88%, var(--text) 12%);
+  font-size: 12.5px;
+  font-weight: 530;
+}
+
 .quickActionIcon {
   flex: 0 0 auto;
   opacity: 0.75;
   transition: opacity 140ms ease;
+}
+
+:global(.main.empty-chat) .quickActionIcon {
+  width: 15px;
+  height: 15px;
+  opacity: 0.9;
 }
 
 .quickActionPill:hover {
@@ -2203,8 +2275,23 @@ button[type="submit"].sendButton > svg {
   box-shadow: none !important;
 }
 
+:global(.main.empty-chat) .quickActionPill:hover {
+  transform: translateY(-1px) !important;
+}
+
 .quickActionPill:hover .quickActionIcon {
   opacity: 1;
+}
+
+@media (max-width: 640px) {
+  :global(.main.empty-chat) .quickActionsContainer {
+    gap: 8px;
+  }
+
+  :global(.main.empty-chat) .quickActionPill {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
 }
 
 /* Light mode ChatGPT / Claude ultra-minimalist style: zero drop shadow, crisp thin border */

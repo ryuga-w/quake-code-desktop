@@ -1,6 +1,8 @@
-# Ayarlar İşlevsellik Denetimi
+# Ayarlar İşlevsellik Denetimi (Tarihsel)
 
 Tarih: 2026-07-19
+
+> Durum güncellemesi — 2026-07-25: Bu denetimde listelenen çalışmayan Genel, Tarayıcı ve Görünüm kontrolleri arayüzden kaldırıldı. Genel yalnızca terminal kabuğu ile bağlam göstergesini, Görünüm yalnızca canlı tema/yoğunluk/hareket/Quakelet tercihlerini gösterir. Tarayıcı ayar sayfası, gerçek bir runtime katmanı gelene kadar kaldırılmıştır.
 
 Bu belge, Quake Desktop ayarlarında görünen kontrollerin gerçek uygulama davranışına bağlı olup olmadığını özetler. Amaç; yalnızca arayüzde kaydedilen fakat runtime tarafından tüketilmeyen tercihleri, kısmi entegrasyonları ve gerçekten çalışan akışları ayırmaktır.
 

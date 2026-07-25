@@ -406,14 +406,6 @@
     white-space: nowrap;
   }
 
-  .assistant-message-actions {
-    min-height: 24px;
-    max-height: 32px;
-    margin-top: 4px;
-    opacity: 1;
-    overflow: visible;
-    pointer-events: auto;
-  }
 }
 
 @media (max-height: 680px) and (min-width: 721px) {

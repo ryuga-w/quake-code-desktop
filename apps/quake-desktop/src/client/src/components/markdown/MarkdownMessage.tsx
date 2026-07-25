@@ -12,6 +12,7 @@ import { MarkdownContent, SIGNAL_TRAIL_STREAM_ANIMATION } from "./MarkdownConten
 import {
   computeTurnDurationMs,
   noticeOpenKey,
+  LiveTurnWorkStatus,
   ToolCallNotice,
   TurnSemanticFlow,
   TurnWorkDisclosure,
@@ -22,6 +23,7 @@ import { collectToolNoticeBatch } from "./tool-notice-batch";
 export {
   computeTurnDurationMs,
   formatTurnWorkDurationLabel,
+  LiveTurnWorkStatus,
   StreamingThinkingIndicator,
   ToolCallNotice,
   TurnWorkDisclosure,

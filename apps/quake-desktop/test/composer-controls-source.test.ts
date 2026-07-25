@@ -22,7 +22,6 @@ describe("composer controls source contract", () => {
     expect(appStyles).toContain("--composer-surface: #242426");
     expect(appStyles).toContain("--composer-project-surface: #18191b");
     expect(appStyles).toContain("background: var(--composer-surface, #242426)");
-    expect(appStyles).toContain("background: var(--composer-project-surface, #18191b)");
     expect(appStyles).toContain("--composer-focus-surface: #242426");
   });
 
@@ -62,7 +61,7 @@ describe("composer controls source contract", () => {
     expect(composerStyles).toContain("bottom: min(calc(184px + env(safe-area-inset-bottom)), 48dvh)");
   });
 
-  it("groups model and effort in the progressive composer picker", () => {
+  it("uses the responsive direct model and effort picker", () => {
     expect(composer).toContain('className={`${styles.preferencesMenu} composer-menu`}');
     expect(composer).toContain("Model ve çaba ayarları");
     expect(composer).toContain("Gelişmiş");
@@ -72,21 +71,14 @@ describe("composer controls source contract", () => {
     expect(composer).toContain('setPreferencesSubmenu("effort")');
     expect(composer).not.toContain("styles.thinkingMenu");
     expect(composer).not.toContain("styles.modelMenu");
-    expect(composerStyles).toContain(".effortRail");
-    expect(composer).toContain("<EffortSlider");
-    expect(composer).toContain('type="range"');
-    expect(composer).toContain('aria-label="Çaba seviyesi"');
-    expect(composer).toContain("onPointerUp");
-    expect(composerStyles).toContain(".effortSlider::-webkit-slider-thumb");
-    expect(composerStyles).toContain(".effortThumb");
-    expect(composer).toContain("data-level={visibleOption?.value}");
-    expect(composerStyles).toContain('.effortRail[data-level="max"]');
-    expect(composerStyles).toContain("@keyframes maxEffortAura");
-    expect(composer).not.toContain("styles.maxEffortFlames");
-    expect(composerStyles).not.toContain(".maxEffortFlames");
-    expect(composerStyles).not.toContain("@keyframes maxEffortFlame");
+    expect(composer).toContain("availableThinkingOptions.map");
+    expect(composer).toContain('role="menuitemradio"');
+    expect(composer).not.toContain("<EffortSlider");
+    expect(composer).not.toContain('type="range"');
     expect(composerStyles).toContain(".advancedPreferencesPanel");
     expect(composerStyles).toContain(".preferencesSubmenu");
+    expect(composerStyles).toContain('.preferencesPopover[data-submenu-placement="left"]');
+    expect(composerStyles).toContain('.preferencesPopover[data-submenu-placement="stacked"]');
     expect(composerStyles).toMatch(/\.preferencesMenu\.preferencesMenu > summary \{[\s\S]*?background: transparent;/);
     expect(composerStyles).toContain('.preferenceEffort[data-level="max"]');
     expect(composerStyles).not.toContain(".preferencesMenu.preferencesMenu[open] > summary,");

@@ -378,7 +378,6 @@ select { font-family: inherit; }
 #app[data-theme="light"].browser-layout-focus .timeline-compact-overlay .message-body::after {
   background: linear-gradient(transparent, var(--panel));
 }
-#app.browser-layout-focus .timeline-compact-overlay .assistant-message-actions { display: none; }
 #app .rightbar[data-active-panel="sidechat"] {
   display: flex;
   flex-direction: column;
@@ -1833,6 +1832,9 @@ a:focus-visible,
   height: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden;
+  /* The custom StickToBottom controller owns stream anchoring. Native scroll
+     anchoring can otherwise fight it when a command row changes height. */
+  overflow-anchor: none;
   padding: 28px var(--chat-column-gutter) 90px;
   scrollbar-gutter: stable both-edges;
 }
@@ -1925,11 +1927,37 @@ a:focus-visible,
   justify-content: center;
   min-height: 0;
   flex: 1 1 auto;
-  padding: 24px 20px 48px;
+  position: relative;
+  isolation: isolate;
+  padding: 32px 20px 58px;
   background: var(--bg);
-  background-image: none;
+  overflow: hidden;
   animation: none;
   gap: 0;
+}
+
+.main.empty-chat::before,
+.main.empty-chat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.main.empty-chat::before {
+  background:
+    radial-gradient(ellipse 54% 38% at 50% 53%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 100%),
+    radial-gradient(ellipse 38% 24% at 50% 78%, color-mix(in srgb, var(--heading) 2%, transparent), transparent 100%);
+}
+
+.main.empty-chat::after {
+  opacity: 0.16;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border) 58%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border) 58%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 62% 50% at 50% 50%, #000 0%, transparent 100%);
 }
 .main.chat-active {
   /* normal chat column layout */
@@ -1951,9 +1979,11 @@ a:focus-visible,
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: min(680px, calc(100% - 32px));
+  position: relative;
+  z-index: 1;
+  width: min(640px, calc(100% - 32px), calc(100dvw - 48px));
   margin: 0 auto;
-  gap: 10px;
+  gap: 12px;
 }
 .main.empty-chat .empty-composer-title {
   display: inline-flex;
@@ -1979,8 +2009,8 @@ a:focus-visible,
   justify-content: flex-start;
   align-self: stretch;
   width: 100%;
-  margin: 0 0 4px;
-  padding: 0 2px;
+  margin: 0 0 8px;
+  padding: 0 4px;
   position: relative;
   z-index: 30;
 }
@@ -2001,9 +2031,9 @@ a:focus-visible,
 .main.empty-chat .composer {
   margin: 0;
   width: 100%;
-  max-width: 680px;
-  min-height: 112px;
-  border-radius: 22px;
+  max-width: 640px;
+  min-height: 108px;
+  border-radius: 20px;
   border: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
   background: var(--panel);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 28px rgba(0, 0, 0, 0.05);
@@ -2017,8 +2047,8 @@ a:focus-visible,
   transform: none;
 }
 .main.empty-chat .composer textarea {
-  min-height: 44px;
-  font-size: 15px;
+  min-height: 46px;
+  font-size: 14.5px;
   line-height: 1.45;
   color: var(--heading);
 }
@@ -2032,7 +2062,7 @@ a:focus-visible,
   min-height: 44px;
 }
 .main.empty-chat .composer-input-row {
-  padding: 14px 16px 2px;
+  padding: 12px 16px 2px;
 }
 .main.empty-chat .composer-mode-pill,
 .main.empty-chat .composer-refresh {
@@ -4145,7 +4175,21 @@ body,
   display: none;
 }
 .main.empty-chat .composer textarea {
-  min-height: 44px;
+  min-height: 46px;
+}
+
+@media (max-width: 640px) {
+  .main.empty-chat {
+    padding: 28px 12px 40px;
+  }
+
+  .main.empty-chat .composer-shell {
+    width: min(100%, calc(100% - 8px));
+  }
+
+  .main.empty-chat .composer-input-row {
+    padding: 14px 15px 3px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -5490,41 +5534,6 @@ body.panel-resize-active .right-resize-handle {
 
 .streamdown-scope .qc-md-ul.contains-task-list > .qc-md-li.task-list-item::marker {
   content: none !important;
-}
-
-.assistant-message-actions {
-  min-height: 24px;
-  max-height: 24px;
-  margin-top: 4px;
-  overflow: visible;
-  opacity: 0;
-  pointer-events: none;
-}
-.message.assistant:hover .assistant-message-actions,
-.message.assistant:focus-within .assistant-message-actions {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.assistant-message-actions button {
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
-  min-width: 24px;
-  height: 24px;
-  min-height: 24px;
-  padding: 0;
-  border-radius: 6px;
-  color: var(--muted-2);
-}
-
-.assistant-message-actions button span {
-  display: none;
-}
-
-.assistant-message-actions button svg {
-  width: 12px;
-  height: 12px;
 }
 
 [data-theme="light"] .user-msg-bubble {
