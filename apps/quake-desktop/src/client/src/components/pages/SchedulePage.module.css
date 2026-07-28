@@ -1,0 +1,355 @@
+/* ============================================================
+   Zamanlananlar — MERKEZ tam-sayfa (Codex "Scheduled" birebir)
+   Sekmeler (Tasks | Templates) + sağ üstte "Sohbetle oluştur".
+   Tüm renkler design token'larından (dark/light otomatik).
+   ============================================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+/* ---- Top bar: sekmeler (sol) + oluştur (sağ) ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  flex-shrink: 0;
+}
+
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.tab:hover {
+  color: var(--heading);
+  background: var(--panel-2);
+}
+.tabActive {
+  color: var(--heading);
+  background: var(--panel-2);
+  font-weight: 600;
+}
+
+.createGroup {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--panel-2);
+}
+.createBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 540;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.createBtn:hover {
+  background: var(--surface);
+  color: var(--heading);
+}
+.caretBtn {
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  width: 30px;
+  cursor: pointer;
+}
+.caretBtn:hover {
+  background: var(--surface);
+  color: var(--heading);
+}
+
+/* ---- Scroll alanı + ortalanmış içerik kolonu ---- */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+}
+
+/* ---- Başlık ---- */
+.heading {
+  margin: 0;
+  color: var(--heading);
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.subhead {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- Arama kutusu ---- */
+.searchBox {
+  position: relative;
+  margin-top: 20px;
+}
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-2);
+  pointer-events: none;
+}
+.searchInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px 12px 40px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  outline: 0;
+}
+.searchInput::placeholder {
+  color: var(--muted-2);
+}
+.searchInput:focus-visible {
+  border-color: var(--border-strong);
+}
+
+/* ---- Bölüm etiketi + ayraç ---- */
+.sectionLabel {
+  margin-top: 28px;
+  color: var(--heading);
+  font-size: 16px;
+  font-weight: 600;
+}
+.divider {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---- Görev listesi ---- */
+.skeletonWrap {
+  padding: 16px 0;
+}
+.empty {
+  padding: 40px 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.taskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.taskRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 8px;
+  border-radius: var(--radius-md);
+}
+.taskRow:hover {
+  background: var(--panel-2);
+}
+.taskRow:hover .taskActions {
+  opacity: 1;
+}
+.taskRowOff {
+  opacity: 0.6;
+}
+
+.radio {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.radio:hover {
+  border-color: var(--heading);
+}
+.radioDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: transparent;
+}
+.radioOn {
+  border-color: var(--accent);
+}
+.radioOn .radioDot {
+  background: var(--accent);
+}
+
+.taskMain {
+  flex: 1;
+  min-width: 0;
+}
+.taskTopline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.taskName {
+  color: var(--heading);
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.taskSep {
+  color: var(--muted-2);
+  font-size: 14px;
+}
+.taskMeta {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.taskActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.rowIconBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.rowIconBtn:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--heading);
+}
+.rowIconBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.rowIconActive {
+  color: var(--success);
+}
+.rowIconDanger:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--error);
+}
+
+/* ---- Templates: 2-kolon kart grid ---- */
+.templateGrid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.templateCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 150px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+.templateCard:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+.templateCard:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.templateIcon {
+  display: inline-grid;
+  place-items: center;
+  color: var(--heading);
+}
+.templateDesc {
+  flex: 1;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.templateSchedule {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---- Dar ekran ---- */
+@media (max-width: 640px) {
+  .templateGrid {
+    grid-template-columns: 1fr;
+  }
+  .container {
+    padding: 20px 16px 56px;
+  }
+  .topbar {
+    padding: 12px 16px;
+  }
+  .taskActions {
+    opacity: 1;
+  }
+}

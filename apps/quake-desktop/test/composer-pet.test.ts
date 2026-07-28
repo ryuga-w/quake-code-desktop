@@ -1,0 +1,116 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { resolveComposerPetState } from "../src/client/src/components/composer/composer-pet-state";
+
+const root = process.cwd();
+const read = (path: string) => readFileSync(join(root, path), "utf8");
+const composer = read("src/client/src/components/composer/ChatComposer.tsx");
+const pet = read("src/client/src/components/composer/ComposerPet.tsx");
+const runtimePet = read("src/client/src/components/composer/RuntimeComposerPet.tsx");
+const petSignals = read("src/client/src/components/composer/composer-pet-signals.ts");
+const petStyles = read("src/client/src/components/composer/ComposerPet.module.css");
+const approval = read("src/client/src/components/security/ComposerApproval.tsx");
+const appearance = read("src/client/src/components/settings/AppearanceSettings.tsx");
+const appearanceRuntime = read("src/client/src/lib/appearance-runtime.ts");
+const main = read("src/client/src/main.tsx");
+
+describe("composer Quakelet MVP", () => {
+  it("resolves all lifecycle states with deterministic priority", () => {
+    expect(resolveComposerPetState({ busy: false, resultVisible: false, recentlyTyping: false, canSubmit: false })).toBe("idle");
+    expect(resolveComposerPetState({ busy: false, resultVisible: false, recentlyTyping: true, canSubmit: true })).toBe("typing");
+    expect(resolveComposerPetState({ busy: false, resultVisible: false, recentlyTyping: false, canSubmit: true })).toBe("ready");
+    expect(resolveComposerPetState({ busy: true, resultVisible: true, recentlyTyping: true, canSubmit: true })).toBe("working");
+    expect(resolveComposerPetState({ busy: false, resultVisible: true, recentlyTyping: true, canSubmit: true })).toBe("result");
+  });
+
+  it("binds the decorative pet to real composer state", () => {
+    expect(composer).toContain("<RuntimeComposerPet");
+    expect(composer).toContain("busy={agentBusy || promptPending}");
+    expect(composer).toContain("triggerPetImpact();");
+    expect(composer).toContain("sendImpact={petImpactSequence}");
+    expect(composer).toContain("onClick={triggerPetStop}");
+    expect(composer).toContain("fileDragActive={fileDragActive}");
+    expect(composer).toContain("attachmentCount={images.length + contextCount}");
+    expect(composer).toContain("fileKind={petFileKind}");
+    expect(composer).toContain("planCompletedCount={planCompletedCount}");
+    expect(composer).toContain("contextLoad={petContext.load}");
+    expect(pet).toContain('data-state={state}');
+    expect(pet).toContain('data-composer-pet-impact={impactActive ? "true" : undefined}');
+    expect(pet).toContain('data-composer-pet-stop={stopActive ? "true" : undefined}');
+    expect(pet).toContain('data-file-catching={fileDragActive ? "true" : undefined}');
+    expect(pet).toContain('data-file-caught={fileCaughtActive ? "true" : undefined}');
+    expect(pet).toContain('data-tool={activeToolKind}');
+    expect(pet).toContain('data-tool-error={toolErrorActive ? "true" : undefined}');
+    expect(pet).toContain('data-tool-recovery={toolRecoveryActive ? "true" : undefined}');
+    expect(pet).toContain('data-subagent-motion={subagentMotion}');
+    expect(pet).toContain('data-plan-active={planActive ? "true" : undefined}');
+    expect(pet).toContain('data-context-load={contextLoad}');
+    expect(pet).toContain('data-network-motion={networkMotion}');
+    expect(pet).toContain('data-surface-motion={surfaceMotion}');
+    expect(pet).toContain('data-idle-motion={idleMotion}');
+    expect(pet).toContain('aria-hidden="true"');
+    expect(pet).toContain("previousBusyRef");
+    expect(pet).toContain("RESULT_CELEBRATION_MS");
+    expect(pet).toContain("SEND_IMPACT_MS");
+    expect(pet).toContain("React.useLayoutEffect(() =>");
+    expect(pet).toContain("suppressNextResultRef.current = true");
+    expect(pet).toContain("styles.armLeft");
+    expect(pet).toContain("styles.handLeft");
+    expect(pet).toContain("styles.handRight");
+    expect(pet).toContain("styles.ledgeLine");
+    expect(pet).toContain("styles.signalLine");
+    expect(runtimePet).toContain("useAppStore((state) => state.tools)");
+    expect(runtimePet).toContain("deriveComposerPetRuntimeSignals(tools, messages)");
+    expect(runtimePet).toContain("provider_disconnected");
+    expect(runtimePet).toContain("freshSession={freshSession}");
+    expect(petSignals).toContain("collectWorkspaceSubagents(toolMap, messages, 24)");
+  });
+
+  it("keeps motion optional, responsive, and layout-independent", () => {
+    expect(petStyles).toContain('html[data-composer-pet="off"]');
+    expect(petStyles).toContain('html[data-reduce-motion="on"]');
+    expect(petStyles).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(petStyles).toContain('@media (max-width: 390px)');
+    expect(petStyles).toContain('position: absolute');
+    expect(petStyles).toContain('.pet[data-state="working"]');
+    expect(petStyles).toContain('.pet[data-state="result"]');
+    expect(petStyles).toContain("@keyframes quakeletTap");
+    expect(petStyles).toContain("@keyframes quakeletSeismograph");
+    expect(petStyles).toContain("@keyframes quakeletGrip");
+    expect(petStyles).toContain("@keyframes quakeletDoubleSlam");
+    expect(petStyles).toContain("@keyframes quakeletImpactRing");
+    expect(petStyles).toContain("@keyframes quakeletComposerQuake");
+    expect(petStyles).toContain(':global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-impact="true"]))');
+    expect(petStyles).toContain(':global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-stop="true"]))');
+    expect(petStyles).toContain(':global(html[data-composer-pet="off"] #composer)');
+    expect(petStyles).toContain("@keyframes quakeletFileStow");
+    expect(petStyles).toContain("@keyframes quakeletEmergencyBrake");
+    expect(petStyles).toContain("@keyframes quakeletComposerBrake");
+    expect(petStyles).toContain('.pet[data-approval="true"] .approvalHand');
+    expect(petStyles).toContain('.pet[data-tool="read"] .toolPaper');
+    expect(petStyles).toContain('.pet[data-tool="search"] .searchLens');
+    expect(petStyles).toContain('.pet[data-tool="shell"] .shellHammer');
+    expect(petStyles).toContain("@keyframes quakeletToolStumble");
+    expect(petStyles).toContain("@keyframes quakeletRecoverClimb");
+    expect(petStyles).toContain("@keyframes quakeletSubagentLaunch");
+    expect(petStyles).toContain("@keyframes quakeletSubagentReturn");
+    expect(petStyles).toContain("@keyframes quakeletPlanTick");
+    expect(petStyles).toContain("@keyframes quakeletDropContext");
+    expect(petStyles).toContain("@keyframes quakeletCableReconnect");
+    expect(petStyles).toContain("@keyframes quakeletFreshSurface");
+    expect(petStyles).toContain("@keyframes quakeletDoze");
+    expect(petStyles).toContain("@keyframes quakeletWakeStartle");
+    expect(approval).toContain("approvalOutcome={decisionOutcome}");
+    expect(approval).toContain("APPROVAL_FEEDBACK_MS");
+    expect(approval).toContain('aria-busy={decisionOutcome ? "true" : undefined}');
+  });
+
+  it("persists and applies the Appearance preference before React mounts", () => {
+    expect(appearance).toContain("composerPet: boolean");
+    expect(appearance).toContain('t("appearance.composerPet")');
+    expect(appearance).toContain("applyAppearanceRuntimeAttributes(preferences)");
+    expect(appearanceRuntime).toContain("stored.composerPet !== false");
+    expect(main).toContain("applyStoredAppearanceRuntimeAttributes();");
+  });
+});

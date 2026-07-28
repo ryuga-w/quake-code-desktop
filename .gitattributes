@@ -1,0 +1,34 @@
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.exe binary
+*.wasm binary
+
+# Imported documentation and bundled third-party skill assets intentionally
+# preserve upstream whitespace (including Markdown hard line breaks).
+*.md whitespace=-trailing-space
+*.xsd whitespace=-trailing-space
+packages/coding-agent/src/bundled/** whitespace=-trailing-space
+
+# The initial public snapshot intentionally preserves these imported source
+# files byte-for-byte apart from line-ending normalization.  They contain
+# legacy trailing whitespace which is cosmetic and covered by the test suite.
+apps/quake-desktop/electron-builder.yml whitespace=-trailing-space
+apps/quake-desktop/src/client/src/components/composer/ChatComposer.module.css whitespace=-trailing-space
+apps/quake-desktop/src/client/src/components/composer/ComposerHelpers.tsx whitespace=-trailing-space
+apps/quake-desktop/src/client/src/components/editor/EditableMonaco.tsx whitespace=-trailing-space
+apps/quake-desktop/src/client/src/components/markdown/tool-activity-open-state.ts whitespace=-trailing-space
+apps/quake-desktop/src/client/src/components/settings/SettingsPanels.module.css whitespace=-trailing-space
+apps/quake-desktop/src/client/src/lib/export.ts whitespace=-trailing-space
+apps/quake-desktop/src/client/src/lib/monaco.ts whitespace=-trailing-space
+apps/quake-desktop/src/server/file-history.ts whitespace=-trailing-space
+apps/quake-desktop/src/server/file-mutations.ts whitespace=-trailing-space
+apps/quake-desktop/test/goal-source-contract.test.ts whitespace=-trailing-space
+packages/agent/package.json whitespace=-trailing-space
+packages/coding-agent/examples/extensions/memory/memory-prompts.ts whitespace=-trailing-space
+packages/coding-agent/examples/extensions/qna.ts whitespace=-trailing-space
+packages/coding-agent/scripts/migrate-sessions.sh whitespace=-trailing-space
+packages/coding-agent/src/core/export-html/template.js whitespace=-trailing-space
+packages/coding-agent/src/core/network-proxy/agent-http-proxy.test.ts whitespace=-trailing-space
+packages/coding-agent/src/core/tools/index.ts whitespace=-trailing-space

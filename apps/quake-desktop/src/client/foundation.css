@@ -1,0 +1,121 @@
+/* Quake UI foundation
+ * Semantik tokenlar bileşenlerin tema renklerinden bağımsız çalışmasını sağlar.
+ * Tema dosyaları yalnızca mevcut temel renkleri (--bg, --panel, --text, vb.) tanımlar.
+ */
+:root {
+  --titlebar-height: 36px;
+  --surface-canvas: var(--bg);
+  --surface-navigation: #0d0e0f;
+  --surface-navigation-hover: #171819;
+  --surface-navigation-active: #202124;
+  --surface-timeline: #101112;
+  --surface-browser-chrome: #1d1c1d;
+  --surface-browser-tab: #2a282a;
+  --surface-browser-hover: #302e30;
+  --stroke-browser: #343234;
+  --text-browser: #e4e1e4;
+  --text-browser-muted: #969196;
+  --surface-browser-note: #40213e;
+  --text-browser-note: #f2a1ed;
+  --surface-terminal: var(--surface-navigation);
+  --surface-terminal-raised: var(--surface-navigation);
+  --surface-terminal-active: var(--surface-navigation-hover);
+  --stroke-terminal: var(--stroke-navigation);
+  --text-terminal: var(--text-navigation);
+  --text-terminal-muted: var(--text-navigation-muted);
+  --stroke-navigation: #202124;
+  --stroke-workspace: #252628;
+  --text-navigation: #d8dade;
+  --text-navigation-muted: #93979d;
+  --font-navigation: 14.5px;
+  --font-navigation-section: 12.5px;
+  --surface-sidebar: var(--paper-soft);
+  --surface-panel: var(--panel);
+  --surface-raised: var(--panel-2);
+  --surface-overlay: var(--surface-strong);
+
+  --text-primary: var(--heading);
+  --text-secondary: var(--text);
+  --text-muted: var(--muted);
+  --text-subtle: var(--muted-2);
+
+  --stroke-subtle: var(--border);
+  --stroke-strong: var(--border-strong);
+  --focus-ring: color-mix(in srgb, var(--accent-2) 54%, transparent);
+
+  --control-height-sm: 28px;
+  --control-height-md: 34px;
+  --control-height-lg: 40px;
+  --icon-size-sm: 14px;
+  --icon-size-md: 17px;
+  --icon-size-lg: 20px;
+
+  --space-0-5: 2px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --radius-control: var(--radius-sm);
+  --radius-surface: var(--radius-md);
+  --radius-overlay: var(--radius-lg);
+
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --duration-slow: 260ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-panel: 280ms;
+  --ease-panel: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --shadow-overlay: 0 24px 70px rgba(0, 0, 0, 0.42);
+  --z-titlebar: 40;
+  --z-dock: 80;
+  --z-dialog: 1200;
+}
+
+[data-theme="light"] {
+  --surface-navigation: #f1eff1;
+  --surface-navigation-hover: #e5e2e5;
+  --surface-navigation-active: #dad7da;
+  --surface-timeline: #ffffff;
+  --surface-browser-chrome: #ffffff;
+  --surface-browser-tab: #f1eff1;
+  --surface-browser-hover: #f4f2f4;
+  --stroke-browser: #e4e1e4;
+  --text-browser: #292629;
+  --text-browser-muted: #8a858a;
+  --surface-browser-note: #fbe7ff;
+  --text-browser-note: #cf2bd8;
+  --surface-terminal: var(--surface-navigation);
+  --surface-terminal-raised: var(--surface-navigation);
+  --surface-terminal-active: var(--surface-navigation-hover);
+  --stroke-terminal: var(--stroke-navigation);
+  --text-terminal: var(--text-navigation);
+  --text-terminal-muted: var(--text-navigation-muted);
+  --stroke-navigation: #d7d3d7;
+  --stroke-workspace: #d9dadd;
+  --text-navigation: #2c292c;
+  --text-navigation-muted: #716c71;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent-2) 28%, transparent);
+  color: var(--text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0.001ms;
+    --duration-normal: 0.001ms;
+    --duration-slow: 0.001ms;
+    --duration-panel: 0.001ms;
+  }
+}

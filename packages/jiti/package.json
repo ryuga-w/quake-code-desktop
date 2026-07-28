@@ -1,0 +1,35 @@
+{
+  "name": "@mrquake/quakecode-jiti",
+  "version": "1.11.2",
+  "description": "Quake Code wrapper for the Jiti loader",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsgo -p tsconfig.build.json",
+    "dev": "tsgo -p tsconfig.build.json --watch --preserveWatchOutput",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "jiti": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0"
+  },
+  "author": "MrQuake",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

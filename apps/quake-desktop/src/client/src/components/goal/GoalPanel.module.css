@@ -1,0 +1,151 @@
+/* Codex-style compact goal status bar — sits just above the composer */
+
+.bar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(var(--chat-column-max-width, 720px), calc(100% - (var(--chat-column-gutter, 16px) * 2)));
+  min-height: 36px;
+  margin: 0 auto 6px;
+  padding: 6px 10px 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--heading) 6%, transparent);
+  border-radius: 999px;
+  background: var(--composer-surface, #2b2b2b);
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 88%, transparent);
+  box-shadow: none;
+}
+
+.bar[data-status="executing"],
+.bar[data-status="planning"],
+.bar[data-status="verifying"] {
+  border-color: color-mix(in srgb, #8b8b8f 18%, transparent);
+}
+
+.bar[data-status="paused"] {
+  border-color: color-mix(in srgb, #8b8b8f 14%, transparent);
+}
+
+.bar[data-status="blocked"],
+.bar[data-status="budget_limited"] {
+  border-color: color-mix(in srgb, #e0a35a 28%, transparent);
+}
+
+.bar[data-status="completed"] {
+  border-color: color-mix(in srgb, #68d391 22%, transparent);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 6%, transparent);
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 72%, transparent);
+}
+
+.bar[data-status="executing"] .icon,
+.bar[data-status="planning"] .icon,
+.bar[data-status="verifying"] .icon {
+  color: #c4c4c8;
+}
+
+.bar[data-status="blocked"] .icon,
+.bar[data-status="budget_limited"] .icon {
+  color: #e0a35a;
+}
+
+.bar[data-status="completed"] .icon {
+  color: #68d391;
+}
+
+.copy {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.phrase {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 78%, transparent);
+  font-weight: 600;
+}
+
+.objective {
+  min-width: 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 92%, transparent);
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+
+.dot {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 36%, transparent);
+}
+
+.usage {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 48%, transparent);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex: 0 0 auto;
+  margin-left: 4px;
+}
+
+.actions button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 48%, transparent);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.actions button:hover {
+  background: color-mix(in srgb, #fff 8%, transparent);
+  color: color-mix(in srgb, var(--heading, #f0f0f2) 92%, transparent);
+}
+
+.actions button:focus-visible {
+  outline: 2px solid color-mix(in srgb, #fff 28%, transparent);
+  outline-offset: 1px;
+}
+
+/* Light theme */
+:global(html[data-theme="light"]) .bar,
+:global(body.light) .bar {
+  background: #f2f2f4;
+  border-color: color-mix(in srgb, #000 8%, transparent);
+  color: #1c1c1e;
+}
+
+:global(html[data-theme="light"]) .icon,
+:global(body.light) .icon {
+  background: color-mix(in srgb, #000 5%, transparent);
+  color: #3a3a3c;
+}
+
+:global(html[data-theme="light"]) .actions button:hover,
+:global(body.light) .actions button:hover {
+  background: color-mix(in srgb, #000 6%, transparent);
+}

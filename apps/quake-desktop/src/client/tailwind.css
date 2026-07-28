@@ -1,0 +1,84 @@
+/* Tailwind CSS v4 — mevcut styles.css ile YAN YANA calisir (kademeli gocun temeli).
+ *
+ * Preflight (Tailwind'in global reset'i) BILEREK import EDILMEZ: var olan
+ * styles.css reset/stillerini bozmasin diye. Yalniz `theme` + `utilities` katmani
+ * alinir. Boylece hicbir gorsel regresyon olmadan utility class'lari kullanilabilir.
+ *
+ * @theme mevcut :root token'larini Tailwind'in --color-* namespace'ine var() ile
+ * baglar — tek kaynak styles.css :root KALIR. Tema degisince (Faz 3, [data-theme])
+ * --bg vb. degisir, --color-bg onu izler, dolayisiyla bg-bg gibi utility'ler de
+ * otomatik doner. Boylece renkleri iki yerde tutmaya gerek kalmaz.
+ */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+  /* Yuzeyler */
+  --color-bg: var(--bg);
+  --color-paper: var(--paper);
+  --color-paper-soft: var(--paper-soft);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-elev-1: var(--elev-1);
+  --color-elev-2: var(--elev-2);
+
+  /* Metin */
+  --color-text: var(--text);
+  --color-heading: var(--heading);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+
+  /* Vurgu */
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-wash: var(--accent-wash);
+
+  /* Kenarlik */
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  /* Anlamsal */
+  --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+
+  /* Yaricap — styles.css :root ile ayni degerler (tek olcek) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+
+  /* NOT: --font-sans/--font-mono BURADA TANIMLANMAZ (Tailwind'in --font-* namespace'i
+     bizim token adlarimizla cakisir -> dongusel olur). Tailwind'in varsayilan
+     font-sans/font-mono utility'leri zaten var(--font-sans)/var(--font-mono) okur;
+     styles.css :root degerimiz cascade'de kazanir. */
+
+  /* ÔöÇÔöÇ Streamdown (shadcn) renk namespace'i ÔöÇÔöÇ
+     Streamdown'in dist utility'leri (bg-background, text-foreground, bg-muted,
+     text-muted-foreground, bg-primary, text-primary, border-sidebar, rounded-*)
+     shadcn token adlarini bekler. Bunlari semantik var()'lara baglariz; gercek
+     degerler .streamdown-scope altinda bizim token'lara map edilir (izole). */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-sidebar: var(--sidebar);
+  --radius: var(--radius-md);
+}
+
+/* Streamdown'in stilleri dist chunk'larina derlenmis Tailwind utility'leridir;
+   Tailwind v4 JIT bunlari taramazsa class'lar URETILMEZ (tablolar/kod blok cıplak
+   kalir). Hoist edilmis kok node_modules'a isaret et. */
+@source "../../../../node_modules/streamdown/dist/*.js";
+@source "../../../../node_modules/@streamdown/code/dist/*.js";
+@source "../../../../node_modules/@streamdown/math/dist/*.js";
+@source "../../../../node_modules/@streamdown/mermaid/dist/*.js";

@@ -1,0 +1,50 @@
+.page { flex: 1; min-height: 0; overflow: auto; background: var(--bg); padding: 34px 28px 64px; color: var(--text); }
+.inner { width: min(760px, 100%); margin: 0 auto; }
+.headingRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.headingRow h1 { margin: 0; color: var(--heading); font-size: 25px; font-weight: 620; letter-spacing: -.025em; }
+.addButton, .empty button { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--text); cursor: pointer; }
+.addButton:hover, .empty button:hover { background: var(--panel-2); color: var(--heading); }
+.search { margin-top: 20px; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel-2); color: var(--muted-2); }
+.search:focus-within { border-color: var(--border-strong); }
+.search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--heading); font: inherit; font-size: 13px; }
+.search input::placeholder { color: var(--muted-2); }
+.columns, .projectRow { display: grid; grid-template-columns: minmax(220px, 1fr) 180px 90px 108px; align-items: center; gap: 12px; }
+.columns { margin-top: 25px; padding: 0 10px 8px; border-bottom: 1px solid var(--border); color: var(--muted-2); font-size: 11px; }
+.list { display: flex; flex-direction: column; }
+.project { position: relative; border-bottom: 1px solid var(--border); }
+.project.active { background: color-mix(in srgb, var(--heading) 2.5%, transparent); }
+.projectRow { min-height: 54px; padding: 0 8px; }
+.project:hover { background: color-mix(in srgb, var(--heading) 3.5%, transparent); }
+.projectMain { min-width: 0; height: 40px; display: flex; align-items: center; gap: 9px; border: 0; padding: 0; background: transparent; color: var(--muted); text-align: left; cursor: pointer; }
+.projectLabel { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.projectMain strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--heading); font-size: 13px; font-weight: 560; }
+.lastHint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted-2);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 500;
+}
+.chevron { margin-left: 2px; transition: transform 140ms ease; }
+.chevronOpen { margin-left: 2px; transform: rotate(90deg); transition: transform 140ms ease; }
+.pathChip { justify-self: start; max-width: 175px; display: inline-flex; align-items: center; gap: 5px; height: 23px; padding: 0 8px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.pathChip:hover { color: var(--heading); border-color: var(--border-strong); }
+.time { color: var(--muted-2); font-size: 11.5px; }
+.actions { position: relative; justify-self: end; display: inline-flex; align-items: center; gap: 2px; }
+.actions > button { width: 27px; height: 27px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted-2); cursor: pointer; }
+.actions > button:hover { background: var(--panel-2); color: var(--heading); }
+.menu { position: absolute; z-index: 30; top: 31px; right: 0; width: 160px; padding: 5px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); box-shadow: var(--shadow-card); }
+.menu button { width: 100%; padding: 8px 9px; border: 0; border-radius: 7px; background: transparent; color: var(--text); text-align: left; font-size: 12px; cursor: pointer; }
+.menu button:hover { background: var(--panel-2); color: var(--heading); }
+.menu .danger { color: var(--error); }
+.sessions { padding: 0 8px 9px 30px; }
+.sessionRow { width: 100%; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; min-height: 36px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.sessionRow:hover { background: var(--panel-2); color: var(--heading); }
+.sessionRow span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.sessionRow time { color: var(--muted-2); font-size: 11px; }
+.emptySessions { padding: 10px 8px 13px; color: var(--muted-2); font-size: 12px; }
+.empty { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px; color: var(--muted-2); }
+.empty p { margin: 0; font-size: 13px; }
+@media (max-width: 760px) { .page { padding: 24px 16px 50px; } .columns { display: none; } .projectRow { grid-template-columns: minmax(150px, 1fr) 80px 96px; } .pathChip { display: none; } }

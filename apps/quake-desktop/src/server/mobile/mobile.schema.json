@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quakecode.dev/schemas/mobile-v1.json",
+  "title": "Quake Mobile Studio Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "applications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-zA-Z0-9._-]+$" },
+          "name": { "type": "string" },
+          "android": { "$ref": "#/$defs/target" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "required": ["build"],
+      "additionalProperties": false,
+      "properties": {
+        "build": { "type": "string", "maxLength": 4000 },
+        "clean": { "type": "string", "maxLength": 4000 },
+        "artifact": { "type": "string" },
+        "artifactGlob": { "type": "string" },
+        "appId": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_.]+$" },
+        "variant": { "type": "string" },
+        "workingDirectory": { "type": "string" },
+        "environment": { "type": "object", "additionalProperties": { "type": "string" } },
+        "preBuild": { "type": "string" },
+        "postBuild": { "type": "string" },
+        "install": { "type": "string" },
+        "launch": { "type": "string" }
+      }
+    }
+  }
+}

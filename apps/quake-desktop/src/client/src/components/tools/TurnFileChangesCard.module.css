@@ -1,0 +1,299 @@
+.card {
+  position: relative;
+  left: 50%;
+  width: min(
+    var(--composer-max-width, 720px),
+    calc(100cqi - (var(--chat-column-gutter, 24px) * 2))
+  );
+  max-width: none;
+  margin: 10px 0 8px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--heading) 7%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 72%, var(--surface-timeline, #101112));
+  box-shadow: none;
+  color: var(--text);
+  transform: translateX(-50%);
+}
+
+.card[data-live="true"] {
+  border-color: color-mix(in srgb, var(--heading) 14%, transparent);
+}
+
+.card[data-live="true"] .icon {
+  animation: fileChangeLivePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes fileChangeLivePulse {
+  0%, 100% { opacity: 0.62; }
+  50% { opacity: 1; }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 38px;
+  padding: 7px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--heading) 6%, transparent);
+}
+
+.headLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--heading) 6%, transparent);
+  color: var(--heading);
+}
+
+.headCopy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.headCopy strong {
+  color: var(--heading);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.totals {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+
+.add { color: #3dd68c; }
+.del { color: #ff6b66; }
+.zero { color: var(--muted-2, var(--muted)); opacity: 0.75; }
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  border: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: transparent;
+  color: var(--heading);
+  box-shadow: none;
+  font-size: 11.5px;
+  font-weight: 540;
+  cursor: pointer;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--heading) 9%, transparent);
+  transform: none;
+}
+
+.actionBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 2px 0;
+  list-style: none;
+}
+
+.fileItem {
+  display: grid;
+  gap: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--heading) 5%, transparent);
+}
+
+.fileItem:last-child {
+  border-bottom: 0;
+}
+
+.fileRowBar {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.expandToggle {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.expandToggle:hover:not(:disabled) {
+  color: var(--heading);
+  background: color-mix(in srgb, var(--heading) 5%, transparent);
+}
+
+.expandToggle:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.fileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 31px;
+  border: 0;
+  border-radius: 0;
+  padding: 6px 10px 6px 0;
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fileRow:hover {
+  background: color-mix(in srgb, var(--heading) 5%, transparent);
+  transform: none;
+}
+
+.diffPane {
+  margin: 0 10px 8px 28px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--code-bg, #0d0d0f) 98%, transparent);
+}
+
+.diffPane[data-live="true"] {
+  border-color: color-mix(in srgb, #3dd68c 28%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card[data-live="true"] .icon { animation: none; }
+}
+
+.diffActions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 8px 8px;
+}
+
+.diffLink {
+  border: 0;
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 520;
+  cursor: pointer;
+}
+
+.diffLink:hover {
+  color: var(--heading);
+  background: color-mix(in srgb, var(--heading) 6%, transparent);
+}
+
+.filePath {
+  min-width: 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--heading) 88%, var(--muted));
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 490;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileStats {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+
+.more {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 30px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--heading) 7%, transparent);
+  border-radius: 0;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  font-size: 11.5px;
+  font-weight: 510;
+  text-align: left;
+  cursor: pointer;
+}
+
+.more:hover {
+  color: var(--heading);
+  background: color-mix(in srgb, var(--heading) 4%, transparent);
+  transform: none;
+}
+
+.chevronDown,
+.chevronUp {
+  width: 6px;
+  height: 6px;
+  border-right: 1.4px solid currentColor;
+  border-bottom: 1.4px solid currentColor;
+  opacity: 0.7;
+}
+
+.chevronDown { transform: rotate(45deg); margin-top: -2px; }
+.chevronUp { transform: rotate(225deg); margin-top: 2px; }
+
+:global([data-theme="light"]) .card {
+  border-color: rgba(22, 22, 26, 0.08);
+  background: #f7f7f8;
+  box-shadow: none;
+}
+
+:global([data-theme="light"]) .filePath {
+  color: #2a2a2e;
+}
+
+:global([data-theme="light"]) .add { color: #15803d; }
+:global([data-theme="light"]) .del { color: #b91c1c; }

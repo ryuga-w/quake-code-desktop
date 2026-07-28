@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>Quake Voice Lab</title>
+    <style>
+      :root {
+        --bg: #080a0f;
+        --panel: #10141b;
+        --panel-2: #151a23;
+        --line: #252c38;
+        --line-strong: #343e4d;
+        --text: #f4f7fb;
+        --muted: #8d98a8;
+        --soft: #b9c2ce;
+        --accent: #65d8c1;
+        --accent-2: #57a8ff;
+        --danger: #ff7d8b;
+        --warning: #f0c46b;
+        --radius: 18px;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { min-width: 320px; background: var(--bg); }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 50% -20%, rgba(87, 168, 255, 0.12), transparent 36rem),
+          var(--bg);
+      }
+
+      button, input, select, textarea { font: inherit; }
+      button { color: inherit; cursor: pointer; }
+      button:disabled { cursor: not-allowed; opacity: 0.42; }
+
+      .shell {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 24px 0 44px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 48px;
+        margin-bottom: 22px;
+      }
+
+      .brand { display: flex; align-items: center; gap: 12px; }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid rgba(101, 216, 193, 0.35);
+        border-radius: 12px;
+        color: var(--accent);
+        background: rgba(101, 216, 193, 0.08);
+      }
+
+      .brand h1 { margin: 0; font-size: 1rem; letter-spacing: -0.01em; }
+      .brand p { margin: 3px 0 0; color: var(--muted); font-size: 0.76rem; }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 34px;
+        padding: 0 11px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--soft);
+        background: rgba(16, 20, 27, 0.8);
+        font-size: 0.78rem;
+        white-space: nowrap;
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #5d6674;
+      }
+
+      .status.ready .status-dot, .status.live .status-dot {
+        background: var(--accent);
+        box-shadow: 0 0 0 4px rgba(101, 216, 193, 0.1);
+      }
+
+      .status.connecting .status-dot {
+        background: var(--warning);
+        animation: pulse 1.1s ease-in-out infinite;
+      }
+
+      .status.error .status-dot {
+        background: var(--danger);
+        box-shadow: 0 0 0 4px rgba(255, 125, 139, 0.1);
+      }
+
+      @keyframes pulse { 50% { opacity: 0.35; } }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.48fr) minmax(300px, 0.72fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .main-stack, .side-stack { display: grid; gap: 18px; }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(16, 20, 27, 0.96);
+        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.22);
+      }
+
+      .stage { overflow: hidden; }
+
+      .stage-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 24px 24px 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--accent);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h2, h3 { margin: 0; letter-spacing: -0.025em; }
+      h2 { font-size: clamp(1.4rem, 3vw, 2rem); }
+      h3 { font-size: 0.98rem; }
+
+      .description {
+        max-width: 600px;
+        margin: 9px 0 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.55;
+      }
+
+      .visualizer {
+        position: relative;
+        height: 190px;
+        margin: 22px 24px 0;
+        overflow: hidden;
+        border: 1px solid #202735;
+        border-radius: 15px;
+        background:
+          linear-gradient(rgba(101, 216, 193, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(101, 216, 193, 0.025) 1px, transparent 1px),
+          #0b0f15;
+        background-size: 24px 24px;
+      }
+
+      #waveform { width: 100%; height: 100%; display: block; }
+
+      .visualizer-label {
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        translate: -50% 0;
+        padding: 6px 10px;
+        border: 1px solid rgba(141, 152, 168, 0.2);
+        border-radius: 999px;
+        color: var(--soft);
+        background: rgba(8, 10, 15, 0.72);
+        font-size: 0.72rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .stage-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 9px;
+        padding: 18px 24px 24px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid var(--line-strong);
+        border-radius: 11px;
+        color: var(--soft);
+        background: #151a22;
+        transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+      }
+
+      .button:not(:disabled):hover {
+        transform: translateY(-1px);
+        border-color: #4c586a;
+        background: #1b222d;
+      }
+
+      .button.primary {
+        border-color: rgba(101, 216, 193, 0.5);
+        color: #041613;
+        background: var(--accent);
+        font-weight: 750;
+      }
+
+      .button.primary:not(:disabled):hover { background: #7ce4cf; }
+      .button.danger { border-color: rgba(255, 125, 139, 0.3); color: #ffb9c1; background: rgba(255, 125, 139, 0.07); }
+      .button svg { width: 16px; height: 16px; fill: currentColor; }
+
+      .panel { padding: 21px; }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+
+      .panel-note { color: var(--muted); font-size: 0.72rem; }
+
+      .transcript {
+        min-height: 330px;
+        max-height: 470px;
+        overflow: auto;
+        padding: 2px 2px 8px;
+      }
+
+      .transcript-list { display: grid; gap: 11px; }
+
+      .empty {
+        display: grid;
+        min-height: 210px;
+        place-items: center;
+        padding: 24px;
+        border: 1px dashed #2a3340;
+        border-radius: 13px;
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.5;
+      }
+
+      .message {
+        width: fit-content;
+        max-width: 88%;
+        padding: 10px 12px;
+        border: 1px solid #252e3a;
+        border-radius: 12px 12px 12px 4px;
+        color: #dce3ec;
+        background: #141a22;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        word-break: break-word;
+      }
+
+      .message.user {
+        justify-self: end;
+        border-color: rgba(101, 216, 193, 0.24);
+        border-radius: 12px 12px 4px 12px;
+        background: rgba(101, 216, 193, 0.09);
+      }
+
+      .message.system {
+        width: 100%;
+        max-width: 100%;
+        border-color: rgba(240, 196, 107, 0.2);
+        color: #d8c9aa;
+        background: rgba(240, 196, 107, 0.055);
+      }
+
+      .message-role {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--muted);
+        font-size: 0.64rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .control {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        outline: none;
+        color: var(--text);
+        background: #0d1118;
+        transition: border-color 140ms ease, box-shadow 140ms ease;
+      }
+
+      input.control, select.control { padding: 0 11px; }
+      textarea.control { min-height: 112px; padding: 10px 11px; resize: vertical; line-height: 1.45; }
+      .control:focus { border-color: rgba(101, 216, 193, 0.64); box-shadow: 0 0 0 3px rgba(101, 216, 193, 0.08); }
+
+      .meta-list { display: grid; gap: 1px; overflow: hidden; margin-top: 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--line); }
+      .meta-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; padding: 10px 11px; background: #11161e; font-size: 0.78rem; }
+      .meta-row span { color: var(--muted); }
+      .meta-row strong { overflow: hidden; color: var(--soft); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+
+      .field-stack { display: grid; gap: 13px; margin-top: 16px; }
+      .field { display: grid; gap: 7px; }
+      .field label { color: var(--soft); font-size: 0.76rem; font-weight: 650; }
+      .field small { color: var(--muted); font-size: 0.68rem; line-height: 1.4; }
+
+      details { border-top: 1px solid var(--line); }
+      summary { cursor: pointer; list-style: none; padding: 15px 21px; color: var(--soft); font-size: 0.78rem; }
+      summary::-webkit-details-marker { display: none; }
+      .log { min-height: 90px; max-height: 190px; margin: 0 21px 21px; overflow: auto; padding: 10px; border: 1px solid var(--line); border-radius: 10px; color: #8fb0c4; background: #080b10; font: 0.7rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+
+      .local-note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 13px;
+        color: var(--muted);
+        font-size: 0.7rem;
+        line-height: 1.45;
+      }
+
+      .local-note svg { flex: 0 0 auto; width: 14px; height: 14px; fill: var(--accent); }
+
+      @media (max-width: 860px) {
+        .layout { grid-template-columns: 1fr; }
+        .side-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 620px) {
+        .shell { width: min(100% - 20px, 560px); padding-top: 14px; }
+        .topbar, .stage-header { align-items: flex-start; flex-direction: column; }
+        .side-stack { grid-template-columns: 1fr; }
+        .stage-header { padding: 19px 19px 0; }
+        .visualizer { height: 160px; margin: 18px 19px 0; }
+        .stage-actions { padding: 15px 19px 19px; }
+        .panel { padding: 18px; }
+        .composer { grid-template-columns: 1fr; }
+        .composer .button { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <h1>Quake Voice Lab</h1>
+            <p>Azure GPT Realtime · local test environment</p>
+          </div>
+        </div>
+        <div id="connectionStatus" class="status" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span>Hazırlanıyor</span>
+        </div>
+      </header>
+
+      <div class="layout">
+        <div class="main-stack">
+          <section class="card stage" aria-labelledby="stageTitle">
+            <div class="stage-header">
+              <div>
+                <p id="stageKicker" class="eyebrow">Canlı oturum</p>
+                <h2 id="stageTitle">Hazır olduğunda konuş</h2>
+                <p id="stageDescription" class="description">Azure yapılandırması kontrol ediliyor.</p>
+              </div>
+              <div id="turnStatus" class="status">
+                <span class="status-dot"></span>
+                <span>Beklemede</span>
+              </div>
+            </div>
+
+            <div class="visualizer">
+              <canvas id="waveform" aria-label="Mikrofon dalga formu"></canvas>
+              <span id="waveLabel" class="visualizer-label">Mikrofon kapalı</span>
+            </div>
+
+            <div class="stage-actions">
+              <button id="connectButton" class="button primary" type="button">
+                <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v5a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5Zm-7 9a1 1 0 0 0-2 0 9 9 0 0 0 8 8.94V22H8a1 1 0 0 0 0 2h8a1 1 0 0 0 0-2h-3v-2.06A9 9 0 0 0 21 11a1 1 0 0 0-2 0 7 7 0 0 1-14 0Z"/></svg>
+                <span>Oturumu başlat</span>
+              </button>
+              <button id="muteButton" class="button" type="button" disabled>Sesimi kapat</button>
+              <button id="interruptButton" class="button danger" type="button" disabled>Yanıtı kes</button>
+              <button id="disconnectButton" class="button" type="button" disabled>Bağlantıyı kapat</button>
+            </div>
+          </section>
+
+          <section class="card panel" aria-labelledby="transcriptTitle">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Konuşma</p>
+                <h3 id="transcriptTitle">Canlı transcript</h3>
+              </div>
+              <span id="transcriptHint" class="panel-note">Oturum bekleniyor</span>
+            </div>
+            <div class="transcript">
+              <div id="transcriptList" class="transcript-list" aria-live="polite">
+                <div id="emptyTranscript" class="empty">Oturum başladığında konuşma burada görünecek.</div>
+              </div>
+            </div>
+            <form id="textForm" class="composer">
+              <input id="textInput" class="control" type="text" maxlength="4000" autocomplete="off" placeholder="Mikrofon yerine mesaj yaz…" disabled />
+              <button id="sendButton" class="button" type="submit" disabled>Gönder</button>
+            </form>
+          </section>
+        </div>
+
+        <aside class="side-stack">
+          <section class="card panel" aria-labelledby="targetTitle">
+            <p class="eyebrow">Bağlantı</p>
+            <h3 id="targetTitle">Azure hedefi</h3>
+            <div class="meta-list">
+              <div class="meta-row"><span>Host</span><strong id="hostValue">—</strong></div>
+              <div class="meta-row"><span>Deployment</span><strong id="deploymentValue">—</strong></div>
+              <div class="meta-row"><span>API</span><strong id="modeValue">—</strong></div>
+            </div>
+            <div class="local-note">
+              <svg viewBox="0 0 24 24"><path d="M12 1a5 5 0 0 0-5 5v3H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2h-2V6a5 5 0 0 0-5-5Zm-3 8V6a3 3 0 0 1 6 0v3H9Z"/></svg>
+              API anahtarı yalnızca localhost proxy’sinde tutulur.
+            </div>
+          </section>
+
+          <section class="card panel" aria-labelledby="settingsTitle">
+            <p class="eyebrow">Oturum</p>
+            <h3 id="settingsTitle">Ses ayarları</h3>
+            <div class="field-stack">
+              <div class="field">
+                <label for="voiceSelect">Model sesi</label>
+                <select id="voiceSelect" class="control">
+                  <option value="alloy">Alloy</option>
+                  <option value="ash">Ash</option>
+                  <option value="ballad">Ballad</option>
+                  <option value="coral" selected>Coral</option>
+                  <option value="echo">Echo</option>
+                  <option value="sage">Sage</option>
+                  <option value="shimmer">Shimmer</option>
+                  <option value="verse">Verse</option>
+                  <option value="marin">Marin</option>
+                  <option value="cedar">Cedar</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="silenceSelect">Konuşma sonu algılama</label>
+                <select id="silenceSelect" class="control">
+                  <option value="200">Hızlı</option>
+                  <option value="350" selected>Dengeli</option>
+                  <option value="600">Rahat</option>
+                  <option value="900">Uzun bekle</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="instructionsInput">Sistem talimatı</label>
+                <textarea id="instructionsInput" class="control" maxlength="8000">Sen Quake Desktop içindeki yardımcı sesli asistansın. Türkçe konuş. Kısa, net ve doğal yanıtlar ver.</textarea>
+                <small>Yeni oturum başlatılırken uygulanır.</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <details>
+              <summary>Bağlantı günlüğü</summary>
+              <pre id="eventLog" class="log">Yerel sunucu kontrol ediliyor…</pre>
+            </details>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+name: release-windows
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:public-source
+      - run: npm run ship-gate
+      - name: Package unsigned Windows installer
+        working-directory: apps/quake-desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+        run: npm run desktop:package:win
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          $assets = Get-ChildItem "apps/quake-desktop/release/Quake-Code-Setup-*-x64.exe", `
+            "apps/quake-desktop/release/Quake-Code-Setup-*-x64.exe.blockmap", `
+            "apps/quake-desktop/release/SHA256SUMS.txt", `
+            "apps/quake-desktop/release/KURULUM.md", `
+            "apps/quake-desktop/release/KUR-QUAKE-CODE.bat" | ForEach-Object FullName
+          if (gh release view $env:TAG 2>$null) {
+            gh release upload $env:TAG $assets --clobber
+          } else {
+            gh release create $env:TAG $assets --title "Quake Code $env:TAG" --generate-notes
+          }

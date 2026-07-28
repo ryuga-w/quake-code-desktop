@@ -1,0 +1,9 @@
+{
+  "name": "quake-browser-tools",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.41",
+    "playwright": "^1.54.2"
+  }
+}

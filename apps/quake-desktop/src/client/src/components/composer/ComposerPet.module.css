@@ -1,0 +1,1982 @@
+.pet {
+  --pet-body: color-mix(in srgb, var(--composer-surface, #2b2b2b) 78%, var(--heading) 22%);
+  --pet-line: color-mix(in srgb, var(--heading) 44%, transparent);
+  --pet-detail: color-mix(in srgb, var(--heading) 12%, transparent);
+  --pet-ledge: color-mix(in srgb, var(--heading) 4%, transparent);
+  position: absolute;
+  z-index: 14;
+  top: -37px;
+  right: 20px;
+  display: block;
+  width: 64px;
+  height: 48px;
+  color: var(--heading);
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .18));
+  pointer-events: none;
+  transform-origin: 50% 100%;
+}
+
+.pet[data-subagent-motion] .planSheet {
+  opacity: 0 !important;
+}
+
+:global(html[data-composer-pet="off"]) .pet {
+  display: none;
+}
+
+.pet svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.head,
+.eyes,
+.arms,
+.armLeft,
+.armRight,
+.handLeft,
+.handRight,
+.mouth,
+.toolPaper,
+.searchLens,
+.shellHammer,
+.writePencil,
+.browserProp,
+.subagentShard,
+.errorMarks {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.idleMarks {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 68%, var(--heading));
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: left bottom;
+}
+
+.incomingFile {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.fileSheet {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 42%, var(--heading) 58%);
+  stroke: color-mix(in srgb, var(--heading) 58%, transparent);
+  stroke-width: .85;
+  stroke-linejoin: round;
+}
+
+.surfaceBroom {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 48px 34px;
+}
+
+.broomHandle {
+  fill: none;
+  stroke: color-mix(in srgb, #a87952 76%, var(--heading));
+  stroke-width: 1.9;
+  stroke-linecap: round;
+}
+
+.broomHead {
+  fill: color-mix(in srgb, var(--warning, #d6a35c) 68%, var(--heading));
+  stroke: var(--pet-line);
+  stroke-width: .75;
+  stroke-linejoin: round;
+}
+
+.broomBristles {
+  fill: none;
+  stroke: color-mix(in srgb, var(--heading) 44%, transparent);
+  stroke-width: .7;
+  stroke-linecap: round;
+}
+
+.sweepDust {
+  fill: color-mix(in srgb, var(--heading) 48%, transparent);
+  stroke: color-mix(in srgb, var(--heading) 48%, transparent);
+  stroke-width: .7;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.fileFold,
+.fileLines {
+  stroke: color-mix(in srgb, var(--composer-surface, #2b2b2b) 76%, transparent);
+  stroke-width: .8;
+}
+
+.approvalHand {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 44px 29px;
+}
+
+.approvalArm {
+  fill: none;
+  stroke: var(--pet-body);
+  stroke-width: 5.4;
+  stroke-linecap: round;
+}
+
+.approvalPalm {
+  fill: var(--pet-body);
+  stroke: var(--pet-line);
+  stroke-width: 1.05;
+  stroke-linejoin: round;
+}
+
+.approvalFingers {
+  stroke: var(--pet-line);
+  stroke-width: 1.35;
+}
+
+.approvalThumb {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 44px 29px;
+}
+
+.approvalThumbArm {
+  fill: none;
+  stroke: var(--pet-body);
+  stroke-width: 5.4;
+  stroke-linecap: round;
+}
+
+.approvalThumbPalm {
+  fill: var(--pet-body);
+  stroke: var(--pet-line);
+  stroke-width: 1.05;
+}
+
+.approvalThumbDigit {
+  fill: var(--pet-body);
+  stroke: var(--pet-line);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contextStones {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.contextStones path {
+  fill: color-mix(in srgb, var(--pet-body) 68%, var(--accent, #7f87e6));
+  stroke: var(--pet-line);
+  stroke-width: .8;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.networkCable {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 19px 36px;
+}
+
+.cableLead,
+.cablePins,
+.cableSocket {
+  fill: none;
+  stroke: color-mix(in srgb, var(--heading) 48%, transparent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cableLead {
+  stroke-width: 1.3;
+}
+
+.cablePins,
+.cableSocket {
+  stroke-width: .9;
+}
+
+.cablePlug {
+  fill: color-mix(in srgb, var(--pet-body) 70%, var(--heading));
+  stroke: var(--pet-line);
+  stroke-width: .8;
+  stroke-linejoin: round;
+}
+
+.fileImageGlyph,
+.fileCodeGlyph,
+.filePdfGlyph,
+.fileMixedSheet {
+  opacity: 0;
+}
+
+.fileImageGlyph,
+.fileCodeGlyph {
+  fill: none;
+  stroke: color-mix(in srgb, var(--composer-surface, #2b2b2b) 80%, transparent);
+  stroke-width: .8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.filePdfGlyph {
+  fill: color-mix(in srgb, var(--error, #ff6b66) 78%, var(--heading));
+  font-family: var(--font-mono, monospace);
+  font-size: 4px;
+  font-weight: 800;
+  letter-spacing: -.25px;
+}
+
+.fileMixedSheet {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 50%, var(--heading) 50%);
+  stroke: color-mix(in srgb, var(--heading) 48%, transparent);
+  stroke-width: .7;
+  stroke-linejoin: round;
+}
+
+.planSheet {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.planPaper {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 44%, var(--accent, #7f87e6) 56%);
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 72%, var(--heading));
+  stroke-width: .8;
+  stroke-linejoin: round;
+}
+
+.planLines,
+.planBoxes,
+.planCheck {
+  fill: none;
+  stroke: color-mix(in srgb, var(--heading) 64%, transparent);
+  stroke-width: .75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.planCheck {
+  stroke: color-mix(in srgb, var(--success, #78c894) 84%, var(--heading));
+  opacity: 0;
+}
+
+.approvalMark {
+  stroke: color-mix(in srgb, var(--warning, #d6a35c) 88%, var(--heading));
+  stroke-width: 1.35;
+}
+
+.toolPaper,
+.searchLens,
+.shellHammer,
+.writePencil,
+.browserProp,
+.subagentShard,
+.errorMarks {
+  opacity: 0;
+}
+
+.toolPaperSheet,
+.browserProp rect {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 40%, var(--heading) 60%);
+  stroke: color-mix(in srgb, var(--heading) 60%, transparent);
+  stroke-width: .85;
+  stroke-linejoin: round;
+}
+
+.toolPaperInk,
+.browserProp path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--composer-surface, #2b2b2b) 74%, transparent);
+  stroke-width: .8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.searchLens {
+  fill: color-mix(in srgb, var(--accent, #7f87e6) 13%, transparent);
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 72%, var(--heading));
+  stroke-width: 1.55;
+  stroke-linecap: round;
+}
+
+.lensGlint {
+  opacity: .62;
+  stroke-width: .9;
+}
+
+.hammerHandle {
+  fill: none;
+  stroke: color-mix(in srgb, #a87952 72%, var(--heading));
+  stroke-width: 2.7;
+  stroke-linecap: round;
+}
+
+.hammerHead {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 54%, var(--heading) 46%);
+  stroke: var(--pet-line);
+  stroke-width: .9;
+  stroke-linejoin: round;
+}
+
+.pencilBody {
+  fill: color-mix(in srgb, var(--accent, #7f87e6) 65%, var(--heading));
+  stroke: color-mix(in srgb, var(--heading) 50%, transparent);
+  stroke-width: .75;
+  stroke-linejoin: round;
+}
+
+.pencilTip {
+  fill: color-mix(in srgb, #d6a35c 56%, var(--heading));
+  stroke: var(--pet-line);
+  stroke-width: .7;
+}
+
+.pencilMark {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 70%, var(--heading));
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-dasharray: 2.2 2;
+}
+
+.browserCursor {
+  fill: color-mix(in srgb, var(--accent, #7f87e6) 78%, var(--heading)) !important;
+  stroke: none !important;
+}
+
+.subagentSocket {
+  fill: var(--composer-surface, #2b2b2b);
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 72%, transparent);
+  stroke-width: .8;
+  opacity: 0;
+  stroke-dasharray: 2 1.4;
+}
+
+.shardBody {
+  fill: var(--pet-body);
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 72%, var(--heading));
+  stroke-width: .9;
+  stroke-linejoin: round;
+}
+
+.shardEye {
+  fill: color-mix(in srgb, var(--heading) 90%, transparent);
+}
+
+.resultPacket {
+  fill: color-mix(in srgb, var(--accent, #7f87e6) 64%, var(--heading));
+  stroke: var(--composer-surface, #2b2b2b);
+  stroke-width: .7;
+  opacity: 0;
+}
+
+.errorMarks {
+  fill: none;
+  stroke: color-mix(in srgb, var(--error, #ff6b66) 82%, var(--heading));
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.impactWaves {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 88%, var(--heading));
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.impactWaves circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.head {
+  transform-origin: 50% 96%;
+  transition: transform 180ms cubic-bezier(.2, .75, .25, 1);
+}
+
+.body,
+.armLeft,
+.armRight,
+.handLeft > path:first-child,
+.handRight > path:first-child {
+  fill: var(--pet-body);
+  stroke: var(--pet-line);
+  stroke-width: 1.05;
+  stroke-linejoin: round;
+}
+
+.facet,
+.mouth,
+.crack,
+.fingers,
+.sparkles path,
+.ledgeMask,
+.ledgeLine,
+.signalLine,
+.brakeLine,
+.fileFold,
+.fileLines,
+.approvalFingers,
+.approvalMark {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.facet {
+  stroke: var(--pet-detail);
+  stroke-width: .85;
+}
+
+.eyes {
+  fill: color-mix(in srgb, var(--heading) 90%, transparent);
+  transition: transform 160ms ease;
+}
+
+.eyeGlint {
+  fill: var(--pet-body);
+}
+
+.mouth {
+  stroke: color-mix(in srgb, var(--heading) 64%, transparent);
+  stroke-width: 1.25;
+  transition: transform 160ms ease;
+}
+
+.crack {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 70%, var(--heading));
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .42;
+  transition: opacity 180ms ease, stroke-width 180ms ease;
+}
+
+.arms {
+  transform-origin: 50% 100%;
+  transition: transform 180ms ease;
+}
+
+.handLeft,
+.handRight {
+  transform-origin: 50% 70%;
+  transition: transform 160ms ease;
+}
+
+.fingers {
+  stroke: color-mix(in srgb, var(--heading) 30%, transparent);
+  stroke-width: .72;
+}
+
+/* Repaints the local composer surface over the arms, so the hands visibly wrap the real border. */
+.ledgeMask {
+  stroke: var(--composer-surface, #2b2b2b);
+  stroke-width: 4.4;
+}
+
+.ledgeLine {
+  stroke: var(--pet-ledge);
+  stroke-width: 1;
+}
+
+.signalLine {
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 82%, var(--heading));
+  stroke-width: 1.05;
+  stroke-dasharray: 4 3;
+  opacity: 0;
+  vector-effect: non-scaling-stroke;
+}
+
+.brakeLine {
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 72%, var(--heading));
+  stroke-width: 1.5;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.aura {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 54%, transparent);
+  stroke-width: .8;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sparkles {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent, #7f87e6) 78%, var(--heading));
+  stroke-width: 1.15;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.pet[data-state="idle"] .head {
+  animation: quakeletPeek 5.8s ease-in-out infinite;
+}
+
+.pet[data-state="idle"] .eyes {
+  animation: quakeletBlink 7.4s ease-in-out infinite;
+}
+
+.pet[data-idle-motion="doze"] .head {
+  animation: quakeletDoze 2.6s ease-in-out both;
+}
+
+.pet[data-idle-motion="doze"] .eyes {
+  animation: quakeletSleepEyes 2.6s ease-in-out both;
+}
+
+.pet[data-idle-motion="doze"] .idleMarks {
+  opacity: 1;
+  animation: quakeletSleepMarks 2.6s ease-out both;
+}
+
+.pet[data-idle-motion="look"] .head {
+  animation: quakeletLookDown 1.8s ease-in-out both;
+}
+
+.pet[data-idle-motion="look"] .eyes {
+  animation: quakeletLookEyes 1.8s ease-in-out both;
+}
+
+.pet[data-idle-motion="tap"] .handRight {
+  animation: quakeletIdleTap 1.42s ease-in-out both;
+}
+
+.pet[data-idle-motion="tap"] .head {
+  animation: quakeletTapWatch 1.42s ease-in-out both;
+}
+
+.pet[data-wake="true"] .head {
+  animation: quakeletWakeStartle 620ms cubic-bezier(.18, .86, .22, 1) both !important;
+}
+
+.pet[data-wake="true"] .eyes {
+  animation: quakeletWakeEyes 620ms ease-out both !important;
+}
+
+.pet[data-state="typing"] .head {
+  transform: translateY(-1px) rotate(-1.4deg);
+}
+
+.pet[data-state="typing"] .eyes {
+  transform: translateX(-1.35px) translateY(.2px);
+}
+
+.pet[data-state="typing"] .handLeft {
+  animation: quakeletTap 520ms ease-in-out infinite;
+}
+
+.pet[data-state="typing"] .handRight {
+  animation: quakeletTap 520ms 260ms ease-in-out infinite;
+}
+
+.pet[data-state="typing"] .fingers {
+  stroke: color-mix(in srgb, var(--heading) 46%, transparent);
+}
+
+.pet[data-state="ready"] .head {
+  transform: translateY(-2px) scale(1.018);
+}
+
+.pet[data-state="ready"] .arms {
+  transform: scaleY(1.045);
+}
+
+.pet[data-state="ready"] .handLeft {
+  transform: translateX(.55px) translateY(.35px) scaleX(.96);
+}
+
+.pet[data-state="ready"] .handRight {
+  transform: translateX(-.55px) translateY(.35px) scaleX(.96);
+}
+
+.pet[data-state="ready"] .crack {
+  opacity: .95;
+  stroke-width: 1.48;
+}
+
+.pet[data-state="working"] .head {
+  animation: quakeletWorking 1.28s ease-in-out infinite;
+}
+
+.pet[data-state="working"] .arms {
+  animation: quakeletHold 1.28s ease-in-out infinite;
+}
+
+.pet[data-state="working"] .handLeft,
+.pet[data-state="working"] .handRight {
+  transform: translateY(.45px) scaleX(.97);
+}
+
+.pet[data-state="working"] .crack {
+  opacity: 1;
+  stroke-dasharray: 3 2;
+  animation: quakeletCurrent 720ms linear infinite;
+}
+
+.pet[data-state="working"] .aura {
+  animation: quakeletAura 1.7s ease-out infinite;
+}
+
+.pet[data-state="working"] .signalLine {
+  animation: quakeletSeismograph 1.05s linear infinite;
+}
+
+.pet[data-state="result"] .head {
+  animation: quakeletPullUp 820ms cubic-bezier(.2, .9, .22, 1) both;
+}
+
+.pet[data-state="result"] .arms {
+  animation: quakeletStretch 820ms cubic-bezier(.2, .9, .22, 1) both;
+}
+
+.pet[data-state="result"] .handLeft,
+.pet[data-state="result"] .handRight {
+  animation: quakeletGrip 520ms ease-out both;
+}
+
+.pet[data-state="result"] .mouth {
+  transform: translateY(-.2px) scaleX(1.28);
+}
+
+.pet[data-state="result"] .crack {
+  opacity: 1;
+}
+
+.pet[data-state="result"] .sparkles {
+  animation: quakeletSparkles 1.18s ease-out both;
+}
+
+/* Plan and context are persistent work surfaces; concrete tool props can override them. */
+.pet[data-plan-active="true"] .planSheet {
+  opacity: 1;
+  animation: quakeletPlanUnfold 620ms cubic-bezier(.2, .82, .22, 1) both;
+}
+
+.pet[data-plan-active="true"] .head {
+  animation: quakeletPlanFocus 620ms ease-out both;
+}
+
+.pet[data-plan-active="true"] .eyes {
+  transform: translate(-1.2px, 1px);
+}
+
+.pet[data-plan-tick="true"] .planCheck {
+  animation: quakeletPlanTick 820ms cubic-bezier(.2, .82, .2, 1) both;
+}
+
+.pet[data-context-load="carrying"] .contextStoneOne,
+.pet[data-context-load="heavy"] .contextStoneOne,
+.pet[data-context-load="heavy"] .contextStoneTwo,
+.pet[data-context-load="critical"] .contextStones path {
+  opacity: 1;
+}
+
+.pet[data-context-load="heavy"] .head {
+  transform: translateY(1px) scale(1.01, .98);
+}
+
+.pet[data-context-load="critical"] .head {
+  animation: quakeletContextStrain 1.15s ease-in-out infinite;
+}
+
+.pet[data-context-load="critical"] .arms {
+  animation: quakeletContextHold 1.15s ease-in-out infinite;
+}
+
+.pet[data-context-release="true"] .contextStones path {
+  opacity: 1;
+  animation: quakeletDropContext 1.05s cubic-bezier(.2, .78, .22, 1) both;
+}
+
+.pet[data-context-release="true"] .contextStoneTwo {
+  animation-delay: 70ms;
+}
+
+.pet[data-context-release="true"] .contextStoneThree {
+  animation-delay: 130ms;
+}
+
+/* Real tool events give the working pose a concrete, readable prop. */
+.pet[data-tool] .planSheet {
+  opacity: 0 !important;
+}
+
+.pet[data-context-load][data-tool] .arms,
+.pet[data-context-load][data-subagent-motion] .arms,
+.pet[data-context-load][data-surface-motion] .arms,
+.pet[data-context-load][data-network-motion] .arms {
+  animation: none !important;
+}
+
+.pet[data-tool="read"] .toolPaper {
+  opacity: 1;
+  animation: quakeletReadPage 1.45s ease-in-out infinite;
+}
+
+.pet[data-tool="read"] .head {
+  animation: quakeletReadFocus 1.45s ease-in-out infinite;
+}
+
+.pet[data-tool="read"] .eyes {
+  transform: translate(-1.45px, 1px);
+}
+
+.pet[data-tool="read"] .handLeft {
+  animation: quakeletHoldPage 1.45s ease-in-out infinite;
+}
+
+.pet[data-tool="search"] .searchLens {
+  opacity: 1;
+  animation: quakeletSearchLens 1.25s ease-in-out infinite;
+}
+
+.pet[data-tool="search"] .head {
+  animation: quakeletSearchFocus 1.25s ease-in-out infinite;
+}
+
+.pet[data-tool="search"] .eyes {
+  animation: quakeletScanEyes 1.25s steps(2, end) infinite;
+}
+
+.pet[data-tool="shell"] .shellHammer {
+  opacity: 1;
+  animation: quakeletHammer 720ms cubic-bezier(.26, .76, .25, 1) infinite;
+}
+
+.pet[data-tool="shell"] .head {
+  animation: quakeletHammerBrace 720ms ease-in-out infinite;
+}
+
+.pet[data-tool="shell"] .handRight {
+  animation: quakeletHammerHand 720ms ease-in-out infinite;
+}
+
+.pet[data-tool="shell"] .ledgeLine {
+  animation: quakeletToolTap 720ms ease-out infinite;
+}
+
+.pet[data-tool="write"] .writePencil {
+  opacity: 1;
+  animation: quakeletPencil 900ms ease-in-out infinite;
+}
+
+.pet[data-tool="write"] .pencilMark {
+  animation: quakeletPencilMark 900ms linear infinite;
+}
+
+.pet[data-tool="write"] .head {
+  animation: quakeletWriteFocus 900ms ease-in-out infinite;
+}
+
+.pet[data-tool="write"] .handRight {
+  animation: quakeletWritingHand 900ms ease-in-out infinite;
+}
+
+.pet[data-tool="browser"] .browserProp {
+  opacity: 1;
+  animation: quakeletBrowserWindow 1.4s ease-in-out infinite;
+}
+
+.pet[data-tool="browser"] .browserCursor {
+  animation: quakeletBrowserCursor 1.4s ease-in-out infinite;
+}
+
+.pet[data-tool="browser"] .head {
+  animation: quakeletReadFocus 1.4s ease-in-out infinite;
+}
+
+.pet[data-tool="browser"] .eyes {
+  transform: translate(-1.3px, .45px);
+}
+
+.pet[data-tool="generic"] .eyes {
+  animation: quakeletScanEyes 1.5s steps(2, end) infinite;
+}
+
+.pet[data-tool="generic"] .crack {
+  animation: quakeletToolCurrent 900ms ease-in-out infinite;
+}
+
+/* A real subagent peels off toward Outputs, leaving a lit socket until it returns. */
+.pet[data-subagent-active="true"] .subagentSocket {
+  opacity: .82;
+  animation: quakeletSubagentSocket 1.3s ease-in-out infinite;
+}
+
+.pet[data-subagent-active="true"] .crack {
+  stroke-dasharray: 2.5 1.8;
+  animation: quakeletCurrent 720ms linear infinite;
+}
+
+.pet[data-subagent-motion="launch"] .subagentShard {
+  opacity: 1;
+  animation: quakeletSubagentLaunch 1.18s cubic-bezier(.22, .8, .2, 1) both;
+}
+
+.pet[data-subagent-motion="launch"] .head {
+  animation: quakeletSubagentSplit 1.18s ease-out both;
+}
+
+.pet[data-subagent-motion="return"] .subagentShard {
+  opacity: 1;
+  animation: quakeletSubagentReturn 1.28s cubic-bezier(.18, .84, .22, 1) both;
+}
+
+.pet[data-subagent-motion="return"] .resultPacket {
+  opacity: 1;
+  animation: quakeletResultPacket 1.28s ease-out both;
+}
+
+.pet[data-subagent-motion="return"] .head {
+  animation: quakeletSubagentMerge 1.28s ease-out both;
+}
+
+.pet[data-subagent-motion="failed"] .subagentShard {
+  opacity: 1;
+  animation: quakeletSubagentFailed 1.42s cubic-bezier(.2, .72, .22, 1) both;
+}
+
+.pet[data-subagent-motion="failed"] .shardBody {
+  stroke: color-mix(in srgb, var(--error, #ff6b66) 82%, var(--heading));
+}
+
+.pet[data-subagent-motion] .toolPaper,
+.pet[data-subagent-motion] .searchLens,
+.pet[data-subagent-motion] .shellHammer,
+.pet[data-subagent-motion] .writePencil,
+.pet[data-subagent-motion] .browserProp {
+  opacity: 0 !important;
+}
+
+/* Dragging a file makes Quakelet release the ledge and catch the payload in both hands. */
+.pet[data-file-kind="image"] .fileLines,
+.pet[data-file-kind="pdf"] .fileLines,
+.pet[data-file-kind="code"] .fileLines,
+.pet[data-file-kind="mixed"] .fileLines {
+  opacity: 0;
+}
+
+.pet[data-file-kind="image"] .fileImageGlyph,
+.pet[data-file-kind="pdf"] .filePdfGlyph,
+.pet[data-file-kind="code"] .fileCodeGlyph,
+.pet[data-file-kind="mixed"] .fileMixedSheet {
+  opacity: 1;
+}
+
+.pet[data-file-kind="image"] .fileSheet {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 38%, #74b5a1 62%);
+}
+
+.pet[data-file-kind="pdf"] .fileSheet {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 44%, var(--error, #ff6b66) 56%);
+}
+
+.pet[data-file-kind="code"] .fileSheet {
+  fill: color-mix(in srgb, var(--composer-surface, #2b2b2b) 40%, var(--accent, #7f87e6) 60%);
+}
+
+.pet[data-file-catching="true"] .head {
+  animation: none !important;
+  transform: translateY(-2px) scale(.99, 1.02);
+}
+
+.pet[data-file-catching="true"] .eyes {
+  animation: none !important;
+  transform: translateY(-1.5px);
+}
+
+.pet[data-file-catching="true"] .arms {
+  animation: none !important;
+  transform: translateY(-2px) scaleY(.92);
+}
+
+.pet[data-file-catching="true"] .handLeft {
+  animation: none !important;
+  transform: translate(10.5px, -7px) rotate(10deg);
+}
+
+.pet[data-file-catching="true"] .handRight {
+  animation: none !important;
+  transform: translate(-10.5px, -7px) rotate(-10deg);
+}
+
+.pet[data-file-catching="true"] .incomingFile {
+  opacity: 1;
+  animation: quakeletFileHover 1.15s ease-in-out infinite;
+}
+
+.pet[data-file-caught="true"] .head {
+  animation: quakeletCatchDuck 880ms ease-out both !important;
+}
+
+.pet[data-file-caught="true"] .handLeft {
+  animation: quakeletCatchLeft 880ms cubic-bezier(.2, .78, .22, 1) both !important;
+}
+
+.pet[data-file-caught="true"] .handRight {
+  animation: quakeletCatchRight 880ms cubic-bezier(.2, .78, .22, 1) both !important;
+}
+
+.pet[data-file-caught="true"] .incomingFile {
+  animation: quakeletFileStow 880ms cubic-bezier(.2, .78, .22, 1) both;
+}
+
+.pet[data-file-catching="true"] .toolPaper,
+.pet[data-file-catching="true"] .searchLens,
+.pet[data-file-catching="true"] .shellHammer,
+.pet[data-file-catching="true"] .writePencil,
+.pet[data-file-catching="true"] .browserProp,
+.pet[data-file-caught="true"] .toolPaper,
+.pet[data-file-caught="true"] .searchLens,
+.pet[data-file-caught="true"] .shellHammer,
+.pet[data-file-caught="true"] .writePencil,
+.pet[data-file-caught="true"] .browserProp {
+  opacity: 0 !important;
+}
+
+.pet[data-file-catching="true"] .planSheet,
+.pet[data-file-caught="true"] .planSheet {
+  opacity: 0 !important;
+}
+
+/* Approval replaces the composer, but Quakelet remains attached with one hand raised. */
+.pet[data-approval="true"] .head {
+  transform: translateX(-1px) rotate(-1deg);
+}
+
+.pet[data-approval="true"] .eyes {
+  transform: translate(1px, -.5px);
+}
+
+.pet[data-approval="true"] .armRight,
+.pet[data-approval="true"] .handRight {
+  opacity: 0;
+}
+
+.pet[data-approval="true"] .approvalHand {
+  opacity: 1;
+  animation: quakeletAskPermission 2.8s ease-in-out infinite;
+}
+
+.pet[data-approval="true"] .handLeft {
+  transform: translateY(.45px) scaleX(.96);
+}
+
+.pet[data-approval="true"] .crack {
+  stroke: color-mix(in srgb, var(--warning, #d6a35c) 74%, var(--heading));
+  opacity: .88;
+}
+
+.pet[data-approval-outcome="approved"] .approvalHand {
+  opacity: 0;
+}
+
+.pet[data-approval-outcome="approved"] .approvalThumb {
+  opacity: 1;
+  animation: quakeletApprovalThumb 520ms cubic-bezier(.18, .86, .22, 1) both;
+}
+
+.pet[data-approval-outcome="approved"] .head {
+  animation: quakeletApprovalNod 520ms ease-out both;
+}
+
+.pet[data-approval-outcome="denied"] .approvalHand {
+  animation: quakeletApprovalRetract 520ms ease-in both;
+}
+
+.pet[data-approval-outcome="denied"] .approvalMark {
+  opacity: 0;
+}
+
+.pet[data-approval-outcome="denied"] .head {
+  animation: quakeletApprovalBackOff 520ms ease-out both;
+}
+
+.pet[data-surface-motion="clear"] .surfaceBroom {
+  opacity: 1;
+  animation: quakeletSweep 920ms cubic-bezier(.2, .78, .22, 1) both;
+}
+
+.pet[data-surface-motion="new-chat"] .surfaceBroom {
+  opacity: 1;
+  animation: quakeletFreshSurface 920ms cubic-bezier(.2, .78, .22, 1) both;
+}
+
+.pet[data-surface-motion] .head {
+  animation: quakeletSweepFocus 920ms ease-out both;
+}
+
+.pet[data-surface-motion] .handRight {
+  animation: quakeletSweepHand 920ms ease-out both;
+}
+
+.pet[data-surface-motion] .sweepDust {
+  animation: quakeletSweepDust 920ms ease-out both;
+}
+
+.pet[data-surface-motion] .planSheet,
+.pet[data-surface-motion] .toolPaper,
+.pet[data-surface-motion] .searchLens,
+.pet[data-surface-motion] .shellHammer,
+.pet[data-surface-motion] .writePencil,
+.pet[data-surface-motion] .browserProp {
+  opacity: 0 !important;
+}
+
+/* A send is a physical action: both hands lift, hit together, then hand off to working state. */
+.pet[data-composer-pet-impact="true"] .head {
+  animation: quakeletBrace 720ms cubic-bezier(.2, .82, .24, 1) both !important;
+}
+
+.pet[data-composer-pet-impact="true"] .arms {
+  animation: quakeletImpactArms 720ms cubic-bezier(.2, .82, .24, 1) both !important;
+}
+
+.pet[data-composer-pet-impact="true"] .handLeft,
+.pet[data-composer-pet-impact="true"] .handRight {
+  animation: quakeletDoubleSlam 720ms cubic-bezier(.18, .84, .2, 1) both !important;
+}
+
+.pet[data-composer-pet-impact="true"] .signalLine {
+  animation: quakeletImpactFault 720ms ease-out both !important;
+}
+
+.pet[data-composer-pet-impact="true"] .impactWaves {
+  opacity: 1;
+}
+
+.pet[data-composer-pet-impact="true"] .impactWaves > path {
+  animation: quakeletImpactRays 720ms ease-out both;
+}
+
+.pet[data-composer-pet-impact="true"] .impactWaves circle {
+  animation: quakeletImpactRing 720ms ease-out both;
+}
+
+.pet[data-composer-pet-impact="true"] .ledgeLine {
+  animation: quakeletLedgeFlash 720ms ease-out both;
+}
+
+.pet[data-composer-pet-impact="true"] .toolPaper,
+.pet[data-composer-pet-impact="true"] .searchLens,
+.pet[data-composer-pet-impact="true"] .shellHammer,
+.pet[data-composer-pet-impact="true"] .writePencil,
+.pet[data-composer-pet-impact="true"] .browserProp {
+  opacity: 0 !important;
+}
+
+.pet[data-composer-pet-impact="true"] .planSheet {
+  opacity: 0 !important;
+}
+
+:global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-impact="true"])) {
+  animation: quakeletComposerQuake 620ms cubic-bezier(.22, .72, .2, 1) both;
+  will-change: transform;
+}
+
+/* Stop is the inverse gesture: Quakelet hangs from the ledge and drags the signal flat. */
+.pet[data-composer-pet-stop="true"] .head {
+  animation: quakeletEmergencyBrake 820ms cubic-bezier(.18, .86, .22, 1) both !important;
+}
+
+.pet[data-composer-pet-stop="true"] .arms {
+  animation: quakeletBrakeArms 820ms cubic-bezier(.18, .86, .22, 1) both !important;
+}
+
+.pet[data-composer-pet-stop="true"] .handLeft,
+.pet[data-composer-pet-stop="true"] .handRight {
+  animation: quakeletBrakeGrip 820ms cubic-bezier(.18, .86, .22, 1) both !important;
+}
+
+.pet[data-composer-pet-stop="true"] .signalLine {
+  animation: quakeletSignalCollapse 820ms ease-out both !important;
+}
+
+.pet[data-composer-pet-stop="true"] .brakeLine {
+  animation: quakeletBrakeLine 820ms ease-out both;
+}
+
+.pet[data-composer-pet-stop="true"] .impactWaves {
+  opacity: 1;
+}
+
+.pet[data-composer-pet-stop="true"] .impactWaves > path {
+  animation: quakeletBrakeSparks 820ms ease-out both;
+}
+
+.pet[data-composer-pet-stop="true"] .impactWaves circle {
+  display: none;
+}
+
+.pet[data-composer-pet-stop="true"] .toolPaper,
+.pet[data-composer-pet-stop="true"] .searchLens,
+.pet[data-composer-pet-stop="true"] .shellHammer,
+.pet[data-composer-pet-stop="true"] .writePencil,
+.pet[data-composer-pet-stop="true"] .browserProp {
+  opacity: 0 !important;
+}
+
+.pet[data-composer-pet-stop="true"] .planSheet {
+  opacity: 0 !important;
+}
+
+:global(html:not([data-composer-pet="off"]) #composer:has([data-composer-pet-stop="true"])) {
+  animation: quakeletComposerBrake 720ms cubic-bezier(.18, .82, .2, 1) both;
+  will-change: transform;
+}
+
+.pet[data-network-offline="true"] .networkCable {
+  opacity: 1;
+}
+
+.pet[data-network-offline="true"] .cablePlug {
+  transform: translate(-4px, 4px) rotate(-12deg);
+}
+
+.pet[data-network-motion="offline"] .networkCable {
+  opacity: 1;
+  animation: quakeletCableUnplug 1.18s cubic-bezier(.2, .78, .22, 1) both;
+}
+
+.pet[data-network-motion="online"] .networkCable {
+  opacity: 1;
+  animation: quakeletCableReconnect 1.18s cubic-bezier(.18, .86, .22, 1) both;
+}
+
+.pet[data-network-motion="error"] .networkCable {
+  opacity: 1;
+  animation: quakeletCableError 1.18s ease-out both;
+}
+
+.pet[data-network-motion] .head {
+  animation: quakeletNetworkNotice 1.18s ease-out both;
+}
+
+.pet[data-network-motion] .planSheet,
+.pet[data-network-motion] .toolPaper,
+.pet[data-network-motion] .searchLens,
+.pet[data-network-motion] .shellHammer,
+.pet[data-network-motion] .writePencil,
+.pet[data-network-motion] .browserProp {
+  opacity: 0 !important;
+}
+
+/* Error is the top-priority pose; recovery only appears after a later real success. */
+.pet[data-tool-error="true"] .head {
+  animation: quakeletToolStumble 1.42s cubic-bezier(.2, .76, .2, 1) both !important;
+}
+
+.pet[data-tool-error="true"] .arms {
+  animation: quakeletToolSlipArms 1.42s ease-out both !important;
+}
+
+.pet[data-tool-error="true"] .handLeft {
+  animation: quakeletToolSlipLeft 1.42s ease-out both !important;
+}
+
+.pet[data-tool-error="true"] .handRight {
+  animation: quakeletToolSlipRight 1.42s ease-out both !important;
+}
+
+.pet[data-tool-error="true"] .mouth {
+  transform: translateY(.8px) scaleY(-1) scaleX(.82);
+}
+
+.pet[data-tool-error="true"] .crack {
+  stroke: color-mix(in srgb, var(--error, #ff6b66) 86%, var(--heading));
+  stroke-width: 1.6;
+  opacity: 1;
+  animation: quakeletErrorCrack 420ms ease-in-out infinite;
+}
+
+.pet[data-tool-error="true"] .signalLine {
+  stroke: color-mix(in srgb, var(--error, #ff6b66) 82%, var(--heading));
+  animation: quakeletErrorSignal 1.42s ease-out both !important;
+}
+
+.pet[data-tool-error="true"] .errorMarks {
+  opacity: 1;
+  animation: quakeletErrorMarks 1.42s ease-out both;
+}
+
+.pet[data-tool-error="true"] .toolPaper,
+.pet[data-tool-error="true"] .searchLens,
+.pet[data-tool-error="true"] .shellHammer,
+.pet[data-tool-error="true"] .writePencil,
+.pet[data-tool-error="true"] .browserProp {
+  opacity: 0 !important;
+}
+
+.pet[data-tool-error="true"] .planSheet {
+  opacity: 0 !important;
+}
+
+.pet[data-tool-recovery="true"] .head {
+  animation: quakeletRecoverClimb 1.08s cubic-bezier(.18, .86, .22, 1) both !important;
+}
+
+.pet[data-tool-recovery="true"] .arms {
+  animation: quakeletRecoverArms 1.08s ease-out both !important;
+}
+
+.pet[data-tool-recovery="true"] .handLeft,
+.pet[data-tool-recovery="true"] .handRight {
+  animation: quakeletRecoverGrip 1.08s ease-out both !important;
+}
+
+.pet[data-tool-recovery="true"] .crack {
+  stroke: color-mix(in srgb, var(--success, #78c894) 74%, var(--heading));
+  opacity: 1;
+}
+
+.pet[data-tool-recovery="true"] .sparkles {
+  animation: quakeletRecoverySparkles 1.08s ease-out both !important;
+}
+
+.pet[data-tool-recovery="true"] .toolPaper,
+.pet[data-tool-recovery="true"] .searchLens,
+.pet[data-tool-recovery="true"] .shellHammer,
+.pet[data-tool-recovery="true"] .writePencil,
+.pet[data-tool-recovery="true"] .browserProp {
+  opacity: 0 !important;
+}
+
+.pet[data-tool-recovery="true"] .planSheet {
+  opacity: 0 !important;
+}
+
+@keyframes quakeletPeek {
+  0%, 86%, 100% { transform: translateY(0) scale(1); }
+  91% { transform: translateY(-1px) scale(1.012, .995); }
+}
+
+@keyframes quakeletBlink {
+  0%, 43%, 46%, 100% { transform: scaleY(1); }
+  44%, 45% { transform: scaleY(.1); }
+}
+
+@keyframes quakeletDoze {
+  0% { transform: translateY(0) rotate(0); }
+  28% { transform: translateY(2px) rotate(2deg) scale(1.01, .98); }
+  64% { transform: translateY(2.8px) rotate(3deg) scale(1.015, .97); }
+  82% { transform: translateY(1.8px) rotate(1.8deg); }
+  100% { transform: translateY(0) rotate(0); }
+}
+
+@keyframes quakeletSleepEyes {
+  0%, 16%, 88%, 100% { transform: scaleY(1); }
+  28%, 76% { transform: translateY(1px) scaleY(.12); }
+}
+
+@keyframes quakeletSleepMarks {
+  0%, 18% { opacity: 0; transform: translate(0) scale(.7); }
+  40% { opacity: .85; }
+  100% { opacity: 0; transform: translate(5px, -6px) scale(1.18); }
+}
+
+@keyframes quakeletLookDown {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  32%, 72% { transform: translateY(3px) rotate(-1deg) scale(1.01, .98); }
+}
+
+@keyframes quakeletLookEyes {
+  0%, 100% { transform: translate(0); }
+  30%, 72% { transform: translateY(1.8px); }
+}
+
+@keyframes quakeletIdleTap {
+  0%, 18%, 46%, 74%, 100% { transform: translateY(0); }
+  32%, 60% { transform: translateY(1.4px) scaleY(.95); }
+}
+
+@keyframes quakeletTapWatch {
+  0%, 100% { transform: translateY(0); }
+  24%, 74% { transform: translate(1px, -.6px) rotate(1.4deg); }
+}
+
+@keyframes quakeletWakeStartle {
+  0% { transform: translateY(2.6px) rotate(3deg) scale(1.01, .97); }
+  32% { transform: translateY(-4px) rotate(-2deg) scale(.98, 1.06); }
+  62% { transform: translateY(.6px) rotate(1deg) scale(1.02, .98); }
+  100% { transform: translateY(-1px) rotate(-1deg) scale(1); }
+}
+
+@keyframes quakeletWakeEyes {
+  0% { transform: scaleY(.1); }
+  28% { transform: scale(1.16, 1.24); }
+  100% { transform: translateX(-1.35px); }
+}
+
+@keyframes quakeletTap {
+  0%, 100% { transform: translateY(0); }
+  52% { transform: translateY(1.15px) scaleY(.96); }
+}
+
+@keyframes quakeletWorking {
+  0%, 100% { transform: translateY(-.4px) rotate(-.5deg); }
+  50% { transform: translateY(-2.2px) rotate(.65deg); }
+}
+
+@keyframes quakeletHold {
+  0%, 100% { transform: scaleY(1.01); }
+  50% { transform: scaleY(1.075); }
+}
+
+@keyframes quakeletCurrent {
+  to { stroke-dashoffset: -5; }
+}
+
+@keyframes quakeletAura {
+  0% { opacity: .36; transform: scale(.74); }
+  76%, 100% { opacity: 0; transform: scale(1.12); }
+}
+
+@keyframes quakeletSeismograph {
+  0% { opacity: 0; stroke-dashoffset: 14; }
+  16%, 72% { opacity: .86; }
+  100% { opacity: 0; stroke-dashoffset: -8; }
+}
+
+@keyframes quakeletPullUp {
+  0% { transform: translateY(0) scale(1); }
+  34% { transform: translateY(-5.4px) scale(1.035, .97); }
+  62% { transform: translateY(-1.1px) scale(.99, 1.025); }
+  100% { transform: translateY(-1.8px) scale(1); }
+}
+
+@keyframes quakeletStretch {
+  0%, 100% { transform: scaleY(1); }
+  34% { transform: scaleY(1.16); }
+  62% { transform: scaleY(1.03); }
+}
+
+@keyframes quakeletGrip {
+  0% { transform: translateY(0) scaleX(1); }
+  42% { transform: translateY(.8px) scaleX(.91) scaleY(1.06); }
+  100% { transform: translateY(.2px) scaleX(.97); }
+}
+
+@keyframes quakeletSparkles {
+  0% { opacity: 0; transform: scale(.55) rotate(-8deg); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.1) rotate(5deg); }
+}
+
+@keyframes quakeletBrace {
+  0%, 100% { transform: translateY(0) scale(1); }
+  22% { transform: translateY(-1.5px) scale(1.02, .98); }
+  42% { transform: translateY(1.7px) scale(.98, 1.055); }
+  58% { transform: translateY(-1px) scale(1.01, .99); }
+  72% { transform: translateY(.35px) scale(.995, 1.01); }
+}
+
+@keyframes quakeletImpactArms {
+  0%, 100% { transform: scaleY(1); }
+  22% { transform: translateY(-2px) scaleY(.93); }
+  42% { transform: translateY(1px) scaleY(1.09); }
+  58% { transform: translateY(-.4px) scaleY(.99); }
+}
+
+@keyframes quakeletDoubleSlam {
+  0%, 100% { transform: translateY(0) scale(1); }
+  22% { transform: translateY(-4.8px) scale(.98, 1.03); }
+  42% { transform: translateY(2.1px) scale(1.08, .88); }
+  55% { transform: translateY(-1px) scale(.97, 1.04); }
+  68% { transform: translateY(.65px) scale(1.025, .97); }
+}
+
+@keyframes quakeletImpactFault {
+  0%, 35% { opacity: 0; stroke-dashoffset: 18; }
+  42% { opacity: 1; }
+  72% { opacity: .78; }
+  100% { opacity: 0; stroke-dashoffset: -12; }
+}
+
+@keyframes quakeletImpactRays {
+  0%, 35% { opacity: 0; transform: scale(.55); }
+  43% { opacity: 1; transform: scale(.9); }
+  100% { opacity: 0; transform: scale(1.24); }
+}
+
+@keyframes quakeletImpactRing {
+  0%, 37% { opacity: 0; transform: scale(.2); }
+  43% { opacity: .9; }
+  100% { opacity: 0; transform: scale(1.42); }
+}
+
+@keyframes quakeletLedgeFlash {
+  0%, 36%, 100% { stroke: var(--pet-ledge); stroke-width: 1; }
+  43% { stroke: color-mix(in srgb, var(--accent, #7f87e6) 78%, var(--heading)); stroke-width: 1.8; }
+}
+
+@keyframes quakeletComposerQuake {
+  0%, 34%, 100% { transform: translate3d(0, 0, 0); }
+  40% { transform: translate3d(-2px, 1px, 0); }
+  46% { transform: translate3d(2.2px, -.7px, 0); }
+  52% { transform: translate3d(-1.5px, .6px, 0); }
+  58% { transform: translate3d(1.1px, -.35px, 0); }
+  65% { transform: translate3d(-.6px, .2px, 0); }
+  74% { transform: translate3d(.35px, 0, 0); }
+}
+
+@keyframes quakeletFileHover {
+  0%, 100% { transform: translateY(-1px) rotate(-2deg); }
+  50% { transform: translateY(1px) rotate(2deg); }
+}
+
+@keyframes quakeletCatchDuck {
+  0% { transform: translateY(-2px) scale(.99, 1.02); }
+  34% { transform: translateY(1.2px) scale(1.02, .96); }
+  72%, 100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes quakeletCatchLeft {
+  0% { transform: translate(10.5px, -7px) rotate(10deg); }
+  34% { transform: translate(11.8px, -5.5px) rotate(5deg); }
+  68% { transform: translate(9px, 5.5px) rotate(-3deg); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes quakeletCatchRight {
+  0% { transform: translate(-10.5px, -7px) rotate(-10deg); }
+  34% { transform: translate(-11.8px, -5.5px) rotate(-5deg); }
+  68% { transform: translate(-9px, 5.5px) rotate(3deg); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes quakeletFileStow {
+  0% { opacity: 1; transform: translateY(-1px) scale(1); }
+  35% { opacity: 1; transform: translateY(1px) scale(.96); }
+  72% { opacity: .75; transform: translateY(14px) scale(.72) rotate(3deg); }
+  100% { opacity: 0; transform: translateY(19px) scale(.55) rotate(5deg); }
+}
+
+@keyframes quakeletAskPermission {
+  0%, 78%, 100% { transform: rotate(0deg); }
+  84% { transform: rotate(-4deg); }
+  90% { transform: rotate(3deg); }
+  96% { transform: rotate(-2deg); }
+}
+
+@keyframes quakeletEmergencyBrake {
+  0% { transform: translateY(-.4px) rotate(-.5deg); }
+  26% { transform: translateY(3.8px) rotate(2.2deg) scale(.98, 1.04); }
+  48% { transform: translateY(1px) rotate(-1.1deg) scale(1.01, .99); }
+  68% { transform: translateY(2px) rotate(.45deg); }
+  100% { transform: translateY(.3px) rotate(0); }
+}
+
+@keyframes quakeletBrakeArms {
+  0% { transform: scaleY(1.02); }
+  26% { transform: translateY(1.7px) scaleY(1.18); }
+  48% { transform: translateY(-.4px) scaleY(.99); }
+  100% { transform: scaleY(1); }
+}
+
+@keyframes quakeletBrakeGrip {
+  0% { transform: translateY(.45px) scaleX(.97); }
+  24% { transform: translateY(1.7px) scale(1.1, .86); }
+  46% { transform: translateY(-.5px) scale(.96, 1.05); }
+  100% { transform: translateY(.3px) scaleX(.98); }
+}
+
+@keyframes quakeletSignalCollapse {
+  0% { opacity: .85; transform: scaleX(1); }
+  30% { opacity: .9; transform: scaleX(.48) scaleY(.6); }
+  55%, 100% { opacity: 0; transform: scaleX(.1) scaleY(0); }
+}
+
+@keyframes quakeletBrakeLine {
+  0%, 24% { opacity: 0; transform: scaleX(.08); }
+  42% { opacity: 1; transform: scaleX(1.02); }
+  72% { opacity: .82; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+
+@keyframes quakeletBrakeSparks {
+  0%, 20% { opacity: 0; transform: scale(.7); }
+  30% { opacity: .9; transform: scale(1); }
+  62%, 100% { opacity: 0; transform: scale(1.16); }
+}
+
+@keyframes quakeletComposerBrake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  24% { transform: translate3d(0, 2px, 0) scaleX(.997); }
+  36% { transform: translate3d(1.2px, -.7px, 0); }
+  48% { transform: translate3d(-.8px, .4px, 0); }
+  62% { transform: translate3d(.4px, -.2px, 0); }
+}
+
+@keyframes quakeletReadPage {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-1.2px) rotate(1deg); }
+}
+
+@keyframes quakeletReadFocus {
+  0%, 100% { transform: translate(1px, -.5px) rotate(-1deg); }
+  50% { transform: translate(1.6px, -1.3px) rotate(-2deg); }
+}
+
+@keyframes quakeletHoldPage {
+  0%, 100% { transform: translate(-1.8px, -1px) rotate(-3deg); }
+  50% { transform: translate(-2.3px, -1.6px) rotate(-1deg); }
+}
+
+@keyframes quakeletSearchLens {
+  0%, 100% { transform: translate(-.5px, .4px) rotate(-4deg); }
+  50% { transform: translate(-2.4px, 1.5px) rotate(3deg); }
+}
+
+@keyframes quakeletSearchFocus {
+  0%, 100% { transform: translate(-.5px, -.8px) rotate(1deg); }
+  50% { transform: translate(1.1px, -1.4px) rotate(2deg); }
+}
+
+@keyframes quakeletScanEyes {
+  0%, 45%, 100% { transform: translate(-1.3px, .2px); }
+  50%, 95% { transform: translate(1.3px, .2px); }
+}
+
+@keyframes quakeletHammer {
+  0%, 100% { transform: translate(-1px, 0) rotate(-9deg); }
+  42% { transform: translate(1px, 2px) rotate(14deg); }
+  53% { transform: translate(.2px, .4px) rotate(3deg); }
+}
+
+@keyframes quakeletHammerBrace {
+  0%, 100% { transform: translateY(-.5px) rotate(-.5deg); }
+  42% { transform: translateY(.8px) rotate(1deg) scale(.99, 1.02); }
+  53% { transform: translateY(-1.1px) rotate(-.7deg); }
+}
+
+@keyframes quakeletHammerHand {
+  0%, 100% { transform: translate(-2px, -2.2px) rotate(-5deg); }
+  42% { transform: translate(.3px, .8px) rotate(7deg) scaleY(.94); }
+  53% { transform: translate(-1.4px, -1px) rotate(0); }
+}
+
+@keyframes quakeletToolTap {
+  0%, 37%, 100% { stroke: var(--pet-ledge); stroke-width: 1; }
+  43% { stroke: color-mix(in srgb, var(--accent, #7f87e6) 70%, var(--heading)); stroke-width: 1.5; }
+}
+
+@keyframes quakeletPencil {
+  0%, 100% { transform: translateX(-1px) rotate(-2deg); }
+  50% { transform: translateX(-4px) rotate(2deg); }
+}
+
+@keyframes quakeletPencilMark {
+  0% { stroke-dashoffset: 5; opacity: .3; }
+  45%, 80% { opacity: .9; }
+  100% { stroke-dashoffset: -5; opacity: .3; }
+}
+
+@keyframes quakeletWriteFocus {
+  0%, 100% { transform: translate(-.4px, -.7px) rotate(1deg); }
+  50% { transform: translate(.8px, -1.3px) rotate(2deg); }
+}
+
+@keyframes quakeletWritingHand {
+  0%, 100% { transform: translate(-1px, -1.3px) rotate(-2deg); }
+  50% { transform: translate(-3px, -.8px) rotate(3deg); }
+}
+
+@keyframes quakeletBrowserWindow {
+  0%, 100% { transform: translateY(.5px) rotate(-1deg); }
+  50% { transform: translateY(-1px) rotate(1deg); }
+}
+
+@keyframes quakeletBrowserCursor {
+  0%, 100% { transform: translate(-1px, -1px); }
+  50% { transform: translate(2px, 1px); }
+}
+
+@keyframes quakeletToolCurrent {
+  0%, 100% { opacity: .55; stroke-width: 1.3; }
+  50% { opacity: 1; stroke-width: 1.6; }
+}
+
+@keyframes quakeletSubagentSocket {
+  0%, 100% { opacity: .55; stroke-dashoffset: 0; }
+  50% { opacity: .95; stroke-dashoffset: -3.4; }
+}
+
+@keyframes quakeletSubagentLaunch {
+  0% { opacity: 0; transform: translate(-2px, 2px) scale(.65) rotate(-8deg); }
+  16% { opacity: 1; }
+  58% { opacity: 1; transform: translate(22px, -18px) scale(.76) rotate(8deg); }
+  100% { opacity: 0; transform: translate(43px, -34px) scale(.48) rotate(18deg); }
+}
+
+@keyframes quakeletSubagentSplit {
+  0%, 100% { transform: translateY(-.4px) scale(1); }
+  18% { transform: translate(-1.5px, 1px) scale(.985, 1.03); }
+  38% { transform: translate(.8px, -1.4px) scale(1.015, .99); }
+}
+
+@keyframes quakeletSubagentReturn {
+  0% { opacity: 0; transform: translate(43px, -34px) scale(.48) rotate(18deg); }
+  18% { opacity: 1; }
+  68% { opacity: 1; transform: translate(7px, -6px) scale(.88) rotate(-5deg); }
+  86% { opacity: 1; transform: translate(-1px, 1px) scale(1.06) rotate(2deg); }
+  100% { opacity: 0; transform: translate(0) scale(1); }
+}
+
+@keyframes quakeletResultPacket {
+  0%, 12% { opacity: 0; transform: scale(.7); }
+  24%, 75% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.7); }
+}
+
+@keyframes quakeletSubagentMerge {
+  0%, 58% { transform: translateY(-.4px) scale(1); }
+  82% { transform: translateY(1.3px) scale(1.035, .96); }
+  100% { transform: translateY(-1px) scale(1); }
+}
+
+@keyframes quakeletSubagentFailed {
+  0% { opacity: 0; transform: translate(42px, -31px) scale(.5) rotate(14deg); }
+  18% { opacity: .9; }
+  62% { opacity: .9; transform: translate(9px, -4px) scale(.82) rotate(-10deg); }
+  78% { opacity: .7; transform: translate(4px, 8px) scale(.75) rotate(13deg); }
+  100% { opacity: 0; transform: translate(2px, 17px) scale(.55) rotate(24deg); }
+}
+
+@keyframes quakeletToolStumble {
+  0% { transform: translateY(-.4px) rotate(-.5deg); }
+  18% { transform: translate(-3px, 2.5px) rotate(-6deg) scale(.98, 1.03); }
+  36% { transform: translate(2px, 1px) rotate(4deg); }
+  58% { transform: translate(-1px, 2px) rotate(-2deg); }
+  100% { transform: translateY(.8px) rotate(0) scale(.99, 1.01); }
+}
+
+@keyframes quakeletToolSlipArms {
+  0% { transform: scaleY(1.02); }
+  22% { transform: translateY(2.8px) scaleY(1.15); }
+  48%, 100% { transform: translateY(1px) scaleY(1.06); }
+}
+
+@keyframes quakeletToolSlipLeft {
+  0% { transform: translateY(.4px); }
+  22% { transform: translate(-2.6px, 2.6px) rotate(-8deg); }
+  48%, 100% { transform: translate(-.7px, 1.2px) rotate(-2deg); }
+}
+
+@keyframes quakeletToolSlipRight {
+  0% { transform: translateY(.4px); }
+  22% { transform: translate(3px, 3.8px) rotate(12deg); }
+  48%, 100% { transform: translate(.8px, 1.4px) rotate(3deg); }
+}
+
+@keyframes quakeletErrorCrack {
+  0%, 100% { opacity: .7; }
+  50% { opacity: 1; }
+}
+
+@keyframes quakeletErrorSignal {
+  0%, 10% { opacity: 0; stroke-dashoffset: 9; }
+  22%, 52% { opacity: 1; }
+  100% { opacity: 0; stroke-dashoffset: -9; }
+}
+
+@keyframes quakeletErrorMarks {
+  0% { opacity: 0; transform: scale(.6); }
+  18% { opacity: 1; transform: scale(1.08); }
+  42% { opacity: .72; transform: scale(.96); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
+@keyframes quakeletRecoverClimb {
+  0% { transform: translateY(3px) scale(.98, 1.03); }
+  34% { transform: translateY(-5px) scale(1.035, .96); }
+  58% { transform: translateY(-1px) scale(.99, 1.025); }
+  78% { transform: translateY(-2.4px) scale(1.01, .99); }
+  100% { transform: translateY(-1px) scale(1); }
+}
+
+@keyframes quakeletRecoverArms {
+  0% { transform: translateY(2px) scaleY(1.1); }
+  34% { transform: translateY(-1.2px) scaleY(1.18); }
+  58%, 100% { transform: scaleY(1.02); }
+}
+
+@keyframes quakeletRecoverGrip {
+  0% { transform: translateY(1.5px) scaleX(.92); }
+  36% { transform: translateY(-.8px) scale(1.04, .96); }
+  62%, 100% { transform: translateY(.2px) scaleX(.98); }
+}
+
+@keyframes quakeletRecoverySparkles {
+  0% { opacity: 0; transform: scale(.45) rotate(-8deg); }
+  32% { opacity: 1; transform: scale(1.05) rotate(2deg); }
+  100% { opacity: 0; transform: scale(1.18) rotate(7deg); }
+}
+
+@keyframes quakeletPlanUnfold {
+  0%, 100% { transform: translateY(.5px) scaleX(.96) rotate(-1deg); }
+  50% { transform: translateY(-1px) scaleX(1) rotate(1deg); }
+}
+
+@keyframes quakeletPlanFocus {
+  0%, 100% { transform: translate(1px, -.4px) rotate(-1deg); }
+  50% { transform: translate(1.6px, -1.1px) rotate(-2deg); }
+}
+
+@keyframes quakeletPlanTick {
+  0% { opacity: 0; stroke-dasharray: 6; stroke-dashoffset: 6; transform: scale(.7); }
+  38%, 78% { opacity: 1; stroke-dashoffset: 0; transform: scale(1.18); }
+  100% { opacity: .88; transform: scale(1); }
+}
+
+@keyframes quakeletContextStrain {
+  0%, 100% { transform: translateY(1.2px) rotate(-.4deg) scale(1.01, .975); }
+  50% { transform: translateY(2px) rotate(.45deg) scale(.995, .96); }
+}
+
+@keyframes quakeletContextHold {
+  0%, 100% { transform: translateY(.8px) scaleY(1.08); }
+  50% { transform: translateY(1.5px) scaleY(1.12); }
+}
+
+@keyframes quakeletDropContext {
+  0% { opacity: 1; transform: translate(0) rotate(0) scale(1); }
+  44% { opacity: 1; transform: translate(-4px, -5px) rotate(-14deg) scale(.95); }
+  100% { opacity: 0; transform: translate(-11px, 15px) rotate(-38deg) scale(.62); }
+}
+
+@keyframes quakeletApprovalThumb {
+  0% { opacity: 0; transform: translateY(6px) rotate(8deg) scale(.78); }
+  58% { opacity: 1; transform: translateY(-1px) rotate(-3deg) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+}
+
+@keyframes quakeletApprovalNod {
+  0%, 100% { transform: translateX(-1px) rotate(-1deg); }
+  46% { transform: translate(-1px, 2px) rotate(1deg) scale(1.01, .98); }
+}
+
+@keyframes quakeletApprovalRetract {
+  0% { opacity: 1; transform: translate(0) rotate(0); }
+  100% { opacity: 0; transform: translate(-5px, 9px) rotate(-14deg) scale(.78); }
+}
+
+@keyframes quakeletApprovalBackOff {
+  0% { transform: translateX(-1px) rotate(-1deg); }
+  45% { transform: translate(-3px, 2px) rotate(-4deg) scale(.98); }
+  100% { transform: translate(-1px, 1px) rotate(-1deg); }
+}
+
+@keyframes quakeletCableUnplug {
+  0% { transform: translate(4px, -3px) rotate(7deg); }
+  36% { transform: translate(0) rotate(0); }
+  58% { transform: translate(-3px, 3px) rotate(-9deg); }
+  100% { transform: translate(-4px, 4px) rotate(-12deg); }
+}
+
+@keyframes quakeletCableReconnect {
+  0% { transform: translate(-5px, 5px) rotate(-14deg); }
+  62% { transform: translate(1px, -1px) rotate(3deg); }
+  78% { transform: translate(-.5px, .5px) rotate(-1deg); }
+  100% { opacity: 0; transform: translate(0) rotate(0); }
+}
+
+@keyframes quakeletCableError {
+  0%, 100% { transform: translate(-3px, 3px) rotate(-8deg); opacity: 0; }
+  18%, 72% { opacity: 1; }
+  28% { transform: translate(-5px, 2px) rotate(-14deg); }
+  42% { transform: translate(-2px, 5px) rotate(-3deg); }
+  56% { transform: translate(-4px, 3px) rotate(-10deg); }
+}
+
+@keyframes quakeletNetworkNotice {
+  0%, 100% { transform: translateY(-.4px); }
+  28% { transform: translate(2px, 1px) rotate(3deg); }
+  48% { transform: translate(-1px, .2px) rotate(-2deg); }
+}
+
+@keyframes quakeletSweep {
+  0% { opacity: 0; transform: translate(4px, -3px) rotate(-10deg); }
+  18% { opacity: 1; }
+  52% { transform: translate(-16px, 1px) rotate(7deg); }
+  78% { opacity: 1; transform: translate(-27px, 0) rotate(-4deg); }
+  100% { opacity: 0; transform: translate(-31px, -2px) rotate(-8deg); }
+}
+
+@keyframes quakeletFreshSurface {
+  0% { opacity: 0; transform: translate(4px, -3px) rotate(-10deg); }
+  14% { opacity: 1; }
+  42% { transform: translate(-25px, 1px) rotate(6deg); }
+  66% { transform: translate(-7px, -1px) rotate(-5deg); }
+  88% { opacity: 1; transform: translate(-29px, 0) rotate(4deg); }
+  100% { opacity: 0; transform: translate(-32px, -2px) rotate(-7deg); }
+}
+
+@keyframes quakeletSweepFocus {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translate(-1px, -1px) rotate(-2deg); }
+  68% { transform: translate(1px, -.5px) rotate(2deg); }
+}
+
+@keyframes quakeletSweepHand {
+  0%, 100% { transform: translateY(.3px); }
+  28% { transform: translate(-2px, -2px) rotate(-6deg); }
+  62% { transform: translate(-5px, -.5px) rotate(5deg); }
+}
+
+@keyframes quakeletSweepDust {
+  0%, 16% { opacity: 0; transform: translateX(5px) scale(.7); }
+  42% { opacity: .8; }
+  100% { opacity: 0; transform: translate(-16px, -4px) scale(1.3); }
+}
+
+.pet[data-compact="true"] {
+  top: -30px;
+  right: 13px;
+  width: 52px;
+  height: 39px;
+}
+
+@media (max-width: 520px) {
+  .pet {
+    top: -32px;
+    right: 14px;
+    width: 56px;
+    height: 42px;
+  }
+}
+
+@media (max-width: 390px) {
+  .pet {
+    display: none;
+  }
+}
+
+:global(html[data-reduce-motion="on"]) .pet *,
+:global(html[data-motion="off"]) .pet * {
+  animation: none !important;
+  transition: none !important;
+}
+
+:global(html[data-composer-pet="off"] #composer),
+:global(html[data-reduce-motion="on"] #composer),
+:global(html[data-motion="off"] #composer) {
+  animation: none !important;
+  will-change: auto;
+}
+
+:global(html[data-reduce-motion="on"]) .pet[data-state="working"] .signalLine,
+:global(html[data-motion="off"]) .pet[data-state="working"] .signalLine {
+  opacity: .72;
+  stroke-dasharray: none;
+}
+
+:global(html[data-reduce-motion="on"]) .pet[data-composer-pet-impact="true"] .impactWaves,
+:global(html[data-motion="off"]) .pet[data-composer-pet-impact="true"] .impactWaves {
+  opacity: .7;
+}
+
+:global(html[data-reduce-motion="on"]) .pet[data-composer-pet-stop="true"] .brakeLine,
+:global(html[data-motion="off"]) .pet[data-composer-pet-stop="true"] .brakeLine {
+  opacity: .72;
+}
+
+:global(html[data-reduce-motion="on"]) .pet[data-subagent-motion="launch"] .subagentShard,
+:global(html[data-motion="off"]) .pet[data-subagent-motion="launch"] .subagentShard {
+  opacity: 0;
+}
+
+:global(html[data-reduce-motion="on"]) .pet[data-tool-recovery="true"] .sparkles,
+:global(html[data-motion="off"]) .pet[data-tool-recovery="true"] .sparkles {
+  opacity: .72;
+}
+
+:global(html[data-reduce-motion="on"]) .pet .idleMarks,
+:global(html[data-motion="off"]) .pet .idleMarks {
+  opacity: 0;
+}
+
+:global(html[data-reduce-motion="on"]) .pet[data-plan-tick="true"] .planCheck,
+:global(html[data-motion="off"]) .pet[data-plan-tick="true"] .planCheck {
+  opacity: 1;
+}
+
+:global(html[data-reduce-motion="on"]) .pet[data-approval-outcome="denied"] .approvalHand,
+:global(html[data-motion="off"]) .pet[data-approval-outcome="denied"] .approvalHand {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .pet[data-state="working"] .signalLine {
+    opacity: .72;
+    stroke-dasharray: none;
+  }
+
+  .pet[data-composer-pet-impact="true"] .impactWaves {
+    opacity: .7;
+  }
+
+  .pet[data-composer-pet-stop="true"] .brakeLine {
+    opacity: .72;
+  }
+
+  .pet[data-subagent-motion="launch"] .subagentShard {
+    opacity: 0;
+  }
+
+  .pet[data-tool-recovery="true"] .sparkles {
+    opacity: .72;
+  }
+
+  .pet .idleMarks {
+    opacity: 0;
+  }
+
+  .pet[data-plan-tick="true"] .planCheck {
+    opacity: 1;
+  }
+
+  .pet[data-approval-outcome="denied"] .approvalHand {
+    opacity: 0;
+  }
+
+  :global(#composer) {
+    animation: none !important;
+  }
+}
+
+:global([data-theme="light"]) .pet {
+  --pet-body: color-mix(in srgb, var(--composer-surface, #fff) 80%, #1d1d20 20%);
+  --pet-line: color-mix(in srgb, #1d1d20 38%, transparent);
+  --pet-detail: color-mix(in srgb, #1d1d20 11%, transparent);
+  --pet-ledge: color-mix(in srgb, #1d1d20 7%, transparent);
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .12));
+}

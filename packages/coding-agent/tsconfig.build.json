@@ -1,0 +1,32 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"noImplicitAny": false,
+		"paths": {
+			"*": ["../../*"],
+			"@mrquake/quakecode-jiti": ["../../packages/jiti/dist/index.d.ts"],
+			"@mrquake/quakecode-jiti/*": ["../../packages/jiti/dist/*"],
+			"@mrquake/quakecode-agent-core": ["../../packages/agent/dist/index.d.ts"],
+			"@mrquake/quakecode-agent-core/*": ["../../packages/agent/dist/*"],
+			"@mrquake/quakecode-ai": ["../../packages/ai/dist/index.d.ts"],
+			"@mrquake/quakecode-ai/oauth": ["../../packages/ai/dist/oauth.d.ts"],
+			"@mrquake/quakecode-ai/*": ["../../packages/ai/dist/*"],
+			"@mrquake/quakecode-tui": ["../../packages/tui/dist/index.d.ts"],
+			"@mrquake/quakecode-tui/*": ["../../packages/tui/dist/*"],
+			"@mrquake/quakecode-cli": ["../../packages/coding-agent/src/index.ts"],
+			"@mrquake/quakecode-cli/*": ["../../packages/coding-agent/src/*"],
+			"@sinclair/typebox": ["../../node_modules/@sinclair/typebox"]
+		}
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"**/*.d.ts",
+		"src/**/*.d.ts",
+		"src/bundled/extensions/**/*.ts",
+		"**/*.test.ts"
+	]
+}

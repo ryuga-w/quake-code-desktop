@@ -1,0 +1,39 @@
+.root {
+  display: grid;
+  width: min(100%, 764px);
+  margin: 0 auto 12px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--heading) 17%, transparent);
+  border-radius: 16px;
+  background: var(--surface-overlay, var(--panel));
+  box-shadow: var(--shadow-card);
+  box-sizing: border-box;
+}
+.header { display: flex; align-items: center; justify-content: space-between; min-height: 39px; padding: 0 11px; color: var(--text-secondary, var(--text)); font-size: 12px; }
+.header > span { font-weight: 520; }
+.progress { display: flex; align-items: center; gap: 5px; color: var(--text-muted, var(--muted)); font-size: 11px; }
+.progress b { min-width: 43px; font-weight: 520; font-variant-numeric: tabular-nums; text-align: center; }
+.progress button { display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--text-subtle, var(--muted-2)); box-shadow: none; }
+.progress button:hover:not(:disabled) { background: color-mix(in srgb, var(--heading) 7%, transparent); color: var(--heading); transform: none; }
+.progress button:disabled { opacity: .35; }
+.list { display: grid; gap: 17px; padding: 0 11px 17px; }
+.question { display: grid; gap: 5px; }
+.label { color: var(--heading); font-size: 12px; font-weight: 620; line-height: 1.4; }
+.detail { margin-top: -2px; color: var(--text-muted, var(--muted)); font-size: 10.5px; line-height: 1.4; }
+.options { display: grid; gap: 1px; }
+.option { display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 7px; min-width: 0; min-height: 29px; padding: 3px 2px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted, var(--muted)); box-shadow: none; text-align: left; }
+.option:hover, .selected { background: color-mix(in srgb, var(--heading) 7%, transparent); color: var(--heading); transform: none; }
+.optionKey { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 6px; background: color-mix(in srgb, var(--heading) 8%, transparent); color: var(--text-muted, var(--muted)); font-size: 9px; font-weight: 650; line-height: 1; }
+.selected .optionKey { background: var(--warning-soft); color: var(--warning); }
+.optionCopy { min-width: 0; overflow: hidden; font-size: 11.5px; font-weight: 430; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.optionCopy small { color: var(--text-subtle, var(--muted-2)); font: inherit; }
+.otherInput, .textInput { width: calc(100% - 25px); margin: 3px 0 5px 25px; padding: 7px 9px; border: 1px solid var(--border-strong); border-radius: 6px; outline: 0; background: var(--surface-raised, var(--panel-2)); color: var(--text-primary, var(--heading)); font: inherit; font-size: 11px; box-sizing: border-box; }
+.otherInput:focus, .textInput:focus { border-color: color-mix(in srgb, var(--heading) 30%, transparent); }
+.textInput { resize: vertical; }
+.actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-height: 43px; padding: 0 11px 10px; }
+.skip { min-height: 25px; padding: 3px 2px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted, var(--muted)); box-shadow: none; font-size: 11.5px; font-weight: 450; }
+.skip:hover { color: var(--heading); background: transparent; transform: none; }
+.next { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 3px 9px; border: 1px solid var(--heading); border-radius: 8px; background: var(--heading); color: var(--bg); box-shadow: none; font-size: 11.5px; font-weight: 620; }
+.next:hover { filter: brightness(1.06); transform: none; }
+.next span { font-size: 10px; opacity: .75; }
+@media (max-width: 700px) { .root { border-radius: 12px; } }

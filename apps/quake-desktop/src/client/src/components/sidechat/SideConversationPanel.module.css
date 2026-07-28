@@ -1,0 +1,494 @@
+.panel {
+  --side-chat-column: 720px;
+  --conversation-composer-width: 720px;
+  container-name: side-conversation;
+  container-type: inline-size;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-timeline, var(--surface));
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+@container side-conversation (max-width: 520px) {
+  .thread {
+    width: calc(100% - 28px);
+    padding-top: 36px;
+  }
+
+  .userMessage {
+    max-width: 88%;
+  }
+}
+
+.workspaceActions {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.historyMenu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.historyMenu > summary {
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-browser-muted, var(--muted));
+  cursor: pointer;
+}
+
+.historyMenu > summary {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  list-style: none;
+}
+
+.historyMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.historyMenu > summary:hover,
+.historyMenu[open] > summary {
+  background: var(--surface-browser-hover, var(--panel-2));
+  color: var(--text-browser, var(--heading));
+}
+
+.historyMenu > summary:focus-visible,
+.newConversationButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.historyMenu svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.75;
+}
+
+.newConversationButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-raised, var(--panel)) 94%, transparent);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  font: 11.5px var(--font-sans);
+  cursor: pointer;
+}
+
+.newConversationButton:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--panel-2);
+  color: var(--heading);
+}
+
+.newConversationButton:disabled {
+  cursor: progress;
+  opacity: .55;
+}
+
+.newConversationButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+.historyPopover {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  left: auto;
+  z-index: 30;
+  display: flex;
+  width: min(310px, calc(100vw - 32px));
+  max-height: min(460px, calc(100vh - 100px));
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px;
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface-overlay, var(--panel));
+  box-shadow: var(--shadow-overlay);
+  animation: popoverIn 130ms var(--ease-out, ease);
+}
+
+.historyHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 5px 6px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.historyHeading button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: 11px var(--font-sans);
+  cursor: pointer;
+}
+
+.historyHeading button:hover {
+  background: var(--panel-2);
+}
+
+.historyHeading svg {
+  width: 13px;
+  height: 13px;
+}
+
+.historyItem {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyItem:hover,
+.historyItem[data-active="true"] {
+  background: var(--surface-browser-hover, var(--panel-2));
+}
+
+.historyItem > span:nth-child(2) {
+  min-width: 0;
+}
+
+.historyItem strong,
+.historyItem small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyItem strong {
+  color: var(--heading);
+  font-size: 12px;
+  font-weight: 520;
+}
+
+.historyItem small {
+  margin-top: 3px;
+  color: var(--muted-2);
+  font-size: 10.5px;
+}
+
+.historyIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--muted);
+}
+
+.historyIcon svg,
+.historyItem > svg {
+  width: 12px;
+  height: 12px;
+}
+
+.historyEmpty {
+  margin: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.workspace {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.timelineHost {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.timelineHost :global(.timeline-scroll) {
+  padding: 14px 18px 108px;
+}
+
+.timelineHost :global(.timeline-thread) {
+  width: min(var(--conversation-composer-width, 720px), 100%);
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: color-mix(in srgb, var(--heading) 18%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+.thread {
+  display: flex;
+  width: min(var(--side-chat-column), calc(100% - 40px));
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 56px 0 164px;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.emptyState {
+  display: flex;
+  width: min(430px, 100%);
+  margin: auto;
+  padding-bottom: 92px;
+  flex-direction: column;
+  align-items: center;
+  color: var(--muted);
+  text-align: center;
+}
+
+.emptyState > span {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 14px;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--heading);
+}
+
+.emptyState > span svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.6;
+}
+
+.emptyState h2 {
+  margin: 0 0 7px;
+  color: var(--heading);
+  font-size: 17px;
+  font-weight: 590;
+  letter-spacing: -.015em;
+}
+
+.emptyState p {
+  max-width: 380px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.emptyState small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+.emptyState small svg {
+  width: 13px;
+  height: 13px;
+}
+
+.emptyState .contextStatus {
+  max-width: 390px;
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--heading) 5%, transparent);
+}
+
+.emptyState .contextStatus[data-inherited="true"] {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: color-mix(in srgb, var(--accent) 74%, var(--heading));
+}
+
+.userMessage {
+  display: flex;
+  align-self: flex-end;
+  max-width: min(78%, 540px);
+  margin: 0;
+}
+
+.userMessage p {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 14px 14px 4px 14px;
+  background: color-mix(in srgb, var(--heading) 7%, var(--surface-timeline, var(--surface)));
+  color: var(--heading);
+  font-size: 12.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.assistantMessage {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  color: var(--text);
+}
+
+.assistantBody {
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.assistantBody > *:first-child {
+  margin-top: 0;
+}
+
+.messageActions {
+  display: flex;
+  min-height: 24px;
+  margin-top: 5px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.assistantMessage:hover .messageActions,
+.assistantMessage:focus-within .messageActions {
+  opacity: 1;
+}
+
+.messageActions button {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.messageActions button:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+
+.messageActions svg {
+  width: 13px;
+  height: 13px;
+}
+
+.thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+}
+
+.thinking i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: thinkingDot 1.2s ease-in-out infinite;
+}
+
+.thinking i:nth-child(2) {
+  animation-delay: 140ms;
+}
+
+.thinking i:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+.endAnchor {
+  width: 1px;
+  height: 1px;
+}
+
+.composerFade {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: 154px;
+  background: linear-gradient(to bottom, transparent, var(--surface-timeline, var(--surface)) 56%);
+  pointer-events: none;
+}
+
+@keyframes thinkingDot {
+  0%, 65%, 100% { opacity: .32; transform: translateY(0); }
+  35% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes popoverIn {
+  from { opacity: 0; transform: translateY(-4px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 680px) {
+  .thread {
+    width: calc(100% - 28px);
+    padding-top: 36px;
+  }
+
+  .userMessage {
+    max-width: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .historyPopover,
+  .thinking i {
+    animation: none;
+  }
+
+  .messageActions {
+    transition: none;
+  }
+}

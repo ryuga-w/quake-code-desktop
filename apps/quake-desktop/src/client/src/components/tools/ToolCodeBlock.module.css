@@ -1,0 +1,56 @@
+.block {
+  margin: 0;
+  overflow: auto;
+  max-height: min(320px, 42vh);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--code-bg, #101010) 96%, transparent);
+  font-size: 12px;
+  line-height: 1.55;
+  scrollbar-width: thin;
+}
+
+.block :global(pre.shiki),
+.block :global(pre) {
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  overflow: visible !important;
+  background: transparent !important;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace) !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  white-space: pre !important;
+  tab-size: 2;
+}
+
+.block :global(code) {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.plain {
+  margin: 0;
+  max-height: min(320px, 42vh);
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--code-bg, #101010) 96%, transparent);
+  color: var(--code-fg, #e8e8e8);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+  tab-size: 2;
+  scrollbar-width: thin;
+}
+
+.plain code {
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  padding: 0;
+  border: 0;
+  color: inherit;
+}

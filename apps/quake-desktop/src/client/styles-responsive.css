@@ -1,0 +1,471 @@
+/* Quake Desktop responsive shell
+ * CSS Module tabanlı NavRail doğrudan global sınıflarla hedeflenmez. Shell grid'i
+ * nav kolonunu kapatır; sağ dock dar pencerelerde erişilebilir bir sheet olur.
+ */
+
+@media (max-width: 1100px) {
+  :root {
+    --chat-column-gutter: 18px;
+  }
+
+  /* The right panel is an overlay sheet at this width, so it must not reserve
+     horizontal space for the floating Outputs card. */
+  .workspace-chrome {
+    --workspace-context-width: clamp(276px, 32vw, 312px);
+    right: max(14px, env(safe-area-inset-right));
+    max-width: calc(100vw - 28px);
+  }
+
+  .workspace-context-card {
+    max-width: calc(100vw - 28px);
+  }
+
+  /* Regular dock panels become a bottom sheet here. Keep the compact controls,
+     but hide the card itself instead of squeezing it into an unusable strip. */
+  .app-shell:has(#app:not(.right-collapsed):not(.subagents-layout-split)) .workspace-context-card {
+    display: none;
+  }
+
+  #app,
+  #app.left-collapsed,
+  #app.right-collapsed,
+  #app.left-collapsed.right-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Keep the titlebar toggle honest on narrow desktop windows: the nav becomes
+     an overlay drawer instead of being unconditionally removed. */
+  #app:not(.browser-layout-focus) > :first-child {
+    position: fixed;
+    top: var(--titlebar-height, 36px);
+    bottom: 0;
+    left: 0;
+    z-index: calc(var(--z-dock, 80) + 1);
+    display: flex !important;
+    width: min(340px, calc(100vw - 44px));
+    max-width: 100%;
+    border-right: 1px solid var(--stroke-strong, var(--border-strong));
+    box-shadow: var(--shadow-overlay);
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+    transition:
+      opacity 200ms var(--ease-panel, ease),
+      transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+      visibility 0s linear 0s;
+  }
+
+  #app .rightbar[data-active-panel="browser"] {
+    padding: 0;
+    background: var(--surface-browser-chrome, var(--surface));
+  }
+
+  #app.left-collapsed:not(.browser-layout-focus) > :first-child {
+    display: flex !important;
+    opacity: 0;
+    transform: translateX(calc(-100% - 20px));
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: none;
+    transition:
+      opacity 180ms var(--ease-panel, ease),
+      transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+      visibility 0s linear var(--duration-panel, 280ms);
+  }
+
+  #app.left-collapsed.left-sidebar-peek-open:not(.browser-layout-focus) > :first-child {
+    display: flex !important;
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+    box-shadow: var(--shadow-overlay);
+    transition:
+      opacity 160ms var(--ease-panel, ease),
+      transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+      visibility 0s linear 0s;
+  }
+
+  #app.browser-layout-focus > :first-child {
+    display: none !important;
+  }
+
+  .main {
+    grid-column: 1;
+  }
+
+  #app.chat-workspace:not(.browser-layout-focus) > .main.chat-active,
+  #app.chat-workspace:not(.browser-layout-focus) > .main.empty-chat {
+    margin-top: 0;
+    border-top: 0;
+    border-left: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .bottom-dock {
+    grid-column: 1 / -1;
+  }
+
+  .left-resize-handle,
+  .right-resize-handle {
+    display: none;
+  }
+
+  .rightbar {
+    position: fixed;
+    inset: auto 12px 12px;
+    z-index: var(--z-dock, 80);
+    width: auto;
+    height: min(72vh, 620px);
+    padding: 10px;
+    border: 1px solid var(--stroke-strong, var(--border-strong));
+    border-radius: var(--radius-overlay, 10px);
+    background: var(--surface-sidebar, var(--paper-soft));
+    box-shadow: var(--shadow-overlay);
+    overflow: hidden;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+      opacity 200ms var(--ease-panel, ease),
+      visibility 0s linear 0s;
+  }
+
+  #app.right-collapsed .rightbar {
+    display: flex;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(calc(100% + 24px));
+    transition:
+      opacity 180ms var(--ease-panel, ease),
+      transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+      visibility 0s linear var(--duration-panel, 280ms);
+  }
+
+  .rightbar .files-panel,
+  .rightbar .preview-panel {
+    max-height: calc(72vh - 110px);
+  }
+
+  .security-banner {
+    flex-direction: column;
+  }
+}
+
+/* Reference subagent workspace remains a true side-by-side split on compact
+   desktop widths. Other right panels keep the existing bottom-sheet behavior. */
+@media (min-width: 721px) and (max-width: 1100px) {
+  /* Subagents are the one compact-desktop panel that remains a true split. */
+  .app-shell:has(#app.subagents-layout-split) .workspace-chrome {
+    right: calc(var(--dock-w, 0px) + 12px);
+  }
+
+  .app-shell:has(#app.subagents-layout-split) .workspace-context-card {
+    max-width: calc(100vw - var(--dock-w, 0px) - 28px);
+  }
+
+  #app.subagents-layout-split,
+  #app.subagents-layout-split.left-collapsed,
+  #app.subagents-layout-split.right-collapsed,
+  #app.subagents-layout-split.left-collapsed.right-collapsed {
+    grid-template-columns: minmax(280px, 1fr) var(--dock-w, 440px);
+  }
+
+  #app.subagents-layout-split > .main {
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  #app.subagents-layout-split > .rightbar[data-active-panel="subagents"] {
+    position: relative;
+    inset: auto;
+    z-index: 1;
+    grid-column: 2;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+  }
+
+  #app.subagents-layout-split > .right-resize-handle {
+    display: block;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --chat-column-gutter: 12px;
+  }
+
+  /* The pinned summary becomes a viewport-safe top sheet instead of vanishing.
+     Its own toggle stays reachable while the timeline remains underneath. */
+  .workspace-chrome {
+    --workspace-context-width: auto;
+    top: calc(var(--titlebar-height, 36px) + 8px);
+    right: max(8px, env(safe-area-inset-right));
+    left: max(8px, env(safe-area-inset-left));
+    z-index: calc(var(--z-titlebar, 40) - 1);
+    display: grid;
+    width: auto;
+    max-width: none;
+    justify-items: stretch;
+    gap: 8px;
+  }
+
+  .workspace-chrome-controls {
+    justify-self: end;
+  }
+
+  .workspace-context-card {
+    width: 100%;
+    max-width: none;
+    max-height: min(68dvh, max(180px, calc(100dvh - var(--titlebar-height, 36px) - 104px)));
+    border-radius: 14px;
+    padding: 10px 9px 9px;
+  }
+
+  .workspace-context-plan-items {
+    max-height: min(180px, 24dvh);
+  }
+
+  .workspace-context-card:not(.workspace-context-plan) .workspace-context-items {
+    max-height: min(360px, 42dvh);
+  }
+
+  .workspace-context-plan .workspace-context-items {
+    max-height: min(210px, 26dvh);
+  }
+
+  /* A narrow right panel is a full-height sheet, so showing both surfaces would
+     produce two competing overlays. Closing the sheet restores this card. */
+  .app-shell:has(#app:not(.right-collapsed)) .workspace-chrome {
+    display: none;
+  }
+
+  .app-shell {
+    min-width: 0;
+  }
+
+  .main {
+    min-width: 0;
+  }
+
+  .security-banner {
+    padding-inline: 14px;
+  }
+
+  .timeline,
+  .timeline-scroll {
+    padding-inline: var(--chat-column-gutter);
+  }
+
+  .timeline-row-user {
+    position: static;
+    z-index: auto;
+    background: transparent;
+    padding-top: 0;
+  }
+
+  .timeline-row-user::after {
+    display: none;
+  }
+
+  .message,
+  .tool-card {
+    max-width: 100%;
+  }
+
+  .composer {
+    width: calc(100% - (var(--chat-column-gutter) * 2));
+    margin-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .composer textarea {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .composer-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .composer-footer-left,
+  .composer-footer-right {
+    min-width: 0;
+  }
+
+  .composer-menu[open] > .composer-popover {
+    position: fixed;
+    right: 10px;
+    bottom: calc(env(safe-area-inset-bottom) + 104px);
+    left: 10px;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .rightbar {
+    inset: 48px 0 0;
+    height: auto;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  #app .rightbar[data-active-panel="browser"] {
+    inset: var(--titlebar-height, 36px) 0 0;
+    padding: 0;
+  }
+
+  .dock-header-browser .dock-workspace-tab {
+    max-width: min(180px, 50vw);
+  }
+
+  .dock-header-browser .focus-composer-switch,
+  .dock-header-browser .browser-focus-exit {
+    display: none;
+  }
+
+  .settings-backdrop {
+    padding: 0;
+  }
+
+  .settings-dialog,
+  .session-picker-modal,
+  .workspace-modal,
+  .tool-inspector {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+  }
+
+  .modal-card {
+    width: calc(100% - 20px) !important;
+    max-height: calc(100dvh - 20px);
+  }
+}
+
+@media (max-width: 560px) {
+  .workspace-context-card {
+    border-radius: 12px;
+    padding-inline: 8px;
+  }
+
+  .workspace-context-head {
+    padding-inline: 3px;
+  }
+
+  .workspace-context-row {
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    gap: 7px;
+    padding-inline: 5px;
+  }
+
+  .workspace-context-row b {
+    max-width: 72px;
+  }
+
+  .composer-footer-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .composer-model {
+    max-width: 132px;
+  }
+
+  .composer-model summary b {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .timeline-load-older {
+    width: 100%;
+  }
+
+  .timeline-filter-menu {
+    top: 8px;
+    right: 10px;
+  }
+
+  .timeline-filter-menu > summary {
+    min-height: 34px;
+  }
+
+  .timeline-jump-bottom {
+    max-width: calc(100% - 24px);
+  }
+
+  .timeline-jump-bottom span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+}
+
+@media (max-height: 680px) and (min-width: 721px) {
+  .rightbar {
+    height: calc(100vh - 64px);
+  }
+
+  .settings-backdrop {
+    padding-block: 12px;
+  }
+
+  .settings-dialog {
+    height: calc(100vh - 24px);
+    max-height: calc(100vh - 24px);
+  }
+}
+
+@media (pointer: coarse) {
+  .tree-twist,
+  .file-actions button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .tree-row {
+    min-height: 44px;
+  }
+
+  .session-item {
+    min-height: 52px;
+  }
+}
+
+@media print {
+  .rightbar,
+  .bottom-dock,
+  .composer,
+  .security-banner {
+    display: none !important;
+  }
+
+  .main,
+  .timeline {
+    overflow: visible;
+  }
+
+  .message {
+    break-inside: avoid;
+  }
+}

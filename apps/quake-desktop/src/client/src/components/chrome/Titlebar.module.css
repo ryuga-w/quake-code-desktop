@@ -1,0 +1,236 @@
+.titlebar {
+  flex: 0 0 var(--titlebar-height, 36px);
+  height: var(--titlebar-height, 36px);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px;
+  /* Sag tarafta OS pencere kontrol overlay'i (WCO ~140px) icin yer birak. */
+  padding-right: 144px;
+  background: var(--surface-navigation, #201e20);
+  -webkit-app-region: drag;
+  user-select: none;
+  position: relative;
+  z-index: 40;
+  isolation: isolate;
+}
+.projectContextSidebarOpen { display: none; }
+
+/*
+ * Titlebar altindaki fade bandi. Dis kutu sadece orta calisma kolonunu izler;
+ * gradient ise timeline'daki ortak ajan/kullanici metin sutunuyla ayni genislikte
+ * ortalanir. Boylece sidebar, bos kanatlar ve sag dock karartilmaz.
+ */
+.edgeFade {
+  position: fixed;
+  top: calc(var(--titlebar-height, 36px) + 1px); /* timeline sinirinin hemen alti */
+  left: var(--left-sidebar-preview-width, var(--active-left-sidebar-width, 0px));
+  right: var(--dock-w, 0px);
+  height: 39px;
+  z-index: 35;
+  pointer-events: none;
+  transition:
+    left var(--duration-panel, 280ms) var(--ease-panel, ease),
+    right var(--duration-panel, 280ms) var(--ease-panel, ease);
+}
+
+.edgeFade::before {
+  content: '';
+  display: block;
+  width: min(var(--chat-column-max-width, 736px), calc(100% - (var(--chat-column-gutter, 24px) * 2)));
+  height: 100%;
+  margin: 0 auto;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--surface-timeline, var(--bg, #f0f0f0)) 92%, transparent) 0%,
+    color-mix(in srgb, var(--surface-timeline, var(--bg, #f0f0f0)) 55%, transparent) 35%,
+    color-mix(in srgb, var(--surface-timeline, var(--bg, #f0f0f0)) 18%, transparent) 70%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5%, #000 97.5%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 2.5%, #000 97.5%, transparent);
+}
+
+@media (max-width: 1100px) {
+  .edgeFade {
+    left: 0;
+    right: 0;
+  }
+}
+
+/* macOS: trafik isiklari sol-ust; sol icerige bosluk birak, sagda overlay yok. */
+.titlebar.mac {
+  padding-left: 78px;
+  padding-right: 8px;
+}
+
+/* Sol kume: sidebar toggle. */
+.left {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+
+.projectContext {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 220px;
+  height: 27px;
+  margin-left: 3px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 500;
+  -webkit-app-region: no-drag;
+}
+.projectContext:hover {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+}
+.projectContext span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.projectContext svg { flex: 0 0 auto; }
+
+/* Ozel menu cubugu. */
+.menubar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  -webkit-app-region: no-drag;
+}
+
+/* Esnek bosluk: pencere suruklenir. */
+.spacer {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 12px;
+}
+
+/* Ikon butonu (toggle / ok / duzen). */
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-navigation-muted, var(--muted));
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+/* Lucide ikonlarinin width/height attribute'u bir yerlerde eziliyordu (svg 4px'e
+   dusuyordu) — titlebar ikonlarini acikca boyutla. */
+.iconBtn svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+.iconBtn:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+/* Aktif (acik) duzen butonu accent ile vurgulanir. */
+.iconBtn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.iconBtn.active:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Menu metin butonu. */
+.menuBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 9px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-navigation-muted, var(--text));
+  font-family: var(--font-sans);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, color 120ms ease;
+}
+.menuBtn:hover {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+.menuBtn.open {
+  background: var(--panel-2);
+  color: var(--heading);
+}
+
+/* Menu sarmalayicisi (dropdown'u konumlandirir). */
+.menuItem {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Acilan dropdown. */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 184px;
+  padding: 5px;
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  z-index: 60;
+  -webkit-app-region: no-drag;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.dropdownItem:hover {
+  background: var(--accent-soft);
+  color: var(--heading);
+}
+.dropdownSep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
+@media (max-width: 760px) {
+  .titlebar { padding-right: 112px; }
+  .menubar { display: none; }
+  .projectContext { max-width: min(42vw, 180px); }
+}
+
+@media (max-width: 520px) {
+  .projectContext { max-width: 34vw; }
+}
