@@ -88,4 +88,6 @@ The key remains in the local Node proxy and is never sent to the browser.
 
 Use an approval mode appropriate for the workspace: Quake Code can run commands and modify files. Never commit API keys, user sessions, local `.quake-code/` data, or packaged binaries.
 
-Quake Code is released under the [MIT License](LICENSE). OpenAI Codex attribution and the Apache-2.0 license text retained by the project are available in [NOTICE](NOTICE) and [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt).
+Quake Code is released under the [MIT License](LICENSE). Upstream notices are
+retained in [NOTICE](NOTICE), [the pi-mono MIT license](LICENSES/pi-mono-MIT.txt),
+and [the Apache-2.0 license](LICENSES/Apache-2.0.txt).

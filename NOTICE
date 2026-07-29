@@ -4,8 +4,9 @@ Copyright (c) 2026 mrquake
 This repository includes portions derived from:
 
 - pi-mono, Copyright (c) 2025 Mario Zechner, licensed under the MIT License.
+  Its original notice is retained in LICENSES/pi-mono-MIT.txt.
 - OpenAI Codex, Copyright 2025 OpenAI, licensed under the Apache License,
-  Version 2.0.
+  Version 2.0. Its license is retained in LICENSES/Apache-2.0.txt.
 
 Quake Code Desktop remains distributed under the root MIT License. The
 upstream copyright and license notices are retained.
