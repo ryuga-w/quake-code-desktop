@@ -61,7 +61,7 @@
     "glob": "^13.0.1",
     "hosted-git-info": "^9.0.2",
     "ignore": "^7.0.5",
-    "marked": "^15.0.12",
+    "marked": "^18.0.7",
     "minimatch": "^10.2.3",
     "playwright": "^1.54.2",
     "@openclaw/core": "^2026.4.2",
