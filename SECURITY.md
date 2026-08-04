@@ -1,26 +1,44 @@
 # Security policy
 
-## Supported version
+Quake Code can access source files, execute commands, connect to model providers and MCP servers, control an embedded browser, and—when explicitly enabled—interact with the Windows desktop. Security reports are taken seriously.
 
-Security fixes are made on the latest `main` branch and the newest GitHub
-Release.
+## Supported versions
 
-## Reporting a vulnerability
+Security fixes are applied to the latest GitHub Release and the current `main` branch.
 
-Please do **not** open a public issue for a suspected vulnerability, exposed
-credential, or unsafe tool-execution path. Use the repository's **Security**
-tab to create a private vulnerability report and include:
+| Version | Supported |
+|---|---|
+| Latest release | Yes |
+| `main` | Yes |
+| Older releases | No |
 
-- a concise description and impact;
+## Report a vulnerability privately
+
+Do **not** open a public issue or discussion for a suspected vulnerability, exposed credential, sandbox/workspace escape, or unsafe tool-execution path.
+
+Use [GitHub's private vulnerability reporting form](https://github.com/ryuga-w/quake-code-desktop/security/advisories/new) and include:
+
+- a concise description and potential impact;
 - reproducible steps or a minimal proof of concept;
-- affected version and operating system;
+- the affected version, commit, and Windows version;
+- the permission mode and relevant tool/provider configuration;
 - any suggested mitigation.
 
-Do not include live API keys, access tokens, or customer data in the report.
-If a secret was exposed, rotate it immediately before reporting.
+Do not include live API keys, access tokens, private source code, customer data, or unnecessary personal information. If a secret was exposed, rotate it before reporting.
+
+The maintainer will acknowledge and triage valid reports as availability permits. Public disclosure should be coordinated until a fix or mitigation is available.
+
+## In scope
+
+- workspace boundary or path traversal issues;
+- command, file, MCP, browser, desktop, or permission bypasses;
+- renderer-to-main/server trust-boundary failures;
+- unintended credential or session exposure;
+- vulnerable release or update behavior;
+- cross-site scripting or request forgery that reaches privileged local capabilities.
+
+General bugs, feature requests, and support questions belong in the public repository unless they expose a security impact.
 
 ## Local data
 
-Quake Code stores local settings, session metadata, and provider credentials
-under user and workspace `.quake-code` directories. Those files are runtime
-data, not source files, and must never be committed or attached to an issue.
+Quake Code stores local settings, session metadata, and provider configuration under user and workspace `.quake-code` directories. These are runtime data, not source files. Never commit them or attach them to a public report.

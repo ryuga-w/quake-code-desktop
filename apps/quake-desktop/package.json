@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "main": "dist/electron/main.js",
-  "description": "Quake Code desktop — agent runtime with branded shell, notifications, and plan mode.",
+  "description": "Quake Code Desktop — a local-first command center for coding agents.",
   "author": "Quake Code",
   "scripts": {
     "dev": "npm run desktop:dev",
@@ -39,7 +39,7 @@
     "ship-gate": "node scripts/ship-gate.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@monaco-editor/react": "^4.7.0",
     "@mrquake/quakecode-agent-core": "^1.11.2",
     "@mrquake/quakecode-ai": "^1.11.2",
@@ -78,6 +78,7 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@types/ws": "^8.18.1",
     "concurrently": "^9.2.1",
     "cross-env": "^7.0.3",
     "electron": "42.2.0",

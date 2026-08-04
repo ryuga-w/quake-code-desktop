@@ -28,8 +28,8 @@ function getIosCapability(): MobileHostCapability {
 }
 
 export class MobileRuntime {
-  private readonly android = new AndroidDeviceDriver();
-  private readonly androidRegistry = new AndroidDeviceRegistry(this.android);
+  private readonly android: AndroidDeviceDriver;
+  private readonly androidRegistry: AndroidDeviceRegistry;
   private readonly buildJobs = new Map<string, MobileBuildJob>();
   private readonly snapshots = new Map<string, Awaited<ReturnType<AndroidDeviceDriver["snapshot"]>>>();
   private activeBuildJobs = 0;
@@ -39,10 +39,15 @@ export class MobileRuntime {
   private readonly tests = new MobileTestRuntime();
   private readonly baselines: ScreenshotBaselines;
 
-  constructor(private workspace: string) {
+  constructor(
+    private workspace: string,
+    options: { android?: AndroidDeviceDriver; startRegistry?: boolean } = {},
+  ) {
+    this.android = options.android ?? new AndroidDeviceDriver();
+    this.androidRegistry = new AndroidDeviceRegistry(this.android);
     this.artifacts = new MobileArtifactStore(workspace);
     this.baselines = new ScreenshotBaselines(workspace);
-    this.androidRegistry.start();
+    if (options.startRegistry !== false) this.androidRegistry.start();
   }
 
   setWorkspace(workspace: string): void {

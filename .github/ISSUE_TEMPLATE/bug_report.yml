@@ -1,0 +1,82 @@
+name: Bug report
+description: Report a reproducible problem in Quake Code Desktop
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Quake Code. Remove credentials, tokens, private source code, and personal data from everything you attach.
+
+  - type: input
+    id: version
+    attributes:
+      label: Quake Code version
+      description: Use the release tag or commit SHA.
+      placeholder: v0.1.1 or 22a89b1
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2, x64
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation
+      options:
+        - GitHub Release installer
+        - Local development checkout
+        - Locally packaged installer
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+      placeholder: I expected… Instead…
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open…
+        2. Select…
+        3. Observe…
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant context
+      description: Provider/model, workspace type, permission mode, MCP server, or other condition that matters. Do not include secrets.
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or screenshots
+      description: Drag in sanitized screenshots or logs if they help explain the issue.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed API keys, tokens, private code, and personal data from this report.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

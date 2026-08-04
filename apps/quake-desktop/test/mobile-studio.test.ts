@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { detectMobileProjects } from "../src/server/mobile/project-detector.js";
 import { MobileRuntime } from "../src/server/mobile/runtime.js";
-import { getAndroidEmulatorLaunchArgs } from "../src/server/mobile/android-driver.js";
+import { AndroidDeviceDriver, getAndroidEmulatorLaunchArgs } from "../src/server/mobile/android-driver.js";
 import { loadMobileBuildProfiles } from "../src/server/mobile/build-config.js";
 
 const temporaryDirectories: string[] = [];
@@ -74,7 +74,12 @@ describe("mobile runtime", () => {
   });
 
   it("always exposes independent Android and iOS parallel targets", async () => {
-    const status = await new MobileRuntime(workspace()).getStatus();
+    const android = {
+      devices: async () => [],
+      capability: async () => ({ platform: "android", available: false, mode: "local" }),
+      virtualDevices: async () => [],
+    } as unknown as AndroidDeviceDriver;
+    const status = await new MobileRuntime(workspace(), { android, startRegistry: false }).getStatus();
     expect(status.version).toBe(1);
     expect(status.targets.map((target) => target.platform)).toEqual(["android", "ios"]);
     expect(Array.isArray(status.buildProfiles)).toBe(true);

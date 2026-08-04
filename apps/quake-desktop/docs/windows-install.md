@@ -1,72 +1,64 @@
-# Quake Code — Windows Kurulumu
+# Install Quake Code on Windows
 
-## Gerekli sistem
+## Requirements
 
-- Windows 10 veya Windows 11, 64-bit (x64)
-- İnternet bağlantısı (model sağlayıcılarına bağlanmak için)
-- Uygulamanın kendisi için Node.js veya kaynak kod gerekmez
-- Açacağınız projeye göre Git, Node.js, Python, .NET, Java gibi geliştirme araçları ayrıca gerekebilir
+- Windows 10 or Windows 11, x64
+- Internet access for the model providers you choose
+- Development tools required by the projects you open (for example Git, Node.js, Python, .NET, or Java)
 
-## Tek tık kurulum (önerilen)
+The packaged application does not require a separate Node.js installation. Node.js 22+ and npm 10+ are needed only when building from source.
 
-Installer, `SHA256SUMS.txt` ve `KUR-QUAKE-CODE.bat` aynı klasördeyken `KUR-QUAKE-CODE.bat` dosyasına çift tıklayın. Betik:
+## Install from GitHub Releases
 
-1. Installer SHA-256 değerini doğrular.
-2. Çalışan Quake Code Desktop sürecini kapatır.
-3. Güncel sürümü mevcut Windows kullanıcısına sessizce kurar.
-4. Desktop'a özel `%APPDATA%\Quake Code\agent` ayar dizisini oluşturur.
-5. GPT-5.6 SOL sağlayıcısını 1.050.000 token bağlam ve 128.000 token azami çıktı metadata’sıyla mevcut Desktop modellerini bozmadan ekler; gerekirse Azure API anahtarını güvenli giriş alanında ister.
-6. Kurulumu doğrulayıp Quake Code'u başlatır.
-
-Paketli Desktop kendi gömülü `@mrquake/quakecode-cli` motorunu ve kendine ait ayar dizinini kullanır. Bilgisayardaki eski/global Quake CLI kurulumu değiştirilmez; onun `~\.grok\agent` veya `~\.quake-code\agent` ayarları Desktop motoru olarak kullanılmaz.
-
-## Normal kurulum
-
-1. `Quake-Code-Setup-<sürüm>-x64.exe` dosyasını diğer bilgisayara aktarın.
-2. İsterseniz dosyanın sağlamasını `SHA256SUMS.txt` ile doğrulayın:
+1. Open the [latest release](https://github.com/ryuga-w/quake-code-desktop/releases/latest).
+2. Download `Quake-Code-Setup-<version>-x64.exe` and `SHA256SUMS.txt` to the same directory.
+3. Verify the installer checksum:
 
    ```powershell
    Get-FileHash .\Quake-Code-Setup-*-x64.exe -Algorithm SHA256
    Get-Content .\SHA256SUMS.txt
    ```
 
-3. Installer dosyasını çift tıklayın.
-4. Kurulum kapsamını seçin:
-   - **Yalnızca benim için:** Yönetici yetkisi istemeyen, önerilen seçenek.
-   - **Bu bilgisayardaki herkes için:** Yönetici yetkisi gerekir.
-5. İsterseniz kurulum klasörünü değiştirin ve kurulumu tamamlayın.
-6. Masaüstündeki veya Başlat menüsündeki **Quake Code** kısayolunu açın.
-7. İlk açılışta çalışma klasörünü seçin ve Ayarlar üzerinden model hesabınızı/API anahtarınızı yapılandırın. Normal installer tek başına kullanıcıya özel GPT-5.6 SOL kaydını oluşturmaz; bunun için yukarıdaki `KUR-QUAKE-CODE.bat` akışını kullanın.
+4. Confirm that the SHA-256 values match exactly.
+5. Run the installer and choose the installation scope and directory.
+6. Start **Quake Code** from the desktop or Start menu.
+7. Open a workspace, then configure a model provider and permission mode in Settings.
 
-## Bir ajana sessiz kurdurma
+The release may also contain `KUR-QUAKE-CODE.bat`, a repository-generated installation helper. Review scripts before running them and keep all release files together so checksum verification can work.
 
-Installer ile aynı klasörde PowerShell açıp şu akışı kullandırabilirsiniz:
+## Windows SmartScreen
+
+Current community builds are unsigned. Windows may show an **Unknown publisher** or SmartScreen warning. Only continue when the installer came from this repository's Releases page and its SHA-256 checksum matches the published file.
+
+Code-signing and update-feed details are documented in [windows-signing.md](./windows-signing.md).
+
+## Silent installation
+
+From PowerShell in the installer directory:
 
 ```powershell
 $installer = Get-ChildItem -Path . -Filter 'Quake-Code-Setup-*-x64.exe' | Select-Object -First 1
-if (-not $installer) { throw 'Quake Code installer bulunamadı.' }
+if (-not $installer) { throw 'Quake Code installer not found.' }
 Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait
-$quake = Get-ChildItem "$env:LOCALAPPDATA\Programs" -Filter 'QuakeCode.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $quake) { throw 'QuakeCode.exe kurulumdan sonra bulunamadı.' }
-Start-Process -FilePath $quake.FullName
 ```
 
-Sessiz kurulum varsayılan olarak mevcut Windows kullanıcısına yapılır. Kurulum klasörünü elle seçmek istiyorsanız sihirbazlı normal kurulumu kullanın.
+Silent installation uses the installer's default scope and directory. Use the normal installer when you need to choose them interactively.
 
-## Windows SmartScreen uyarısı
+## Build from source
 
-Bu özel build henüz ticari bir kod imzalama sertifikasıyla imzalanmadığı için Windows **Bilinmeyen yayıncı** veya SmartScreen uyarısı gösterebilir. Dosyayı yalnızca güvendiğiniz aktarım kaynağından aldıysanız ve SHA-256 değeri eşleşiyorsa **Daha fazla bilgi → Yine de çalıştır** yolunu kullanın.
+```powershell
+git clone https://github.com/ryuga-w/quake-code-desktop.git
+cd quake-code-desktop
+npm ci
+npm run desktop:package:win
+```
 
-Kod imzalama (CSC_*, Azure Trusted Signing), imzasız ship-gate yolu ve otomatik güncelleme (electron-updater) için: [`windows-signing.md`](./windows-signing.md).
+The installer and checksum are written to `apps/quake-desktop/release/`.
 
-## Taşınmayan veriler
+## Moving to another computer
 
-Installer kaynak kodu, projelerinizi ve eski bilgisayardaki hesap sırlarını bilerek içermez. Yeni bilgisayarda:
+The installer does not bundle your projects or private provider credentials. Move or clone projects separately, then configure provider access on the new computer. Treat copied `.quake-code` directories as sensitive because they may contain local session or provider data.
 
-- Proje klasörlerinizi ayrıca taşıyın veya Git üzerinden klonlayın.
-- Model sağlayıcısı hesabını/API anahtarını yeniden yapılandırın.
-- Gerekirse eski `~/.quake-code` veya `~/.grok/agent` ayarlarını yalnızca güvenli bir yöntemle taşıyın; bu klasörlerde hassas kimlik bilgileri bulunabilir.
+## Uninstall
 
-## Kaldırma
-
-Windows **Ayarlar → Uygulamalar → Yüklü uygulamalar → Quake Code → Kaldır** yolunu kullanın. Proje dosyalarınız kaldırılmaz.
+Open **Windows Settings → Apps → Installed apps → Quake Code → Uninstall**. Uninstalling the application does not delete your project files.
