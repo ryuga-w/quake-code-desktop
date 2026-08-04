@@ -31,7 +31,7 @@
     "ship-gate": "npm run ship-gate --workspace=@mrquake/quake-desktop"
   },
   "devDependencies": {
-    "@typescript/native-preview": "7.0.0-dev.20260120.1",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "shx": "^0.4.0"
   },
   "engines": {
