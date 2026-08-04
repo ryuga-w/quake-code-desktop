@@ -10,7 +10,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ryuga-w/quake-code-desktop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ryuga-w/quake-code-desktop/actions/workflows/ci.yml/badge.svg" /></a>
   <a href="https://github.com/ryuga-w/quake-code-desktop/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ryuga-w/quake-code-desktop?display_name=tag&sort=semver" /></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/ryuga-w/quake-code-desktop" /></a>
   <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows11&logoColor=white" />
