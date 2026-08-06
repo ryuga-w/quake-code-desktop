@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Maximize2, Minimize2, X } from "lucide-react";
+import { useI18n } from "../../i18n";
 import styles from "./BottomPanel.module.css";
 
 const DEFAULT_HEIGHT = 280;
@@ -23,6 +24,7 @@ function clampHeight(value: number): number {
 }
 
 export function BottomPanel({ open, onClose, children, height, onHeightChange }: BottomPanelProps) {
+  const { t } = useI18n();
   const [innerHeight, setInnerHeight] = useState<number>(() => clampHeight(height ?? DEFAULT_HEIGHT));
   const [maximized, setMaximized] = useState(false);
   const previousHeightRef = useRef(innerHeight);
@@ -119,23 +121,23 @@ export function BottomPanel({ open, onClose, children, height, onHeightChange }:
   const panelControls = (
     <div className={styles.panelControls}>
       <kbd className={styles.shortcut} aria-hidden="true">Ctrl J</kbd>
-      <button type="button" className={styles.close} onClick={toggleMaximized} aria-label={maximized ? "Terminal panelini küçült" : "Terminal panelini büyüt"} title={maximized ? "Paneli önceki boyuta getir" : "Paneli büyüt"}>
+      <button type="button" className={styles.close} onClick={toggleMaximized} aria-label={maximized ? t("runtime.chrome.minimizeTerminal") : t("runtime.chrome.maximizeTerminal")} title={maximized ? t("runtime.chrome.restorePanel") : t("runtime.chrome.maximizeTerminal")}>
         {maximized ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
       </button>
-      <button type="button" className={styles.close} onClick={onClose} aria-label="Alt paneli kapat" title="Alt paneli aç/kapat  Ctrl+J">
+      <button type="button" className={styles.close} onClick={onClose} aria-label={t("runtime.chrome.closeBottomPanel")} title={t("runtime.chrome.toggleBottomPanel")}>
         <X size={16} aria-hidden="true" />
       </button>
     </div>
   );
 
   return (
-    <section className={styles.panel} style={{ height: innerHeight, maxHeight: "calc(100vh - 80px)" }} aria-label="Terminal alt panel">
+    <section className={styles.panel} style={{ height: innerHeight, maxHeight: "calc(100vh - 80px)" }} aria-label={t("runtime.chrome.terminalPanel")}>
       <div
         className={styles.resizeHandle}
         role="separator"
         tabIndex={0}
         aria-orientation="horizontal"
-        aria-label="Alt panel yüksekliğini ayarla"
+        aria-label={t("runtime.chrome.resizeBottomPanel")}
         aria-valuemin={MIN_HEIGHT}
         aria-valuemax={maximumHeight()}
         aria-valuenow={Math.round(innerHeight)}

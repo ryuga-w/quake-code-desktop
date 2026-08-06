@@ -1,0 +1,8 @@
+Mustafa'nin test dosyasi
+========================
+Tarih: 24 Temmuz 2026
+Durum: Basarili
+
+10 komut calistir -> tamam
+10 dosya oku     -> tamam
+1 dosya yaz      -> tamam

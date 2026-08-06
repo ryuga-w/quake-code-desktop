@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, ChevronDown } from "lucide-react";
+import { useI18n } from "../../i18n";
 import styles from "./ContextBar.module.css";
 
 /**
@@ -15,6 +16,7 @@ export function ContextBar({
   workspacePath: string;
   onOpenWorkspace: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className={styles.bar}>
       <button
@@ -28,7 +30,7 @@ export function ContextBar({
       </button>
 
       <button type="button" className={styles.item} onClick={onOpenWorkspace}>
-        <span className={styles.label}>Yerel çalışma</span>
+        <span className={styles.label}>{t("runtime.chrome.localWork")}</span>
         <ChevronDown size={13} strokeWidth={2} aria-hidden="true" className={styles.caret} />
       </button>
     </div>

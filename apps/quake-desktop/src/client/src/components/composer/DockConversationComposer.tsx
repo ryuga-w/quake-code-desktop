@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowUp, Check, FilePlus2, Plus, Square } from "lucide-react";
 import { THINKING_OPTIONS } from "../../constants";
+import { useI18n } from "../../i18n";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
 import styles from "./DockConversationComposer.module.css";
 
@@ -60,6 +61,16 @@ export const DockConversationComposer = React.forwardRef<HTMLTextAreaElement, Do
   onSetThinking,
   formatModelLabel = (value) => value.split("/").at(-1) || value,
 }, forwardedRef) {
+  const { t } = useI18n();
+  const thinkingLabels: Record<(typeof THINKING_OPTIONS)[number]["value"], string> = {
+    minimal: t("composer.preferences.effortLevels.minimal"),
+    low: t("composer.preferences.effortLevels.low"),
+    medium: t("composer.preferences.effortLevels.medium"),
+    high: t("composer.preferences.effortLevels.high"),
+    xhigh: t("composer.preferences.effortLevels.xhigh"),
+    max: t("composer.preferences.effortLevels.max"),
+  };
+  const localizedEffortLabel = thinkingLabels[effortLevel as (typeof THINKING_OPTIONS)[number]["value"]] || effortLabel;
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const addMenuRef = React.useRef<HTMLDetailsElement | null>(null);
   const preferencesMenuRef = React.useRef<HTMLDetailsElement | null>(null);
@@ -115,11 +126,11 @@ export const DockConversationComposer = React.forwardRef<HTMLTextAreaElement, Do
       <footer className={styles.footer}>
         <div className={styles.primaryControls}>
           <details ref={addMenuRef} className={styles.addMenu}>
-            <summary className={styles.iconButton} aria-label="Composer seçenekleri" title="Dosya ve bağlam ekle">
+            <summary className={styles.iconButton} aria-label={t("composer.dock.optionsAria")} title={t("composer.dock.addFileAndContextTitle")}>
               <Plus size={18} strokeWidth={1.9} aria-hidden="true" />
             </summary>
-            <div className={styles.addPopover} role="menu" aria-label="Composer seçenekleri">
-              <div className={styles.menuLabel}>Bağlam</div>
+            <div className={styles.addPopover} role="menu" aria-label={t("composer.dock.optionsAria")}>
+              <div className={styles.menuLabel}>{t("composer.dock.context")}</div>
               <button
                 type="button"
                 role="menuitem"
@@ -129,7 +140,7 @@ export const DockConversationComposer = React.forwardRef<HTMLTextAreaElement, Do
                 }}
               >
                 <FilePlus2 size={15} aria-hidden="true" />
-                <span><b>Dosya ve bağlam</b><small>Projeden dosya veya klasör aç</small></span>
+                <span><b>{t("composer.dock.fileAndContext")}</b><small>{t("composer.dock.openFileOrFolder")}</small></span>
               </button>
             </div>
           </details>
@@ -148,21 +159,21 @@ export const DockConversationComposer = React.forwardRef<HTMLTextAreaElement, Do
             >
               <summary
                 className={styles.preferenceSummary}
-                aria-label={`Model: ${modelLabel}, çaba: ${effortLabel}`}
+                aria-label={t("composer.preferences.summaryAria", { model: modelLabel, effort: localizedEffortLabel })}
                 aria-busy={preferencesPending}
-                title={modelTitle || "Model ve çaba ayarları"}
+                title={modelTitle || t("composer.preferences.title")}
               >
                 <span className={styles.preferenceModel}>{modelLabel}</span>
-                <span className={styles.preferenceEffort} data-level={effortLevel}>{effortLabel}</span>
+                <span className={styles.preferenceEffort} data-level={effortLevel}>{localizedEffortLabel}</span>
               </summary>
               <div
                 className={styles.preferencesPopover}
                 role="menu"
-                aria-label="Model ve çaba ayarları"
+                aria-label={t("composer.preferences.title")}
                 onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: closePreferences })}
               >
                 <section className={styles.preferenceSection} aria-labelledby="dock-model-heading">
-                  <h3 id="dock-model-heading">Model</h3>
+                  <h3 id="dock-model-heading">{t("composer.preferences.model")}</h3>
                   <div className={styles.preferenceList}>
                     {models.map((model) => {
                       const value = `${model.provider}/${model.id}`;
@@ -188,7 +199,7 @@ export const DockConversationComposer = React.forwardRef<HTMLTextAreaElement, Do
                 </section>
                 {thinkingOptions.length ? (
                   <section className={styles.preferenceSection} aria-labelledby="dock-effort-heading">
-                    <h3 id="dock-effort-heading">Çaba</h3>
+                    <h3 id="dock-effort-heading">{t("composer.preferences.effort")}</h3>
                     <div className={styles.effortOptions}>
                       {thinkingOptions.map((option) => {
                         const selected = effortLevel === option.value;
@@ -205,7 +216,7 @@ export const DockConversationComposer = React.forwardRef<HTMLTextAreaElement, Do
                               void onSetThinking?.(option.value);
                             }}
                           >
-                            {option.label}
+                            {thinkingLabels[option.value]}
                           </button>
                         );
                       })}
@@ -215,9 +226,9 @@ export const DockConversationComposer = React.forwardRef<HTMLTextAreaElement, Do
               </div>
             </details>
           ) : (
-            <div className={styles.preferenceSummary} role="group" aria-label={`Model: ${modelLabel}, çaba: ${effortLabel}`} title={modelTitle}>
+            <div className={styles.preferenceSummary} role="group" aria-label={t("composer.preferences.summaryAria", { model: modelLabel, effort: localizedEffortLabel })} title={modelTitle}>
               <span className={styles.preferenceModel}>{modelLabel}</span>
-              <span className={styles.preferenceEffort} data-level={effortLevel}>{effortLabel}</span>
+              <span className={styles.preferenceEffort} data-level={effortLevel}>{localizedEffortLabel}</span>
             </div>
           )}
           {busy ? (

@@ -8,6 +8,7 @@ import {
   type ArtifactTemplateMessageMeta,
 } from "../../lib/artifact-template-message";
 import { useAppStore, type ToolCardState } from "../../state/app-store";
+import { useI18n } from "../../i18n";
 import {
   computeTurnDurationMs,
   LiveTurnWorkStatus,
@@ -93,6 +94,52 @@ export function LiveTimeline(props: {
   return <Timeline messages={messages} streamingMessage={streamingMessage} {...props} />;
 }
 
+const EMPTY_TIMELINE_IMAGES: Record<string, ComposerImage[]> = {};
+const EMPTY_TIMELINE_TOOLS: Record<string, ToolCardState> = {};
+
+/**
+ * The canonical Quake conversation surface for isolated runtimes. Side
+ * conversations and subagents feed their own messages/runtime state through
+ * this adapter instead of maintaining separate Markdown/tool renderers.
+ */
+export function ConversationTimeline({
+  messages,
+  streamingMessage,
+  isStreaming,
+  tools = EMPTY_TIMELINE_TOOLS,
+  conversationKey,
+  onOpenFile,
+  onToast,
+}: {
+  messages: any[];
+  streamingMessage?: any;
+  isStreaming: boolean;
+  tools?: Record<string, ToolCardState>;
+  conversationKey?: string;
+  onOpenFile: (path: string) => void;
+  onToast?: (message: string, type?: "info" | "success" | "warning" | "error") => void;
+}) {
+  const timelineId = `timeline-${String(conversationKey || "isolated").replace(/[^a-z0-9_-]+/gi, "-")}`;
+  return (
+    <Timeline
+      messages={messages}
+      streamingMessage={streamingMessage}
+      runtimeIsStreaming={isStreaming}
+      runtimeTools={tools}
+      timelineId={timelineId}
+      imageAttachments={EMPTY_TIMELINE_IMAGES}
+      filter="messages"
+      onFilterChange={() => {}}
+      conversationKey={conversationKey}
+      onInspectTool={() => {}}
+      onOpenFile={onOpenFile}
+      onToast={onToast}
+      onPreviewImage={() => {}}
+      onOpenPlan={() => {}}
+    />
+  );
+}
+
 export function ArtifactTemplateUserMessage({
   meta,
   onOpenSkill,
@@ -147,6 +194,9 @@ export function TimelineInner({
   compactOverlay = false,
   turnDiff,
   turnDiffsByTurn,
+  runtimeIsStreaming,
+  runtimeTools,
+  timelineId = "timeline",
 }: {
   messages: any[];
   streamingMessage?: any;
@@ -172,27 +222,34 @@ export function TimelineInner({
   compactOverlay?: boolean;
   turnDiff?: TurnReviewView;
   turnDiffsByTurn?: Record<string, TurnReviewView>;
+  /** Optional isolated runtime state used by side conversations and subagents. */
+  runtimeIsStreaming?: boolean;
+  runtimeTools?: Record<string, ToolCardState>;
+  timelineId?: string;
 }) {
   const [windowSize, setWindowSize] = useState(TIMELINE_INITIAL_WINDOW);
-  const agentIsStreaming = useAppStore((state) => Boolean(state.state?.isStreaming));
-  const toolState = useAppStore((state) => filter === "messages" ? EMPTY_TOOL_STATE : state.tools);
+  const storeAgentIsStreaming = useAppStore((state) => Boolean(state.state?.isStreaming));
+  const storeTools = useAppStore((state) => state.tools);
+  const agentIsStreaming = runtimeIsStreaming ?? storeAgentIsStreaming;
+  const selectedTools = runtimeTools ?? storeTools;
+  const toolState = filter === "messages" ? EMPTY_TOOL_STATE : selectedTools;
   // Bust MarkdownMessage memo when tools settle so turn file-change cards appear.
-  const toolsEpoch = useAppStore((state) => {
+  const toolsEpoch = useMemo(() => {
     let epoch = 0;
-    for (const id in state.tools) {
-      const tool = state.tools[id];
+    for (const id in selectedTools) {
+      const tool = selectedTools[id];
       epoch = (epoch + (tool.updatedAt || 0) + (tool.status === "done" || tool.status === "error" ? 17 : 3)) | 0;
     }
     return epoch;
-  });
-  const errorCount = useAppStore((state) => {
+  }, [selectedTools]);
+  const errorCount = useMemo(() => {
     let count = 0;
-    for (const tool of Object.values(state.tools)) {
+    for (const tool of Object.values(selectedTools)) {
       if (isPlanProtocolToolName(tool.toolName)) continue;
       if (tool.status === "error") count += 1;
     }
     return count;
-  });
+  }, [selectedTools]);
   const visibleSelection = useMemo(() => selectTimelineVisibleMessages(messages, filter, windowSize, plan), [messages, filter, windowSize, plan?.artifact?.id, plan?.artifact?.revision]);
   const toolView = useMemo(() => selectTimelineToolsView(toolState, filter, windowSize + TIMELINE_CANDIDATE_OVERSCAN), [filter, toolState, windowSize]);
   const timelineMessages = visibleSelection.messages;
@@ -610,7 +667,7 @@ export function TimelineInner({
 
   if (rows.length === 0 && !showPending) {
     return (
-      <section id="timeline" className="timeline timeline-filter-empty" aria-label="Sohbet timeline">
+      <section id={timelineId} className="timeline timeline-filter-empty" aria-label="Sohbet timeline">
         <div className="timeline-filter-empty-state" role="status">
           <strong>Bu görünümde kayıt yok</strong>
           <span>Başka bir timeline görünümü seçebilirsiniz.</span>
@@ -621,7 +678,7 @@ export function TimelineInner({
   return (
     <>
     <StickToBottom
-      id="timeline"
+      id={timelineId}
       className={`timeline stick-to-bottom ${compactOverlay ? "timeline-compact-overlay" : ""}`}
       contextRef={stickContextRef}
       resize={streamingItem ? "instant" : "smooth"}
@@ -642,6 +699,7 @@ export function TimelineInner({
             return (
               <div
                 key={item.key}
+                data-timeline-row-key={item.key}
                 className={[
                   "timeline-row",
                   isToolOnlyItem(item) ? "tool-only-row" : "",
@@ -664,6 +722,14 @@ export function TimelineInner({
           )}
         </div>
       </StickToBottom.Content>
+      {!compactOverlay && (
+        <ConversationMinimap
+          rows={renderedTimelineRows}
+          streamingText={streamingText}
+          conversationKey={conversationKey}
+          contextRef={stickContextRef}
+        />
+      )}
       <TimelineJumpBottom activityCount={activityCount} errorCount={errorCount} isStreaming={isTimelineStreaming} />
       <TimelineAnnouncer isStreaming={isTimelineStreaming} errorCount={errorCount} />
     </StickToBottom>
@@ -673,6 +739,215 @@ export function TimelineInner({
 }
 
 export const Timeline = React.memo(TimelineInner);
+
+type ConversationMinimapEntry = {
+  key: string;
+  targetKey: string;
+  prompt: string;
+  response: string;
+};
+
+const MAX_CONVERSATION_MINIMAP_ENTRIES = 36;
+
+function ConversationMinimap({
+  rows,
+  streamingText,
+  conversationKey,
+  contextRef,
+}: {
+  rows: TimelineRowItem[];
+  streamingText: string;
+  conversationKey?: string;
+  contextRef: { current: StickToBottomContext | null };
+}) {
+  const { locale } = useI18n();
+  const entries = useMemo(
+    () => buildConversationMinimapEntries(rows, streamingText, locale),
+    [locale, rows, streamingText],
+  );
+  const [activeKey, setActiveKey] = useState<string>();
+  const [hoveredKey, setHoveredKey] = useState<string>();
+
+  useEffect(() => {
+    const scrollElement = contextRef.current?.scrollRef.current;
+    if (!scrollElement || entries.length === 0) return undefined;
+    let frame = 0;
+    const syncActiveEntry = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const viewport = scrollElement.getBoundingClientRect();
+        const focusY = viewport.top + Math.min(viewport.height * 0.42, 360);
+        const rowElements = Array.from(
+          scrollElement.querySelectorAll<HTMLElement>("[data-timeline-row-key]"),
+        );
+        const rowsByKey = new Map(rowElements.map((row) => [row.dataset.timelineRowKey || "", row]));
+        let nextKey = entries[0]?.key;
+        let nearestDistance = Number.POSITIVE_INFINITY;
+        for (const entry of entries) {
+          const row = rowsByKey.get(entry.targetKey);
+          if (!row) continue;
+          const rect = row.getBoundingClientRect();
+          const distance = Math.abs(rect.top - focusY);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nextKey = entry.key;
+          }
+        }
+        setActiveKey((current) => current === nextKey ? current : nextKey);
+      });
+    };
+    syncActiveEntry();
+    scrollElement.addEventListener("scroll", syncActiveEntry, { passive: true });
+    const resizeObserver = typeof ResizeObserver === "undefined"
+      ? undefined
+      : new ResizeObserver(syncActiveEntry);
+    resizeObserver?.observe(scrollElement);
+    const thread = scrollElement.querySelector<HTMLElement>(".timeline-thread");
+    if (thread) resizeObserver?.observe(thread);
+    return () => {
+      cancelAnimationFrame(frame);
+      scrollElement.removeEventListener("scroll", syncActiveEntry);
+      resizeObserver?.disconnect();
+    };
+  }, [contextRef, conversationKey, entries]);
+
+  const jumpToEntry = useCallback((entry: ConversationMinimapEntry) => {
+    const context = contextRef.current;
+    const scrollElement = context?.scrollRef.current;
+    if (!scrollElement) return;
+    const target = Array.from(
+      scrollElement.querySelectorAll<HTMLElement>("[data-timeline-row-key]"),
+    ).find((row) => row.dataset.timelineRowKey === entry.targetKey);
+    if (!target) return;
+    context?.stopScroll();
+    const viewport = scrollElement.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const paddingTop = Number.parseFloat(getComputedStyle(scrollElement).paddingTop) || 0;
+    const top = scrollElement.scrollTop + targetRect.top - viewport.top - paddingTop - 8;
+    scrollElement.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    setActiveKey(entry.key);
+  }, [contextRef]);
+
+  if (entries.length < 2) return null;
+  const hoveredEntry = entries.find((entry) => entry.key === hoveredKey);
+  const hoveredIndex = hoveredEntry ? entries.indexOf(hoveredEntry) : -1;
+  const tooltipTop = hoveredIndex < 0 || entries.length < 2
+    ? 50
+    : (hoveredIndex / (entries.length - 1)) * 100;
+
+  return (
+    <nav
+      className="conversation-minimap"
+      aria-label={locale === "en" ? "Conversation map" : "Sohbet haritası"}
+      onMouseLeave={() => setHoveredKey(undefined)}
+    >
+      <div
+        className="conversation-minimap-track"
+        onPointerMove={(event) => {
+          const bounds = event.currentTarget.getBoundingClientRect();
+          if (!bounds.height) return;
+          const relativeY = Math.min(bounds.height, Math.max(0, event.clientY - bounds.top));
+          const index = Math.min(
+            entries.length - 1,
+            Math.max(0, Math.round((relativeY / bounds.height) * (entries.length - 1))),
+          );
+          setHoveredKey(entries[index]?.key);
+        }}
+      >
+        {entries.map((entry, index) => {
+          const active = entry.key === activeKey;
+          const hovered = entry.key === hoveredKey;
+          const tickWidth = conversationMinimapTickWidth(index, hoveredIndex);
+          return (
+            <button
+              type="button"
+              key={entry.key}
+              className={`conversation-minimap-tick ${active ? "is-active" : ""} ${hovered ? "is-hovered" : ""}`}
+              style={{ "--conversation-minimap-tick-width": `${tickWidth}px` } as React.CSSProperties}
+              aria-label={entry.prompt}
+              aria-current={active ? "location" : undefined}
+              onMouseEnter={() => setHoveredKey(entry.key)}
+              onFocus={() => setHoveredKey(entry.key)}
+              onBlur={() => setHoveredKey(undefined)}
+              onClick={() => jumpToEntry(entry)}
+            />
+          );
+        })}
+      </div>
+      {hoveredEntry && (
+        <aside
+          className="conversation-minimap-preview"
+          role="tooltip"
+          style={{ top: `${tooltipTop}%` }}
+        >
+          <strong>{hoveredEntry.prompt}</strong>
+          <p>{hoveredEntry.response || (locale === "en" ? "Waiting for response…" : "Yanıt bekleniyor…")}</p>
+        </aside>
+      )}
+    </nav>
+  );
+}
+
+function conversationMinimapTickWidth(index: number, hoveredIndex: number): number {
+  if (hoveredIndex < 0) return 10;
+  const distance = Math.abs(index - hoveredIndex);
+  const wave = [31, 27, 22, 17, 14, 12, 10];
+  return wave[Math.min(distance, wave.length - 1)];
+}
+
+function buildConversationMinimapEntries(
+  rows: TimelineRowItem[],
+  streamingText: string,
+  locale: "tr" | "en",
+): ConversationMinimapEntry[] {
+  const entries: ConversationMinimapEntry[] = [];
+  let current: ConversationMinimapEntry | undefined;
+  const consumeMessage = (message: any, targetKey: string) => {
+    const role = String(message?.role || "");
+    const rawText = message?.__streaming ? streamingText : textFromMessage(message);
+    const preview = conversationPreviewText(rawText);
+    if (!preview) return;
+    if (role === "user") {
+      current = {
+        key: `${targetKey}:conversation:${entries.length}`,
+        targetKey,
+        prompt: preview,
+        response: "",
+      };
+      entries.push(current);
+      return;
+    }
+    if (role === "assistant" && current) current.response = preview;
+  };
+
+  for (const row of rows) {
+    if (row.kind === "message") {
+      consumeMessage(row.message, row.key);
+      continue;
+    }
+    if (row.kind !== "toolGroup") continue;
+    for (const workEntry of row.workEntries) {
+      if (workEntry.kind === "message") consumeMessage(workEntry.item.message, row.key);
+    }
+    if (current && !current.response) {
+      const thinking = conversationPreviewText(row.thinkingPreview || "");
+      current.response = thinking || (locale === "en"
+        ? `${row.toolSnapshots.length} tool action${row.toolSnapshots.length === 1 ? "" : "s"}`
+        : `${row.toolSnapshots.length} araç işlemi`);
+    }
+  }
+  return entries.slice(-MAX_CONVERSATION_MINIMAP_ENTRIES);
+}
+
+function conversationPreviewText(value: string): string {
+  const text = String(value || "")
+    .replace(/\[thinking\][\s\S]*?\[\/thinking\]/gi, " ")
+    .replace(/\[tool call:\s*[^\]]+\]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length <= 260) return text;
+  return `${text.slice(0, 257).trimEnd()}…`;
+}
 
 export function UserImageAttachments({ images, onPreview }: { images: ComposerImage[]; onPreview: (image: ComposerImage) => void }) {
   return <div className={`message-images ${images.length > 1 ? "multi" : "single"}`}>{images.map((image) => <button type="button" key={image.id} onClick={() => onPreview(image)}><img src={image.previewUrl} alt={image.name} /></button>)}</div>;
@@ -685,23 +960,24 @@ export function ExpandableUserMessage({ text }: { text: string }) {
 }
 
 export function TimelineToolCardInner({ card, onInspect }: { card: ToolCardState; onInspect: () => void }) {
-  const argsSummary = summarizeToolArgs(card.toolName, card.args) || statusLabel(card.status);
-  const preview = toolPreviewText(card);
+  const { t, locale } = useI18n();
+  const argsSummary = summarizeToolArgs(card.toolName, card.args, locale) || statusLabel(card.status, locale);
+  const preview = toolPreviewText(card, locale);
   const failed = card.status === "error";
-  return <article className={`tool-card timeline-tool activity-item ${card.status}`} aria-label={`${toolDisplayName(card.toolName)} · ${statusLabel(card.status)}`}>
+  return <article className={`tool-card timeline-tool activity-item ${card.status}`} aria-label={`${toolDisplayName(card.toolName, locale)} · ${statusLabel(card.status, locale)}`}>
     <div className="tool-card-head">
       <div className="tool-card-title">
         <span className={`tool-status-dot ${card.status}`} aria-hidden="true" />
         <div>
-          <span className="tool-card-kicker">Agent Activity</span>
-          <strong>{toolDisplayName(card.toolName)}</strong>
-          <small>Tur #{card.turnId || "?"} · <span className={failed ? "tool-card-error-label" : ""}>{statusLabel(card.status)}</span>{card.durationMs !== undefined ? ` · ${formatDuration(card.durationMs)}` : ""}</small>
+          <span className="tool-card-kicker">{locale === "en" ? "Agent activity" : "Ajan etkinliği"}</span>
+          <strong>{toolDisplayName(card.toolName, locale)}</strong>
+          <small>{t("tools.turn", { id: card.turnId || "?" })} · <span className={failed ? "tool-card-error-label" : ""}>{statusLabel(card.status, locale)}</span>{card.durationMs !== undefined ? ` · ${formatDuration(card.durationMs)}` : ""}</small>
         </div>
       </div>
-      <button type="button" onClick={onInspect} aria-label={`${toolDisplayName(card.toolName)} ayrıntılarını incele`}>İncele</button>
+      <button type="button" onClick={onInspect} aria-label={`${toolDisplayName(card.toolName, locale)} ${locale === "en" ? "inspect details" : "ayrıntılarını incele"}`}>{locale === "en" ? "Inspect" : "İncele"}</button>
     </div>
     <div className="tool-card-summary">{argsSummary}</div>
-    {preview && <pre>{preview.slice(0, 900)}{preview.length > 900 ? "\n… tamamı için inceleyin." : ""}</pre>}
+    {preview && <pre>{preview.slice(0, 900)}{preview.length > 900 ? `\n… ${locale === "en" ? "inspect for full output." : "tamamı için inceleyin."}` : ""}</pre>}
   </article>;
 }
 export const TimelineToolCard = React.memo(TimelineToolCardInner);

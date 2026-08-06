@@ -2,7 +2,7 @@ import { cwd as processCwd } from "node:process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { supportsMax, supportsXhigh, type ImageContent } from "@mrquake/quakecode-ai";
+import { supportsMax, supportsXhigh, completeSimple, type ImageContent } from "@mrquake/quakecode-ai";
 import type {
   AgentSessionEvent,
   AgentSessionRuntimeHost,
@@ -30,6 +30,8 @@ import { createUpdateGoalToolDefinition } from "./goal/update-goal-tool.js";
 import type { SseHub } from "./sse.js";
 import type { McpConnectionManager } from "./mcp/manager.js";
 import { createMcpToolDefinition } from "./mcp/tool-adapter.js";
+import { createScheduleTaskToolDefinition, type ScheduleTaskCreator } from "./schedule-tool.js";
+import { createWorkspaceToolDefinitions } from "./workspace-tools.js";
 import { advanceAgentTurnLifecycle } from "./agent-turn-lifecycle.js";
 import { WebExtensionUiBridge } from "./web-extension-ui.js";
 import {
@@ -102,6 +104,8 @@ type RuntimeSlot = {
   surface?: "side-conversation";
   parentSessionPath?: string;
   surfaceCreatedAt?: number;
+  /** Auto-title generation attempted for this chat (once per session). */
+  autoTitleTried?: boolean;
 };
 
 type SideConversationMarker = {
@@ -140,6 +144,7 @@ export class WebRuntimeController {
   private readonly lastRotationAt = new Map<string, number>();
   private static readonly ROTATION_COOLDOWN_MS = 20_000;
   private workspaceContextHooks: WorkspaceContextHooks = {};
+  private scheduleTaskCreator: ScheduleTaskCreator | undefined;
   readonly extensionUi: WebExtensionUiBridge;
 
   private constructor(
@@ -174,6 +179,12 @@ export class WebRuntimeController {
 
   setWorkspaceContextHooks(hooks: WorkspaceContextHooks): void {
     this.workspaceContextHooks = hooks;
+  }
+
+  /** Bind the workspace scheduler to the chat tool used by "Create with chat". */
+  setScheduleTaskCreator(creator: ScheduleTaskCreator | undefined): void {
+    this.scheduleTaskCreator = creator;
+    for (const slot of this.slots.values()) this.syncScheduleTaskTool(slot);
   }
 
   private workspaceBootstrap(cwd: string) {
@@ -1475,6 +1486,8 @@ export class WebRuntimeController {
     if (options.bindExtensions) await this.bindExtensionsForActive();
     this.syncMcpTools(this.currentCwd);
     this.syncGoalTools(slot);
+    this.syncScheduleTaskTool(slot);
+    this.syncWorkspaceTools(slot);
     if (options.sendReady) this.sendReady();
     if (goal.snapshot?.status === "executing" && goal.snapshot.policy.autoRecover && !host.session.isStreaming) {
       this.scheduleGoalRecovery(slot, "restart");
@@ -1671,6 +1684,7 @@ export class WebRuntimeController {
 
         if (lifecycleEvent.type === "turn_completed") {
           guardianRuntime.endTurn();
+          if (slot) void this.maybeGenerateSessionTitle(slot);
           this.hub.send({
             type: "turn_completed",
             turnId: lifecycleEvent.turnId,
@@ -1753,6 +1767,70 @@ export class WebRuntimeController {
    * Only runs on assistant message_end (not auto_retry_start) — otherwise a single
    * 429 would rotate twice and burn both accounts as exhausted.
    */
+  /**
+   * After the first assistant turn of a fresh chat, ask the model for a short
+   * topic title and persist it via setSessionName. Runs once per session.
+   */
+  private async maybeGenerateSessionTitle(slot: RuntimeSlot): Promise<void> {
+    try {
+      if (slot.autoTitleTried) return;
+      if (slot.surface === "side-conversation") return;
+      if (slot.goal.active) return;
+      const session = slot.host.session;
+      // Already has an explicit name → never overwrite.
+      if (session.sessionManager.getSessionName()) { slot.autoTitleTried = true; return; }
+
+      const messages = this.getTimelineMessagesFromEntries(session.sessionManager.getBranch());
+      const firstUser = messages.find((m) => m?.role === "user");
+      const firstAssistant = messages.find((m) => m?.role === "assistant");
+      if (!firstUser || !firstAssistant) return; // wait until a full exchange exists
+      slot.autoTitleTried = true;
+
+      const model = session.model;
+      if (!model) return;
+      if (!session.modelRegistry.hasConfiguredAuth(model)) return;
+
+      const userText = extractPlainText(firstUser).slice(0, 2000);
+      const assistantText = extractPlainText(firstAssistant).slice(0, 2000);
+      if (!userText.trim()) return;
+
+      const auth = await session.modelRegistry.getApiKeyAndHeaders(model);
+      if (!auth.ok || !auth.apiKey) return;
+
+      const prompt = [
+        "Bir sohbet için kısa, açıklayıcı bir başlık üret.",
+        "Kurallar: en fazla 6 kelime, tırnak veya noktalama ekleme, cümle kurma, sadece başlığı yaz.",
+        "Başlık, kullanıcının mesajının diliyle aynı dilde olmalı.",
+        "",
+        `Kullanıcı: ${userText}`,
+        assistantText ? `Asistan: ${assistantText}` : "",
+        "",
+        "Başlık:",
+      ].filter(Boolean).join("\n");
+
+      const response = await completeSimple(
+        model,
+        { messages: [{ role: "user", content: [{ type: "text", text: prompt }], timestamp: Date.now() }] },
+        { apiKey: auth.apiKey, headers: auth.headers, maxTokens: 32 },
+      );
+      if (response.stopReason === "error" || response.stopReason === "aborted") return;
+
+      const raw = response.content
+        .filter((c: any): c is { type: "text"; text: string } => c.type === "text")
+        .map((c: any) => c.text)
+        .join(" ");
+      const title = sanitizeGeneratedTitle(raw);
+      if (!title) return;
+
+      // Session may have been renamed/cleared while the model was thinking.
+      if (session.sessionManager.getSessionName()) return;
+      session.setSessionName(title);
+      if (slot.key === this.activeKey) this.emitState();
+    } catch {
+      // Title generation is best-effort; never disrupt the chat.
+    }
+  }
+
   private scheduleGoalRecovery(slot: RuntimeSlot, reason: "resume" | "restart"): void {
     const state = slot.goal.snapshot;
     if (!state || state.status !== "executing") return;
@@ -1784,6 +1862,24 @@ export class WebRuntimeController {
       const current = this.slots.get(slot.key);
       return current?.goal;
     }));
+  }
+
+  private syncScheduleTaskTool(slot: RuntimeSlot): void {
+    if (!this.scheduleTaskCreator) return;
+    const session = slot.host.session as typeof slot.host.session & {
+      registerRuntimeTool(tool: ReturnType<typeof createScheduleTaskToolDefinition>): void;
+    };
+    session.registerRuntimeTool(createScheduleTaskToolDefinition(() => this.scheduleTaskCreator));
+  }
+
+  private syncWorkspaceTools(slot: RuntimeSlot): void {
+    const session = slot.host.session as typeof slot.host.session & {
+      registerRuntimeTool(tool: ReturnType<typeof createWorkspaceToolDefinitions>[number]): void;
+    };
+    const getCwd = () => slot.host.session.sessionManager.getCwd();
+    for (const definition of createWorkspaceToolDefinitions(getCwd)) {
+      session.registerRuntimeTool(definition);
+    }
   }
 
   private maybeAdvanceGoal(slot: RuntimeSlot, event: AgentSessionEvent): void {
@@ -1969,6 +2065,35 @@ export class WebRuntimeController {
     if (this.activeKey === oldKey) this.activeKey = nextKey;
     return nextKey;
   }
+}
+
+/** Extract readable plain text from a timeline message (string or content parts). */
+function extractPlainText(message: any): string {
+  const content = message?.content;
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content
+      .filter((part: any) => part && (part.type === "text" || typeof part.text === "string"))
+      .map((part: any) => String(part.text || ""))
+      .join(" ");
+  }
+  return "";
+}
+
+/** Clean a model-generated chat title into a compact single-line label. */
+function sanitizeGeneratedTitle(raw: string): string {
+  let title = String(raw || "").trim();
+  if (!title) return "";
+  // Take first non-empty line only.
+  title = title.split(/\r?\n/).map((l) => l.trim()).find(Boolean) || "";
+  // Drop a leading "Başlık:" / "Title:" style label if the model echoed it.
+  title = title.replace(/^(başlık|title)\s*[:\-]\s*/i, "");
+  // Strip surrounding quotes/backticks and trailing punctuation.
+  title = title.replace(/^["'`\u201c\u201d\s]+|["'`\u201c\u201d\s]+$/g, "");
+  title = title.replace(/[.。!?\s]+$/g, "").trim();
+  if (!title) return "";
+  if (title.length > 60) title = `${title.slice(0, 57).trimEnd()}…`;
+  return title;
 }
 
 /**

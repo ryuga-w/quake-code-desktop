@@ -89,3 +89,10 @@ temp_*
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Nested repo copies / build outputs (do not commit)
+quake-code-desktop/
+quake-code-desktop-release/
+apps/quake-desktop/sayilar.txt
+apps/quake-desktop/tmp-*.html
+apps/quake-desktop/C*tempmodels.json

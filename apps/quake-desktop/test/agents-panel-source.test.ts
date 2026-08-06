@@ -40,7 +40,7 @@ describe("Agents panel (parallel worktree UI)", () => {
     expect(shell).toContain("onOpenAgents");
     expect(main).toContain("openRightPanel");
     expect(launcher).toContain("agents");
-    expect(launcher).toContain("Ajanlar");
+    expect(launcher).toContain('labelKey: "quickLauncher.agents"');
     expect(types).toContain("\"agents\"");
   });
 

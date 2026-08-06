@@ -16,6 +16,7 @@ import {
 } from "../../lib/notifications";
 import { playDemoSound, SOUND_OPTIONS, stopDemoSound, type SoundID } from "../../lib/sound";
 import { useConfirmAction } from "../common/ConfirmContext";
+import { localeForIntl, type Translate, useI18n } from "../../i18n";
 import { AppearanceSettings } from "./AppearanceSettings";
 import { GeneralSettings } from "./GeneralSettings";
 import styles from "./SettingsPanels.module.css";
@@ -26,6 +27,7 @@ import { ProvidersSection } from "./ProvidersSection";
 const LOCAL_UI_STATE_KEYS = [
   "quake-web:density",
   "quake-web:theme",
+  "quake-web:locale",
   "quake-web:leftOpen",
   "quake-web:leftWidth",
   "quake-web:leftSidebarSize",
@@ -98,55 +100,49 @@ export type SettingsView =
 
 type NavItem = { id: SettingsView; label: string; title: string; desc: string };
 
-/** Antigravity-style flat left nav (primary + footer). */
-const NAV_PRIMARY: NavItem[] = [
-  { id: "general", label: "Genel", title: "Genel", desc: "" },
-  { id: "app", label: "Bildirimler", title: "Bildirimler", desc: "Sistem bildirimleri, sesler ve tamamlanma uyarıları." },
-  { id: "permissions", label: "İzinler", title: "İzinler", desc: "Terminal, dosya ve ağ erişim kuralları." },
-  { id: "goal-mode", label: "Goal Mode", title: "Goal Mode", desc: "Bilgisayar başında değilken otonom çalışma sınırları." },
-  { id: "appearance", label: "Görünüm", title: "Görünüm", desc: "" },
-  { id: "models", label: "Modeller", title: "Modeller", desc: "Model seçimi ve düşünme seviyesi." },
-  { id: "providers", label: "Provider’lar", title: "Provider’lar", desc: "OAuth, API key ve bulut sağlayıcı bağlantıları." },
-  { id: "customizations", label: "Kişiselleştirme", title: "Kişiselleştirme", desc: "Uzantılar, promptlar ve komutlar." },
-  { id: "computer-use", label: "Computer Use", title: "Computer Use", desc: "Masaüstü etkileşim araçları ve güvenlik sınırları." },
-];
-
-const NAV_SECONDARY: NavItem[] = [
-  { id: "mcp", label: "MCP", title: "MCP sunucuları", desc: "Model Context Protocol araçları ve sunucuları." },
-  { id: "advanced", label: "Arşiv", title: "Arşiv ve veri", desc: "Dışa aktarma, sıfırlama ve arşiv." },
-];
-
-const NAV_FOOTER: NavItem[] = [
-  { id: "shortcuts", label: "Kısayollar", title: "Klavye kısayolları", desc: "Kısayol tuşları ve hızlı eylemler." },
-  { id: "about", label: "Hakkında", title: "Quake Code hakkında", desc: "Sürüm ve çalışma zamanı bilgileri." },
-];
-
-const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
-  { label: "Temel", items: NAV_PRIMARY },
-  { label: "Gelişmiş", items: NAV_SECONDARY },
-  { label: "Destek", items: NAV_FOOTER },
-];
-
-const ALL_NAV_ITEMS: NavItem[] = [...NAV_PRIMARY, ...NAV_SECONDARY, ...NAV_FOOTER];
-
-const SEARCH_INDEX: { label: string; section: SettingsView; keywords: string }[] = [
-  { label: "Tema", section: "appearance", keywords: "tema renk grok theme görünüm" },
-  { label: "Çalışma alanı", section: "general", keywords: "proje klasör dizin çalışma alanı" },
-  { label: "İzinler", section: "permissions", keywords: "izin güvenlik terminal localhost görsel dosya erişim" },
-  { label: "Computer-Use", section: "computer-use", keywords: "masaüstü bilgisayar kullanımı ekran fare" },
-  { label: "Goal Mode", section: "goal-mode", keywords: "goal hedef otonom unattended tur uyku yeniden deneme doğrulama" },
-  { label: "Uzantılar", section: "customizations", keywords: "uzantı extension eklenti" },
-  { label: "MCP", section: "mcp", keywords: "mcp sunucu araç stdio komut argüman" },
-  { label: "Model", section: "models", keywords: "model provider sağlayıcı düşünme thinking" },
-  { label: "Provider’lar", section: "providers", keywords: "provider oauth api key anthropic openai azure bedrock bağla login" },
-  { label: "Terminal", section: "permissions", keywords: "terminal güvenlik komut" },
-  { label: "Bildirimler", section: "app", keywords: "bildirim ses hata yanıt arka plan" },
-  { label: "Görünüm", section: "appearance", keywords: "yoğunluk sohbet araç etkinliği açık koyu" },
-  { label: "Klavye kısayolları", section: "shortcuts", keywords: "klavye kısayol shortcut tuş" },
-  { label: "Dışa aktar", section: "advanced", keywords: "dışa aktar export arşiv içe aktar sıfırla sıkıştırma geçmiş" },
-  { label: "Hakkında", section: "about", keywords: "sürüm platform runtime yazar mustafa mrquake" },
-  { label: "Otomatik güncelleme", section: "about", keywords: "güncelleme update auto-update feed yayın sürüm feed url kaydet" },
-];
+function createSettingsNavigation(t: Translate) {
+  const primary: NavItem[] = [
+    { id: "general", label: t("settings.nav.general.label"), title: t("settings.nav.general.title"), desc: t("settings.nav.general.desc") },
+    { id: "app", label: t("settings.nav.app.label"), title: t("settings.nav.app.title"), desc: t("settings.nav.app.desc") },
+    { id: "permissions", label: t("settings.nav.permissions.label"), title: t("settings.nav.permissions.title"), desc: t("settings.nav.permissions.desc") },
+    { id: "goal-mode", label: t("settings.nav.goalMode.label"), title: t("settings.nav.goalMode.title"), desc: t("settings.nav.goalMode.desc") },
+    { id: "appearance", label: t("settings.nav.appearance.label"), title: t("settings.nav.appearance.title"), desc: t("settings.nav.appearance.desc") },
+    { id: "models", label: t("settings.nav.models.label"), title: t("settings.nav.models.title"), desc: t("settings.nav.models.desc") },
+    { id: "providers", label: t("settings.nav.providers.label"), title: t("settings.nav.providers.title"), desc: t("settings.nav.providers.desc") },
+    { id: "customizations", label: t("settings.nav.customizations.label"), title: t("settings.nav.customizations.title"), desc: t("settings.nav.customizations.desc") },
+    { id: "computer-use", label: t("settings.nav.computerUse.label"), title: t("settings.nav.computerUse.title"), desc: t("settings.nav.computerUse.desc") },
+  ];
+  const secondary: NavItem[] = [
+    { id: "mcp", label: t("settings.nav.mcp.label"), title: t("settings.nav.mcp.title"), desc: t("settings.nav.mcp.desc") },
+    { id: "advanced", label: t("settings.nav.advanced.label"), title: t("settings.nav.advanced.title"), desc: t("settings.nav.advanced.desc") },
+  ];
+  const footer: NavItem[] = [
+    { id: "shortcuts", label: t("settings.nav.shortcuts.label"), title: t("settings.nav.shortcuts.title"), desc: t("settings.nav.shortcuts.desc") },
+    { id: "about", label: t("settings.nav.about.label"), title: t("settings.nav.about.title"), desc: t("settings.nav.about.desc") },
+  ];
+  const groups = [
+    { label: t("settings.groups.core"), items: primary },
+    { label: t("settings.groups.advanced"), items: secondary },
+    { label: t("settings.groups.support"), items: footer },
+  ];
+  const searchIndex: { label: string; section: SettingsView; keywords: string }[] = [
+    { label: t("appearance.theme"), section: "appearance", keywords: t("settings.search.appearance") },
+    { label: t("settings.nav.general.label"), section: "general", keywords: t("settings.search.workspace") },
+    { label: t("settings.nav.permissions.label"), section: "permissions", keywords: t("settings.search.permissions") },
+    { label: t("settings.nav.computerUse.label"), section: "computer-use", keywords: t("settings.search.computerUse") },
+    { label: t("settings.nav.goalMode.label"), section: "goal-mode", keywords: t("settings.search.goalMode") },
+    { label: t("settings.nav.customizations.label"), section: "customizations", keywords: t("settings.search.extensions") },
+    { label: t("settings.nav.mcp.label"), section: "mcp", keywords: t("settings.search.mcp") },
+    { label: t("settings.nav.models.label"), section: "models", keywords: t("settings.search.models") },
+    { label: t("settings.nav.permissions.label"), section: "permissions", keywords: t("settings.search.terminal") },
+    { label: t("settings.nav.app.label"), section: "app", keywords: t("settings.search.notifications") },
+    { label: t("settings.nav.shortcuts.title"), section: "shortcuts", keywords: t("settings.search.shortcuts") },
+    { label: t("settings.nav.advanced.label"), section: "advanced", keywords: t("settings.search.export") },
+    { label: t("settings.nav.about.label"), section: "about", keywords: t("settings.search.about") },
+    { label: t("settings.nav.about.title"), section: "about", keywords: t("settings.search.update") },
+  ];
+  return { groups, items: [...primary, ...secondary, ...footer], searchIndex };
+}
 
 const SectionIcon = memo(function SectionIcon({ id }: { id: SettingsView }) {
   const p = { viewBox: "0 0 24 24", "aria-hidden": true as const, fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -223,6 +219,8 @@ export type SettingsPageProps = {
 };
 
 function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onSetModel, onClose, onOpenWorkspace, onCompact, onClearPromptHistory, onSetDefaultModel, onSetDefaultThinking, onAutoCompaction, onTerminalPolicy, onBlockImages, onShowImages, initialView, layout = "page" }: SettingsPageProps) {
+  const { locale, t } = useI18n();
+  const navigation = useMemo(() => createSettingsNavigation(t), [t]);
   const [view, setView] = useState<SettingsView>(initialView || "general");
 
   const [navSearch, setNavSearch] = useState("");
@@ -254,28 +252,28 @@ function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onS
   }, [layout]);
 
   const active = useMemo(
-    () => ALL_NAV_ITEMS.find((s) => s.id === view) || ALL_NAV_ITEMS[0],
-    [view],
+    () => navigation.items.find((s) => s.id === view) || navigation.items[0],
+    [navigation.items, view],
   );
 
-  const searchQuery = navSearch.trim().toLocaleLowerCase("tr");
+  const searchQuery = navSearch.trim().toLocaleLowerCase(localeForIntl(locale));
   const filteredGroups = useMemo(() => {
-    if (!searchQuery) return NAV_GROUPS;
-    return NAV_GROUPS.map((group) => ({
+    if (!searchQuery) return navigation.groups;
+    return navigation.groups.map((group) => ({
       ...group,
       items: group.items.filter(
         (item) =>
-          item.label.toLocaleLowerCase("tr").includes(searchQuery) ||
-          item.desc.toLocaleLowerCase("tr").includes(searchQuery) ||
-          SEARCH_INDEX.some(
+          item.label.toLocaleLowerCase(localeForIntl(locale)).includes(searchQuery) ||
+          item.desc.toLocaleLowerCase(localeForIntl(locale)).includes(searchQuery) ||
+          navigation.searchIndex.some(
             (entry) =>
               entry.section === item.id &&
-              (entry.label.toLocaleLowerCase("tr").includes(searchQuery) ||
-                entry.keywords.toLocaleLowerCase("tr").includes(searchQuery)),
+              (entry.label.toLocaleLowerCase(localeForIntl(locale)).includes(searchQuery) ||
+                entry.keywords.toLocaleLowerCase(localeForIntl(locale)).includes(searchQuery)),
           ),
       ),
     })).filter((group) => group.items.length > 0);
-  }, [searchQuery]);
+  }, [locale, navigation.groups, navigation.searchIndex, searchQuery]);
 
   const goTo = useCallback((section: SettingsView) => {
     startTransition(() => {
@@ -286,26 +284,26 @@ function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onS
   }, []);
 
   return (
-    <div ref={rootRef} className={`${styles.settingsModalRoot} ${layout === "page" ? styles.settingsPageRoot : styles.settingsModalShell} ${layout === "modal" ? styles.settingsAntigravity : ""} ${mobileDetailOpen ? styles.mobileDetailOpen : ""}`} role="region" aria-label="Ayarlar">
+    <div ref={rootRef} className={`${styles.settingsModalRoot} ${layout === "page" ? styles.settingsPageRoot : styles.settingsModalShell} ${layout === "modal" ? styles.settingsAntigravity : ""} ${mobileDetailOpen ? styles.mobileDetailOpen : ""}`} role="region" aria-label={t("settings.title")}>
       <div className={layout === "page" ? styles.settingsPageBody : styles.settingsModalBody}>
-      <nav className={styles.settingsNav} aria-label="Ayar bölümleri">
+      <nav className={styles.settingsNav} aria-label={t("settings.navigation")}>
         <button type="button" className={styles.backToAppButton} onClick={onClose}>
           <ArrowLeft size={15} aria-hidden="true" />
-          <span>Uygulamaya geri dön</span>
+          <span>{t("settings.backToApp")}</span>
         </button>
         <div className={styles.navSearchWrap}>
           <Search size={14} aria-hidden="true" />
           <input
             type="search"
-            placeholder="Ayarlarda ara…"
+            placeholder={t("settings.searchPlaceholder")}
             value={navSearch}
             onChange={(e) => setNavSearch(e.target.value)}
             className={styles.navSearch}
-            aria-label="Ayarlarda ara"
+            aria-label={t("settings.searchLabel")}
           />
         </div>
         <div className={styles.navScroll}>
-          {(searchQuery ? filteredGroups : NAV_GROUPS).map((group, gi) => (
+          {(searchQuery ? filteredGroups : navigation.groups).map((group, gi) => (
             <div key={group.label || `g-${gi}`} className={styles.navGroup}>
               {group.label ? <div className={styles.navGroupLabel}>{group.label}</div> : null}
               {group.items.map((section) => (
@@ -323,7 +321,7 @@ function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onS
             </div>
           ))}
           {searchQuery && filteredGroups.length === 0 && (
-            <div className={styles.navEmpty}>Sonuç bulunamadı</div>
+            <div className={styles.navEmpty}>{t("settings.noResults")}</div>
           )}
         </div>
       </nav>
@@ -331,13 +329,13 @@ function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onS
       {/* Right content pane */}
       <div className={styles.settingsContent} data-settings-view={view}>
         {layout === "modal" && (
-          <button type="button" className={styles.settingsCloseX} onClick={onClose} aria-label="Ayarları kapat"><X size={18} aria-hidden="true" /></button>
+          <button type="button" className={styles.settingsCloseX} onClick={onClose} aria-label={t("settings.close")}><X size={18} aria-hidden="true" /></button>
         )}
 
         <div className={styles.settingsHeader}>
           <button type="button" className={styles.mobileBack} onClick={() => setMobileDetailOpen(false)}>
             <ArrowLeft size={16} aria-hidden="true" />
-            Tüm ayarlar
+            {t("settings.all")}
           </button>
           <h2>{active.title}</h2>
           {active.desc && <p className={styles.settingsDesc}>{active.desc}</p>}
@@ -433,6 +431,7 @@ function SettingsPageInner({ density, theme, onDensity, onTheme, onThinking, onS
 export const SettingsPage = memo(SettingsPageInner);
 
 function ModelSection({ onThinking, onSetModel, onSetDefaultModel, onSetDefaultThinking }: { onThinking: (level: any) => void; onSetModel: (value: string) => void; onSetDefaultModel?: (value: string) => void; onSetDefaultThinking?: (level: string) => void }) {
+  const { t } = useI18n();
   // Narrow selectors — never subscribe to full `state` (updates every stream token).
   const models = useAppStore((s) => s.models);
   const thinkingLevel = useAppStore((s) => (s.state as any)?.thinkingLevel as string | undefined);
@@ -440,6 +439,18 @@ function ModelSection({ onThinking, onSetModel, onSetDefaultModel, onSetDefaultT
   const configured = useMemo(() => listConfiguredModels(models as any[]), [models]);
   const current = useMemo(() => models.find((model: any) => model.current), [models]);
   const [pinned, setPinned] = useState<string[]>(() => readStorageArray<string>("quake-web:pinnedComposerModels"));
+  const thinkingLabel = useCallback((value: unknown) => {
+    const key = String(value || "");
+    const labels: Record<string, "minimal" | "low" | "medium" | "high" | "xhigh" | "max"> = {
+      minimal: "minimal",
+      low: "low",
+      medium: "medium",
+      high: "high",
+      xhigh: "xhigh",
+      max: "max",
+    };
+    return labels[key] ? t(`composer.preferences.effortLevels.${labels[key]}`) : t("settings.content.models.notConfigured");
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -473,55 +484,55 @@ function ModelSection({ onThinking, onSetModel, onSetDefaultModel, onSetDefaultT
   return (
     <>
       <section className={styles.card}>
-        <h3>Model</h3>
+        <h3>{t("settings.content.models.model")}</h3>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Geçerli model<small>Yeni mesajlarda kullanılır</small></span>
+          <span className={styles.fieldLabel}>{t("settings.content.models.currentModel")}<small>{t("settings.content.models.currentModelDescription")}</small></span>
           <select className={styles.select} value={current ? `${current.provider}/${current.id}` : ""} onChange={(event) => onSetModel(event.target.value)}>
-            {configured.length === 0 && <option value="">Yapılandırılmış model yok</option>}
+            {configured.length === 0 && <option value="">{t("settings.content.models.noConfiguredModels")}</option>}
             {configured.map((model: any) => (
               <option key={`${model.provider}/${model.id}`} value={`${model.provider}/${model.id}`}>{formatModelRefLabel(model)}</option>
             ))}
           </select>
         </label>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Düşünme seviyesi {!current?.reasoning && <span className={styles.badge}>desteklenmiyor</span>}<small>Akıl yürütme derinliği</small></span>
+          <span className={styles.fieldLabel}>{t("settings.content.models.reasoningLevel")} {!current?.reasoning && <span className={styles.badge}>{t("settings.content.models.reasoningUnsupported")}</span>}<small>{t("settings.content.models.reasoningDepth")}</small></span>
           <select className={styles.select} value={thinkingLevel || runtimeSettings.defaultThinkingLevel || "medium"} onChange={(event) => onThinking(event.target.value)} disabled={!current?.reasoning}>
-            <option value="off">Kapalı</option>
-            <option value="minimal">Minimum</option>
-            <option value="low">Düşük</option>
-            <option value="medium">Orta</option>
-            <option value="high">Yüksek</option>
-            {current?.supportsXhigh && <option value="xhigh">Ekstra yüksek</option>}
-            {current?.supportsMax && <option value="max">Maksimum</option>}
+            <option value="off">{t("settings.content.models.off")}</option>
+            <option value="minimal">{t("settings.content.models.minimal")}</option>
+            <option value="low">{t("settings.content.models.low")}</option>
+            <option value="medium">{t("settings.content.models.medium")}</option>
+            <option value="high">{t("settings.content.models.high")}</option>
+            {current?.supportsXhigh && <option value="xhigh">{t("settings.content.models.extraHigh")}</option>}
+            {current?.supportsMax && <option value="max">{t("settings.content.models.maximum")}</option>}
           </select>
         </label>
       </section>
 
       {(onSetDefaultModel || onSetDefaultThinking) && (
         <section className={styles.card}>
-          <h3>Yeni oturum varsayılanları</h3>
-          <p className={styles.cardDesc}>Yeni sohbetlerin başlayacağı model ve düşünme seviyesi (geçerli oturumu etkilemez).</p>
+          <h3>{t("settings.content.models.sessionDefaults")}</h3>
+          <p className={styles.cardDesc}>{t("settings.content.models.sessionDefaultsDescription")}</p>
           <div className={styles.facts}>
             {onSetDefaultModel && (
               <div className={styles.factRow}>
-                <b>Varsayılan model</b>
+                <b>{t("settings.content.models.defaultModel")}</b>
                 <span className={styles.inlineControl}>
                   <span>{runtimeSettings.defaultModel
                     ? formatModelDisplayLabel(
                         `${runtimeSettings.defaultProvider ? `${runtimeSettings.defaultProvider}/` : ""}${runtimeSettings.defaultModel}`,
                         configured.find((m: any) => m.provider === runtimeSettings.defaultProvider && m.id === runtimeSettings.defaultModel)?.name,
                       )
-                    : "ayarlı değil"}</span>
-                  {current && <button type="button" className={styles.smallBtn} onClick={() => onSetDefaultModel(`${current.provider}/${current.id}`)}>Geçerliyi ata</button>}
+                    : t("settings.content.models.notConfigured")}</span>
+                  {current && <button type="button" className={styles.smallBtn} onClick={() => onSetDefaultModel(`${current.provider}/${current.id}`)}>{t("settings.content.models.setCurrent")}</button>}
                 </span>
               </div>
             )}
             {onSetDefaultThinking && (
               <div className={styles.factRow}>
-                <b>Varsayılan düşünme</b>
+                <b>{t("settings.content.models.defaultThinking")}</b>
                 <span className={styles.inlineControl}>
-                  <span>{runtimeSettings.defaultThinkingLevel || "ayarlı değil"}</span>
-                  <button type="button" className={styles.smallBtn} onClick={() => onSetDefaultThinking(String(thinkingLevel || runtimeSettings.defaultThinkingLevel || "medium"))} disabled={!current?.reasoning}>Geçerliyi ata</button>
+                  <span>{thinkingLabel(runtimeSettings.defaultThinkingLevel)}</span>
+                  <button type="button" className={styles.smallBtn} onClick={() => onSetDefaultThinking(String(thinkingLevel || runtimeSettings.defaultThinkingLevel || "medium"))} disabled={!current?.reasoning}>{t("settings.content.models.setCurrent")}</button>
                 </span>
               </div>
             )}
@@ -530,10 +541,10 @@ function ModelSection({ onThinking, onSetModel, onSetDefaultModel, onSetDefaultT
       )}
 
       <section className={styles.card}>
-        <h3>Sohbet model listesi</h3>
-        <p className={styles.cardDesc}>Sohbet çubuğunda görünecek modelleri seç. Hiçbiri seçilmezse bağlı provider’ların tüm modelleri gösterilir (giriş yapılmamış provider’lar listede yoktur).</p>
+        <h3>{t("settings.content.models.chatModelList")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.models.chatModelListDescription")}</p>
         <div className={styles.checkList}>
-          {configured.length === 0 && <p className={styles.muted}>Yapılandırılmış model yok.</p>}
+          {configured.length === 0 && <p className={styles.muted}>{t("settings.content.models.noConfiguredModels")}.</p>}
           {configured.map((model: any) => {
             const value = `${model.provider}/${model.id}`;
             return (
@@ -561,6 +572,7 @@ function emptyGuardianAllows(): GuardianDurableAllows {
 
 /** Settings → İzinler → Kalıcı izinler (S-TRUST.2) — durable guardian allows, not MCP. */
 function GuardianDurableAllowsSection() {
+  const { t } = useI18n();
   const [allows, setAllows] = useState<GuardianDurableAllows>(emptyGuardianAllows);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
@@ -582,7 +594,7 @@ function GuardianDurableAllowsSection() {
         } : emptyGuardianAllows());
       })
       .catch(() => {
-        if (alive) showToast("Kalıcı izinler yüklenemedi", "error");
+        if (alive) showToast(t("settings.content.permissions.persistentLoadFailed"), "error");
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -606,9 +618,9 @@ function GuardianDurableAllowsSection() {
         `/api/security/guardian-allows?kind=commandKey&key=${encodeURIComponent(key)}`,
       );
       if (result?.allows) setAllows(result.allows);
-      showToast("Kalıcı komut izni kaldırıldı", "success");
+      showToast(t("settings.content.permissions.persistentCommandRemoved"), "success");
     } catch (error: any) {
-      showToast(error?.message || "İzin kaldırılamadı", "error");
+      showToast(error?.message || t("settings.content.permissions.permissionRemoveFailed"), "error");
     } finally {
       setPending(false);
     }
@@ -622,9 +634,9 @@ function GuardianDurableAllowsSection() {
         `/api/security/guardian-allows?kind=prefix&prefix=${encodeURIComponent(JSON.stringify(prefix))}`,
       );
       if (result?.allows) setAllows(result.allows);
-      showToast("Kalıcı önek izni kaldırıldı", "success");
+      showToast(t("settings.content.permissions.persistentPrefixRemoved"), "success");
     } catch (error: any) {
-      showToast(error?.message || "İzin kaldırılamadı", "error");
+      showToast(error?.message || t("settings.content.permissions.permissionRemoveFailed"), "error");
     } finally {
       setPending(false);
     }
@@ -638,9 +650,9 @@ function GuardianDurableAllowsSection() {
         `/api/security/guardian-allows?kind=host&host=${encodeURIComponent(host)}&action=${action}`,
       );
       if (result?.allows) setAllows(result.allows);
-      showToast("Kalıcı host kuralı kaldırıldı", "success");
+      showToast(t("settings.content.permissions.persistentHostRemoved"), "success");
     } catch (error: any) {
-      showToast(error?.message || "İzin kaldırılamadı", "error");
+      showToast(error?.message || t("settings.content.permissions.permissionRemoveFailed"), "error");
     } finally {
       setPending(false);
     }
@@ -649,20 +661,19 @@ function GuardianDurableAllowsSection() {
   async function clearAll() {
     if (pending || total === 0) return;
     const accepted = await confirm({
-      title: "Tüm kalıcı izinler silinsin mi?",
-      message:
-        "Komut, önek ve host kalıcı izinleri temizlenecek. Oturum izinleri ve MCP “her zaman izin” listesi etkilenmez.",
+      title: t("settings.content.permissions.clearPersistentTitle"),
+      message: t("settings.content.permissions.clearPersistentMessage"),
       variant: "danger",
-      confirmLabel: "Tümünü temizle",
+      confirmLabel: t("settings.content.permissions.clearAll"),
     });
     if (!accepted) return;
     setPending(true);
     try {
       await apiPost("/api/security/guardian-allows/clear", {});
       setAllows(emptyGuardianAllows());
-      showToast("Kalıcı izinler temizlendi", "success");
+      showToast(t("settings.content.permissions.persistentCleared"), "success");
     } catch (error: any) {
-      showToast(error?.message || "Kalıcı izinler temizlenemedi", "error");
+      showToast(error?.message || t("settings.content.permissions.persistentClearFailed"), "error");
     } finally {
       setPending(false);
     }
@@ -670,36 +681,32 @@ function GuardianDurableAllowsSection() {
 
   return (
     <section className={styles.card}>
-      <h3>Kalıcı izinler</h3>
-      <p className={styles.cardDesc}>
-        Composer’da “Her zaman izin ver” veya kalıcı önek/host seçenekleriyle kaydedilen izinler yeniden başlatmadan
-        sonra da geçerlidir. Oturum boyu izinler bellek-içidir ve kapanınca silinir; oturum temizliği bu listeyi silmez.
-        MCP araç izinleri ayrıdır (MCP bölümü).
-      </p>
+      <h3>{t("settings.content.permissions.persistentTitle")}</h3>
+      <p className={styles.cardDesc}>{t("settings.content.permissions.persistentDescription")}</p>
       {loading ? (
-        <p className={styles.muted}>Yükleniyor…</p>
+        <p className={styles.muted}>{t("settings.content.permissions.loading")}</p>
       ) : total === 0 ? (
-        <p className={styles.muted}>Kalıcı komut, önek veya host izni yok.</p>
+        <p className={styles.muted}>{t("settings.content.permissions.noPersistent")}</p>
       ) : (
         <>
           {allows.commandKeys.length > 0 ? (
             <div style={{ marginBottom: 12 }}>
-              <b style={{ fontSize: 12, opacity: 0.85 }}>Komutlar (tool::özet)</b>
+              <b style={{ fontSize: 12, opacity: 0.85 }}>{t("settings.content.permissions.commands")}</b>
               <div className={styles.list} style={{ marginTop: 6 }}>
                 {allows.commandKeys.map((key) => (
                   <div key={key} className={styles.listItem}>
                     <div className={styles.listItemMain}>
                       <b style={{ fontFamily: "var(--font-mono)", fontSize: 12, wordBreak: "break-all" }}>{key}</b>
-                      <span>Tam eşleşme · kalıcı</span>
+                        <span>{t("settings.content.permissions.exactPersistent")}</span>
                     </div>
                     <button
                       type="button"
                       className={styles.smallBtn}
                       disabled={pending}
                       onClick={() => void removeCommandKey(key)}
-                      aria-label={`${key} kalıcı iznini kaldır`}
+                      aria-label={`${key} ${t("settings.content.permissions.remove")}`}
                     >
-                      Kaldır
+                      {t("settings.content.permissions.remove")}
                     </button>
                   </div>
                 ))}
@@ -708,7 +715,7 @@ function GuardianDurableAllowsSection() {
           ) : null}
           {allows.prefixes.length > 0 ? (
             <div style={{ marginBottom: 12 }}>
-              <b style={{ fontSize: 12, opacity: 0.85 }}>Komut önekleri</b>
+              <b style={{ fontSize: 12, opacity: 0.85 }}>{t("settings.content.permissions.prefixes")}</b>
               <div className={styles.list} style={{ marginTop: 6 }}>
                 {allows.prefixes.map((prefix) => {
                   const label = prefix.join(" ");
@@ -716,16 +723,16 @@ function GuardianDurableAllowsSection() {
                     <div key={label} className={styles.listItem}>
                       <div className={styles.listItemMain}>
                         <b style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{label}</b>
-                        <span>Önek eşleşmesi · kalıcı</span>
+                        <span>{t("settings.content.permissions.prefixPersistent")}</span>
                       </div>
                       <button
                         type="button"
                         className={styles.smallBtn}
                         disabled={pending}
                         onClick={() => void removePrefix(prefix)}
-                        aria-label={`${label} önek iznini kaldır`}
+                        aria-label={`${label} ${t("settings.content.permissions.remove")}`}
                       >
-                        Kaldır
+                        {t("settings.content.permissions.remove")}
                       </button>
                     </div>
                   );
@@ -735,13 +742,13 @@ function GuardianDurableAllowsSection() {
           ) : null}
           {allows.hosts.allow.length > 0 || allows.hosts.deny.length > 0 ? (
             <div style={{ marginBottom: 12 }}>
-              <b style={{ fontSize: 12, opacity: 0.85 }}>Host’lar</b>
+              <b style={{ fontSize: 12, opacity: 0.85 }}>{t("settings.content.permissions.hosts")}</b>
               <div className={styles.list} style={{ marginTop: 6 }}>
                 {allows.hosts.allow.map((host) => (
                   <div key={`allow:${host}`} className={styles.listItem}>
                     <div className={styles.listItemMain}>
                       <b style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{host}</b>
-                      <span>İzin ver · kalıcı</span>
+                      <span>{t("settings.content.permissions.allowPersistent")}</span>
                     </div>
                     <button
                       type="button"
@@ -750,7 +757,7 @@ function GuardianDurableAllowsSection() {
                       onClick={() => void removeHost(host, "allow")}
                       aria-label={`${host} host iznini kaldır`}
                     >
-                      Kaldır
+                      {t("settings.content.permissions.remove")}
                     </button>
                   </div>
                 ))}
@@ -758,7 +765,7 @@ function GuardianDurableAllowsSection() {
                   <div key={`deny:${host}`} className={styles.listItem}>
                     <div className={styles.listItemMain}>
                       <b style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{host}</b>
-                      <span>Engelle · kalıcı</span>
+                      <span>{t("settings.content.permissions.denyPersistent")}</span>
                     </div>
                     <button
                       type="button"
@@ -767,7 +774,7 @@ function GuardianDurableAllowsSection() {
                       onClick={() => void removeHost(host, "deny")}
                       aria-label={`${host} host engelini kaldır`}
                     >
-                      Kaldır
+                      {t("settings.content.permissions.remove")}
                     </button>
                   </div>
                 ))}
@@ -776,7 +783,7 @@ function GuardianDurableAllowsSection() {
           ) : null}
           <div className={styles.inlineControl} style={{ marginTop: 4 }}>
             <button type="button" className={styles.smallBtn} disabled={pending} onClick={() => void clearAll()}>
-              Tümünü temizle
+              {t("settings.content.permissions.clearAll")}
             </button>
           </div>
         </>
@@ -1145,6 +1152,7 @@ function Pill({ tone, children }: { tone: "ok" | "warn" | "muted" | "error"; chi
 }
 
 function ComputerUseSettingsSection() {
+  const { t } = useI18n();
   const [policy, setPolicy] = useState<{ actuateEnabled: boolean; stepLimit: number; toolMode?: string } | null>(null);
   const [extensionEnabled, setExtensionEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1170,7 +1178,7 @@ function ComputerUseSettingsSection() {
   async function patchPolicy(patch: Partial<{ actuateEnabled: boolean; stepLimit: number; toolMode: string }>, key: string) {
     if (pending) return;
     if (patch.actuateEnabled === true) {
-      const accepted = await confirm({ title: "Masaüstü etkileşimi etkinleştirilsin mi?", message: "Ajan gerçek fare ve klavye girdileri gönderebilir. Yalnızca görevi ve açık uygulamaları kontrol ettiğinizde etkinleştirin.", variant: "warning", confirmLabel: "Etkinleştir" });
+      const accepted = await confirm({ title: t("settings.content.computerUse.enableDesktopInteractionTitle"), message: t("settings.content.computerUse.enableDesktopInteractionMessage"), variant: "warning", confirmLabel: t("settings.content.computerUse.enable") });
       if (!accepted) return;
     }
     const previous = policy || { actuateEnabled: false, stepLimit: 40, toolMode: "custom" };
@@ -1182,18 +1190,18 @@ function ComputerUseSettingsSection() {
       const saved = result?.policy || next;
       setPolicy(saved);
       setStepDraft(String(saved.stepLimit ?? 40));
-      useAppStore.getState().showToast("Computer-Use ayarı kaydedildi", "success");
+      useAppStore.getState().showToast(t("settings.content.computerUse.saved"), "success");
     } catch {
       setPolicy(previous);
       setStepDraft(String(previous.stepLimit ?? 40));
-      useAppStore.getState().showToast("Computer-Use ayarı kaydedilemedi", "error");
+      useAppStore.getState().showToast(t("settings.content.computerUse.saveFailed"), "error");
     } finally { setPending(undefined); }
   }
 
   async function toggleExtension(enabled: boolean) {
     if (pending) return;
     if (enabled) {
-      const accepted = await confirm({ title: "Computer Use eklentisi etkinleştirilsin mi?", message: "Bu eklenti masaüstü otomasyon araçlarını runtime'a yükler. Etkileşim araçları ayrıca aşağıdan açılmalıdır.", variant: "warning", confirmLabel: "Eklentiyi etkinleştir" });
+      const accepted = await confirm({ title: t("settings.content.computerUse.enableExtensionTitle"), message: t("settings.content.computerUse.enableExtensionMessage"), variant: "warning", confirmLabel: t("settings.content.computerUse.enableExtension") });
       if (!accepted) return;
     }
     const previous = extensionEnabled;
@@ -1202,7 +1210,7 @@ function ComputerUseSettingsSection() {
     try { await apiPost("/api/extensions/toggle", { id: "quake-computer-use", enabled }); }
     catch {
       setExtensionEnabled(previous);
-      useAppStore.getState().showToast("Computer-Use eklentisi değiştirilemedi", "error");
+      useAppStore.getState().showToast(t("settings.content.computerUse.extensionChangeFailed"), "error");
     } finally { setPending(undefined); }
   }
 
@@ -1214,38 +1222,35 @@ function ComputerUseSettingsSection() {
 
   return (
     <section className={styles.card}>
-      <h3>Masaüstü Computer-Use</h3>
-      <p className={styles.cardDesc}>
-        Ajan gerçek Windows masaüstünde fare/klavye kullanır (SendInput + UI Automation). Web siteleri için değil —
-        web için tarayıcı panelini (<code>browser_*</code>) kullanın.
-      </p>
+      <h3>{t("settings.content.computerUse.title")}</h3>
+      <p className={styles.cardDesc}>{t("settings.content.computerUse.description")}</p>
       {loading ? (
-        <p className={styles.muted}>Yükleniyor…</p>
+        <p className={styles.muted}>{t("settings.content.computerUse.loading")}</p>
       ) : (
         <div className={styles.list}>
           <div className={styles.listItem}>
             <div className={styles.listItemMain}>
-              <b>Eklentiyi etkinleştir</b>
-              <span>Varsayılan kapalıdır; kurulum sonrası opt-in gerektirir.</span>
+              <b>{t("settings.content.computerUse.extension")}</b>
+              <span>{t("settings.content.computerUse.extensionDescription")}</span>
             </div>
             <Switch checked={extensionEnabled} disabled={Boolean(pending)} onChange={(value) => void toggleExtension(value)} label="Computer-Use eklentisi" />
           </div>
           <div className={styles.listItem}>
             <div className={styles.listItemMain}>
-              <b>Etkileşim araçlarını etkinleştir</b>
-              <span>Tıklama, yazma ve kaydırma araçları (desktop_click, desktop_type, desktop_ui_*, …).</span>
+              <b>{t("settings.content.computerUse.interactionTools")}</b>
+              <span>{t("settings.content.computerUse.interactionToolsDescription")}</span>
             </div>
             <Switch
               checked={Boolean(policy?.actuateEnabled)}
               disabled={Boolean(pending) || !extensionEnabled}
               onChange={(value) => void patchPolicy({ actuateEnabled: value }, "actuate")}
-              label="Masaüstü etkileşim araçları"
+              label={t("settings.content.computerUse.interactionTools")}
             />
           </div>
           <div className={styles.listItem}>
             <div className={styles.listItemMain}>
-              <b>Adım limiti</b>
-              <span>Bir oturumda izin verilen maksimum computer-use adımı.</span>
+              <b>{t("settings.content.computerUse.stepLimit")}</b>
+              <span>{t("settings.content.computerUse.stepLimitDescription")}</span>
             </div>
             <input
               className={styles.navSearch}
@@ -1257,20 +1262,20 @@ function ComputerUseSettingsSection() {
               onChange={(event) => setStepDraft(event.target.value)}
               onBlur={commitStepLimit}
               onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-              aria-label="Computer-use adım limiti"
+              aria-label={t("settings.content.computerUse.stepLimitLabel")}
             />
           </div>
           <div className={styles.listItem}>
             <div className={styles.listItemMain}>
-              <b>Araç modu</b>
-              <span>custom = desktop_* araçları; claude_native = Anthropic computer aracı.</span>
+              <b>{t("settings.content.computerUse.toolMode")}</b>
+              <span>{t("settings.content.computerUse.toolModeDescription")}</span>
             </div>
             <select
               className={styles.convSelect}
               value={policy?.toolMode || "custom"}
               disabled={Boolean(pending)}
               onChange={(event) => void patchPolicy({ toolMode: event.target.value }, "toolMode")}
-              aria-label="Computer-use araç modu"
+              aria-label={t("settings.content.computerUse.toolModeLabel")}
             >
               <option value="custom">custom (desktop_*)</option>
               <option value="claude_native">claude_native (computer)</option>
@@ -1278,22 +1283,14 @@ function ComputerUseSettingsSection() {
           </div>
           <div className={styles.listItem}>
             <div className={styles.listItemMain}>
-              <b>Model önerisi</b>
-              <span>
-                Computer-Use için güçlü bir model seçin (Claude Opus/Sonnet, Gemini 3.x). Zayıf free modeller
-                yanlış tıklar, oturumu bitirmez veya web ile masaüstünü karıştırır. Chat’te{" "}
-                <code>@bilgisayar</code> ile masaüstü modunu açın.
-              </span>
+              <b>{t("settings.content.computerUse.modelRecommendation")}</b>
+              <span>{t("settings.content.computerUse.modelRecommendationDescription")}</span>
             </div>
           </div>
           <div className={styles.listItem}>
             <div className={styles.listItemMain}>
-              <b>Ne yapar / ne yapmaz</b>
-              <span>
-                <b>İyi:</b> Calc, Notepad, Explorer, Edge/Chrome shell, Ayarlar, Open/Save diyalogları, menü/buton
-                (UIA isimleriyle). <b>Zayıf / yok:</b> oyunlar, DirectX, özel canvas, DRM, UAC admin şifresi (asla
-                otomatik), her app her zaman. Oturumdayken kenar pulse açıktır; sahte ajan imleci kapalıdır — gerçek fare hareket eder.
-              </span>
+              <b>{t("settings.content.computerUse.capabilities")}</b>
+              <span>{t("settings.content.computerUse.capabilitiesDescription")}</span>
             </div>
           </div>
         </div>
@@ -1935,6 +1932,7 @@ function McpServersSection() {
 }
 
 function ExtensionsSection() {
+  const { t } = useI18n();
   const [extensions, setExtensions] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1964,37 +1962,37 @@ function ExtensionsSection() {
       await apiPost("/api/extensions/toggle", { id, enabled });
       const refreshed = await apiGet<any>("/api/extensions");
       setExtensions(refreshed.extensions || []);
-      useAppStore.getState().showToast(`Uzantı ${enabled ? "etkinleştirildi" : "devre dışı bırakıldı"}`, "success");
+      useAppStore.getState().showToast(enabled ? t("settings.content.customizations.extensionEnabled") : t("settings.content.customizations.extensionDisabled"), "success");
     } catch {
       setExtensions(previous);
-      useAppStore.getState().showToast("Uzantı durumu değiştirilemedi", "error");
+      useAppStore.getState().showToast(t("settings.content.customizations.extensionChangeFailed"), "error");
     } finally { setPendingId(undefined); }
   }
 
   return (
     <>
       <section className={styles.card}>
-        <h3>Uzantılar</h3>
-        <p className={styles.cardDesc}>Yüklü uzantıları aç veya kapat.</p>
+        <h3>{t("settings.content.customizations.extensions")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.customizations.extensionsDescription")}</p>
         {loading ? (
-          <p className={styles.muted}>Yükleniyor…</p>
+          <p className={styles.muted}>{t("settings.content.customizations.loading")}</p>
         ) : error ? (
-          <p className={styles.muted}>Uzantılar yüklenemedi.</p>
+          <p className={styles.muted}>{t("settings.content.customizations.extensionsLoadFailed")}</p>
         ) : extensions.length === 0 ? (
-          <p className={styles.muted}>Yüklü uzantı yok.</p>
+          <p className={styles.muted}>{t("settings.content.customizations.noExtensions")}</p>
         ) : (
           <div className={styles.list}>
             {extensions.map((ext: any) => (
               <div key={ext.id || ext.name} className={styles.listItem}>
                 <div className={styles.listItemMain}>
                   <b>{ext.name}</b>
-                  <span>{ext.description || "Açıklama yok"}</span>
+                  <span>{ext.description || t("settings.content.customizations.extensionDescriptionMissing")}</span>
                 </div>
                 <Switch
                   checked={Boolean(ext.enabled)}
                   disabled={Boolean(pendingId)}
                   onChange={(value) => void toggleExtension(ext.id || ext.name, value)}
-                  label={`${ext.name} uzantısı`}
+                  label={t("settings.content.customizations.extensionLabel", { name: ext.name })}
                 />
               </div>
             ))}
@@ -2003,12 +2001,12 @@ function ExtensionsSection() {
       </section>
 
       <section className={styles.card}>
-        <h3>Yetenekler (Skills)</h3>
-        <p className={styles.cardDesc}>Ajanın kullanabildiği aktif yetenekler.</p>
+        <h3>{t("settings.content.customizations.skills")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.customizations.skillsDescription")}</p>
         {loading ? (
-          <p className={styles.muted}>Yükleniyor…</p>
+          <p className={styles.muted}>{t("settings.content.customizations.loading")}</p>
         ) : skills.length === 0 ? (
-          <p className={styles.muted}>Yetenek bulunamadı.</p>
+          <p className={styles.muted}>{t("settings.content.customizations.noSkills")}</p>
         ) : (
           <div className={styles.list}>
             {skills.map((skill: any) => (
@@ -2028,6 +2026,7 @@ function ExtensionsSection() {
 }
 
 function PromptsSection() {
+  const { t } = useI18n();
   const [prompts, setPrompts] = useState<any[]>([]);
   const [commands, setCommands] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -2050,12 +2049,12 @@ function PromptsSection() {
   return (
     <>
       <section className={styles.card}>
-        <h3>Özel prompt şablonları</h3>
-        <p className={styles.cardDesc}>Şablon içeriğini görmek için satıra tıkla.</p>
+        <h3>{t("settings.content.customizations.prompts")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.customizations.promptsDescription")}</p>
         {loading ? (
-          <p className={styles.muted}>Yükleniyor…</p>
+          <p className={styles.muted}>{t("settings.content.customizations.loading")}</p>
         ) : prompts.length === 0 ? (
-          <p className={styles.muted}>Prompt şablonu bulunamadı.</p>
+          <p className={styles.muted}>{t("settings.content.customizations.noPrompts")}</p>
         ) : (
           <div className={styles.list}>
             {prompts.map((prompt: any) => {
@@ -2079,12 +2078,12 @@ function PromptsSection() {
       </section>
 
       <section className={styles.card}>
-        <h3>Slash komutları</h3>
-        <p className={styles.cardDesc}>Sohbet çubuğundan / ile çağrılabilen komutlar.</p>
+        <h3>{t("settings.content.customizations.commands")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.customizations.commandsDescription")}</p>
         {loading ? (
-          <p className={styles.muted}>Yükleniyor…</p>
+          <p className={styles.muted}>{t("settings.content.customizations.loading")}</p>
         ) : commands.length === 0 ? (
-          <p className={styles.muted}>Komut bulunamadı.</p>
+          <p className={styles.muted}>{t("settings.content.customizations.noCommands")}</p>
         ) : (
           <div className={styles.list}>
             {commands.map((cmd: any) => (
@@ -2103,26 +2102,41 @@ function PromptsSection() {
   );
 }
 
-const SHORTCUTS: { keys: string; action: string }[] = [
-  { keys: "Ctrl + K", action: "Komut paletini aç" },
-  { keys: "Ctrl + B", action: "Sol paneli aç/kapat" },
-  { keys: "Ctrl + J", action: "Terminal panelini aç/kapat" },
-  { keys: "Alt + 1 / 2 / 3", action: "Sağ panel sekmeleri (Dosyalar / Önizleme / Terminal)" },
-  { keys: "Ctrl + S", action: "Açık dosyayı kaydet" },
-  { keys: "Enter", action: "Mesajı gönder" },
-  { keys: "Shift + Enter", action: "Yeni satır" },
-  { keys: "Shift + Tab", action: "Composer odaktayken Plan modunu aç/kapat" },
-  { keys: "Escape", action: "Ayarları / açık pencereyi kapat" },
+const SHORTCUT_LABEL_KEYS = {
+  commandPalette: "settings.content.shortcuts.commandPalette",
+  leftPanel: "settings.content.shortcuts.leftPanel",
+  terminalPanel: "settings.content.shortcuts.terminalPanel",
+  rightPanelTabs: "settings.content.shortcuts.rightPanelTabs",
+  saveFile: "settings.content.shortcuts.saveFile",
+  sendMessage: "settings.content.shortcuts.sendMessage",
+  newLine: "settings.content.shortcuts.newLine",
+  planMode: "settings.content.shortcuts.planMode",
+  closeWindows: "settings.content.shortcuts.closeWindows",
+} as const;
+
+// Canonical shortcut contract: { keys: "Shift + Tab", action: "Composer odaktayken Plan modunu aç/kapat" }.
+
+const SHORTCUTS: { keys: string; action: keyof typeof SHORTCUT_LABEL_KEYS }[] = [
+  { keys: "Ctrl + K", action: "commandPalette" },
+  { keys: "Ctrl + B", action: "leftPanel" },
+  { keys: "Ctrl + J", action: "terminalPanel" },
+  { keys: "Alt + 1 / 2 / 3", action: "rightPanelTabs" },
+  { keys: "Ctrl + S", action: "saveFile" },
+  { keys: "Enter", action: "sendMessage" },
+  { keys: "Shift + Enter", action: "newLine" },
+  { keys: "Shift + Tab", action: "planMode" },
+  { keys: "Escape", action: "closeWindows" },
 ];
 
 function KeyboardSection() {
+  const { t } = useI18n();
   return (
     <section className={styles.card}>
-      <h3>Klavye kısayolları</h3>
+      <h3>{t("settings.content.shortcuts.title")}</h3>
       <div className={styles.shortcuts}>
         {SHORTCUTS.map((s) => (
           <div key={s.keys} className={styles.shortcutRow}>
-            <span className={styles.shortcutAction}>{s.action}</span>
+            <span className={styles.shortcutAction}>{t(SHORTCUT_LABEL_KEYS[s.action])}</span>
             <span className={styles.kbdGroup}>
               {s.keys.split(" ").map((part, index) => (
                 part === "+" || part === "/" ? <span key={index} className={styles.kbdSep}>{part}</span> : <kbd key={index} className={styles.kbd}>{part}</kbd>
@@ -2218,6 +2232,7 @@ export function loadGoalUiSettings(): GoalUiSettings {
 }
 
 function GoalModeSettingsSection() {
+  const { t } = useI18n();
   const [settings, setSettings] = useState<GoalUiSettings>(() => loadGoalUiSettings());
   const activeGoal = useAppStore((state) => (state.state as any)?.goal);
   const activeGoalStatus = activeGoal?.status as string | undefined;
@@ -2231,36 +2246,46 @@ function GoalModeSettingsSection() {
     });
   };
 
+  const statusLabel = activeGoalStatus === "executing"
+    ? t("settings.content.goal.working")
+    : activeGoalStatus === "verifying"
+      ? t("settings.content.goal.verifying")
+      : activeGoalStatus === "paused"
+        ? t("settings.content.goal.paused")
+        : activeGoalStatus === "blocked"
+          ? t("settings.content.goal.interventionRequired")
+          : t("settings.content.goal.ready");
+
   return <>
     <section className={styles.goalHero}>
-      <div><span className={styles.goalEyebrow}>UNATTENDED AUTONOMY</span><h3>Hedefi ver, bilgisayardan ayrıl.</h3><p>Ajan çalışma alanında planlar, uygular, hataları düzeltir ve doğrulama kanıtı üretmeden tamamlanmaz.</p></div>
-      <Pill tone={activeGoalStatus === "executing" || activeGoalStatus === "verifying" ? "ok" : activeGoalStatus === "blocked" ? "warn" : "muted"}>{activeGoalStatus === "executing" ? "Çalışıyor" : activeGoalStatus === "verifying" ? "Doğruluyor" : activeGoalStatus === "paused" ? "Duraklatıldı" : activeGoalStatus === "blocked" ? "Müdahale gerekli" : "Hazır"}</Pill>
+      <div><span className={styles.goalEyebrow}>{t("settings.content.goal.eyebrow")}</span><h3>{t("settings.content.goal.heroTitle")}</h3><p>{t("settings.content.goal.heroDescription")}</p></div>
+      <Pill tone={activeGoalStatus === "executing" || activeGoalStatus === "verifying" ? "ok" : activeGoalStatus === "blocked" ? "warn" : "muted"}>{statusLabel}</Pill>
     </section>
-    {hasActiveGoal && <section className={styles.activeGoalSummary}><div><b>Aktif Goal</b><span>{activeGoal.objective}</span></div><div><b>Tur</b><span>{activeGoal.currentTurn}/{activeGoal.budget?.maxTurns ?? "—"}</span></div><div><b>İlerleme</b><span>{activeGoal.evidence?.length || 0} kanıt · {activeGoal.stagnantTurns || 0} ilerlemesiz tur</span></div>{activeGoal.blockedReason && <div><b>Bloke nedeni</b><span>{activeGoal.blockedReason}</span></div>}</section>}
+    {hasActiveGoal && <section className={styles.activeGoalSummary}><div><b>{t("settings.content.goal.activeGoal")}</b><span>{activeGoal.objective}</span></div><div><b>{t("settings.content.goal.turn")}</b><span>{activeGoal.currentTurn}/{activeGoal.budget?.maxTurns ?? "—"}</span></div><div><b>{t("settings.content.goal.progress")}</b><span>{activeGoal.evidence?.length || 0} {t("settings.content.goal.evidence")} · {activeGoal.stagnantTurns || 0} {t("settings.content.goal.stagnantTurns")}</span></div>{activeGoal.blockedReason && <div><b>{t("settings.content.goal.blockedReason")}</b><span>{activeGoal.blockedReason}</span></div>}</section>}
     <section className={styles.card}>
-      <h3>Çalışma bütçesi</h3>
-      <p className={styles.cardDesc}>Yeni Goal çalışmalarında uygulanır. Aktif Goal’un bütçesi değişmez.</p>
-      <div className={styles.presetRow} aria-label="Goal bütçe profilleri">
-        <button type="button" className={styles.presetBtn} onClick={() => persist({ maxTurns: 15, maxStagnantTurns: 3 })}>Hızlı</button>
-        <button type="button" className={styles.presetBtn} onClick={() => persist({ maxTurns: 30, maxStagnantTurns: 5 })}>Dengeli</button>
-        <button type="button" className={styles.presetBtn} onClick={() => persist({ maxTurns: 60, maxStagnantTurns: 8 })}>Uzun görev</button>
+      <h3>{t("settings.content.goal.budget")}</h3>
+      <p className={styles.cardDesc}>{t("settings.content.goal.budgetDescription")}</p>
+      <div className={styles.presetRow} aria-label={t("settings.content.goal.budgetProfiles")}>
+        <button type="button" className={styles.presetBtn} onClick={() => persist({ maxTurns: 15, maxStagnantTurns: 3 })}>{t("settings.content.goal.quick")}</button>
+        <button type="button" className={styles.presetBtn} onClick={() => persist({ maxTurns: 30, maxStagnantTurns: 5 })}>{t("settings.content.goal.balanced")}</button>
+        <button type="button" className={styles.presetBtn} onClick={() => persist({ maxTurns: 60, maxStagnantTurns: 8 })}>{t("settings.content.goal.longTask")}</button>
       </div>
       <label className={styles.field}>
-        <span className={styles.fieldLabel}>Maksimum tur<small>Uzun görevler için 30 önerilir</small></span>
+        <span className={styles.fieldLabel}>{t("settings.content.goal.maxTurns")}<small>{t("settings.content.goal.maxTurnsDescription")}</small></span>
         <input className={styles.numberInput} type="number" min={10} max={100} value={settings.maxTurns} onChange={(event) => persist({ maxTurns: clampInteger(event.target.value, 10, 100, 30) })} />
       </label>
       <label className={styles.field}>
-        <span className={styles.fieldLabel}>İlerlemesiz tur toleransı<small>Farklı çözümler denendikten sonra bloke olur</small></span>
+        <span className={styles.fieldLabel}>{t("settings.content.goal.stagnantTolerance")}<small>{t("settings.content.goal.stagnantToleranceDescription")}</small></span>
         <input className={styles.numberInput} type="number" min={2} max={12} value={settings.maxStagnantTurns} onChange={(event) => persist({ maxStagnantTurns: clampInteger(event.target.value, 2, 12, 5) })} />
       </label>
     </section>
     <section className={styles.card}>
-      <h3>Kesintisiz çalışma</h3>
-      <div className={styles.toggleRow}><span className={styles.toggleLabel}>Uykuya geçişi engelle<small>Goal aktifken uygulamanın askıya alınmasını önler</small></span><Switch checked={settings.preventSleep} onChange={(value) => persist({ preventSleep: value })} label="Goal çalışırken uykuya geçişi engelle" /></div>
-      <div className={styles.toggleRow}><span className={styles.toggleLabel}>Yeniden başlatınca otomatik devam et<small>Bu tercih yeni Goal’a kaydedilir; yarım kalan çalışma mevcut dosyaları inceleyerek sürer</small></span><Switch checked={settings.autoRecover} onChange={(value) => persist({ autoRecover: value })} label="Goal'u yeniden başlatınca sürdür" /></div>
-      <div className={styles.toggleRow}><span className={styles.toggleLabel}>Tamamlanınca bildir<small>Uygulama arka plandaysa sistem bildirimi gönderir</small></span><Switch checked={settings.completionNotification} onChange={(value) => persist({ completionNotification: value })} label="Goal tamamlanma bildirimi" /></div>
+      <h3>{t("settings.content.goal.uninterrupted")}</h3>
+      <div className={styles.toggleRow}><span className={styles.toggleLabel}>{t("settings.content.goal.preventSleep")}<small>{t("settings.content.goal.preventSleepDescription")}</small></span><Switch checked={settings.preventSleep} onChange={(value) => persist({ preventSleep: value })} label={t("settings.content.goal.preventSleepLabel")} /></div>
+      <div className={styles.toggleRow}><span className={styles.toggleLabel}>{t("settings.content.goal.autoRecover")}<small>{t("settings.content.goal.autoRecoverDescription")}</small></span><Switch checked={settings.autoRecover} onChange={(value) => persist({ autoRecover: value })} label={t("settings.content.goal.autoRecoverLabel")} /></div>
+      <div className={styles.toggleRow}><span className={styles.toggleLabel}>{t("settings.content.goal.completionNotification")}<small>{t("settings.content.goal.completionNotificationDescription")}</small></span><Switch checked={settings.completionNotification} onChange={(value) => persist({ completionNotification: value })} label={t("settings.content.goal.completionNotificationLabel")} /></div>
     </section>
-    <section className={styles.safetyNote}><b>Güvenlik sınırı</b><span>Normal kodlama, test ve build işlemlerinde onay beklenmez. Secret, production deploy, ödeme veya yıkıcı dış işlemlerde Goal durur.</span></section>
+    <section className={styles.safetyNote}><b>{t("settings.content.goal.safetyBoundary")}</b><span>{t("settings.content.goal.safetyBoundaryDescription")}</span></section>
   </>;
 }
 
@@ -2270,6 +2295,7 @@ function clampInteger(value: unknown, min: number, max: number, fallback: number
 }
 
 function NotificationsSection() {
+  const { locale, t } = useI18n();
   const [config, setConfig] = useState<NotificationConfig>(() => loadNotificationConfig());
   const [permission, setPermission] = useState<string>(() =>
     "Notification" in window ? Notification.permission : "unsupported",
@@ -2307,39 +2333,36 @@ function NotificationsSection() {
 
   function testNotify() {
     // force: settings test must work while the window is focused
-    notifyTaskComplete("Test bildirimi — Quake Code", { force: true });
+    notifyTaskComplete(t("settings.content.notifications.testNotificationTitle"), { force: true });
   }
 
   function testError() {
-    notifyError("Test hata bildirimi", { force: true });
+    notifyError(t("settings.content.notifications.testErrorTitle"), { force: true });
   }
 
   const permissionLabel =
     permission === "granted"
-      ? "Verildi"
+      ? t("settings.content.notifications.granted")
       : permission === "denied"
-        ? "Reddedildi"
+        ? t("settings.content.notifications.denied")
         : permission === "unsupported"
-          ? "Desteklenmiyor"
-          : "Bekliyor";
+          ? t("settings.content.notifications.unsupported")
+          : t("settings.content.notifications.pending");
 
   const typeRows: { type: NotificationType; label: string; hint: string }[] = [
-    { type: "task", label: "Yanıt ve Goal tamamlandı", hint: "Ajan işi doğrulanmış olarak bitirdiğinde" },
-    { type: "operation", label: "Uzun işlem tamamlandı", hint: "Terminal ve arka plan işlemleri" },
-    { type: "error", label: "Hata bildirimleri", hint: "Hata ve engeller" },
+    { type: "task", label: t("settings.content.notifications.taskType"), hint: t("settings.content.notifications.taskHint") },
+    { type: "operation", label: t("settings.content.notifications.operationType"), hint: t("settings.content.notifications.operationHint") },
+    { type: "error", label: t("settings.content.notifications.errorType"), hint: t("settings.content.notifications.errorHint") },
   ];
 
   return (
     <>
       <section className={styles.card}>
-        <h3>Sistem bildirimleri</h3>
-        <p className={styles.cardDesc}>
-          Görev tamamlandığında veya müdahale gerektiğinde sistem bildirimi gönderir.
-          {isDesktop ? " Masaüstünde yerel Electron bildirimi kullanılır." : ""}
-        </p>
+        <h3>{t("settings.content.notifications.system")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.notifications.systemDescription")} {isDesktop ? (locale === "en" ? "The local Electron notification is used on desktop." : "Masaüstünde yerel Electron bildirimi kullanılır.") : ""}</p>
         <div className={styles.facts}>
           <div className={styles.factRow}>
-            <b>{isDesktop ? "Masaüstü" : "Tarayıcı izni"}</b>
+            <b>{isDesktop ? t("settings.content.notifications.desktop") : t("settings.content.notifications.browserPermission")}</b>
             <span className={styles.inlineControl}>
               {isDesktop ? (
                 <Pill tone="ok">Native</Pill>
@@ -2350,7 +2373,7 @@ function NotificationsSection() {
                   </Pill>
                   {permission === "default" && (
                     <button type="button" className={styles.smallBtn} onClick={requestPermission}>
-                      İzin iste
+                      {t("settings.content.notifications.requestPermission")}
                     </button>
                   )}
                 </>
@@ -2360,56 +2383,54 @@ function NotificationsSection() {
         </div>
         <div className={styles.toggleRow}>
           <span className={styles.toggleLabel}>
-            Bildirimleri etkinleştir<small>OS / tarayıcı toast</small>
+            {t("settings.content.notifications.enabled")}<small>{t("settings.content.notifications.enabledDescription")}</small>
           </span>
-          <Switch checked={config.enabled} onChange={setEnabled} label="Bildirimleri etkinleştir" />
+          <Switch checked={config.enabled} onChange={setEnabled} label={t("settings.content.notifications.enabled")} />
         </div>
         <div className={styles.toggleRow}>
           <span className={styles.toggleLabel}>
-            Yalnızca arka planda
-            <small>
-              Açıkken (önerilen): odaktayken toast/ses yok; minimize veya başka uygulamaya geçince gelir
-            </small>
+            {t("settings.content.notifications.onlyWhenUnfocused")}
+            <small>{t("settings.content.notifications.onlyWhenUnfocusedDescription")}</small>
           </span>
           <Switch
             checked={config.onlyWhenUnfocused}
             onChange={setOnlyWhenUnfocused}
             disabled={!config.enabled}
-            label="Yalnızca arka planda"
+            label={t("settings.content.notifications.onlyWhenUnfocused")}
           />
         </div>
         <div className={styles.inlineControl} style={{ marginTop: 8, gap: 8 }}>
           <button type="button" className={styles.smallBtn} onClick={testNotify}>
-            Test: yanıt hazır
+            {t("settings.content.notifications.testReady")}
           </button>
           <button type="button" className={styles.smallBtn} onClick={testError}>
-            Test: hata
+            {t("settings.content.notifications.testError")}
           </button>
         </div>
       </section>
 
       <section className={styles.card}>
-        <h3>Ses efektleri</h3>
-        <p className={styles.cardDesc}>Her olay için sesi ayrı seçebilir veya tamamen kapatabilirsin. Seçim yaptığında kısa önizleme çalar.</p>
+        <h3>{t("settings.content.notifications.sounds")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.notifications.soundsDescription")}</p>
         <SoundSelect
-          label="Ajan yanıtı"
-          description="Tur bitti / görev tamamlandı"
+          label={t("settings.content.notifications.agentReply")}
+          description={t("settings.content.notifications.taskComplete")}
           enabled={config.sounds.agentEnabled}
           soundId={config.sounds.agent}
           onEnabledChange={(value) => patchSounds({ agentEnabled: value })}
           onSoundChange={(id) => patchSounds({ agent: id })}
         />
         <SoundSelect
-          label="İşlem"
-          description="Uzun işlem tamamlandı"
+          label={t("settings.content.notifications.operation")}
+          description={t("settings.content.notifications.operationComplete")}
           enabled={config.sounds.operationEnabled}
           soundId={config.sounds.operation}
           onEnabledChange={(value) => patchSounds({ operationEnabled: value })}
           onSoundChange={(id) => patchSounds({ operation: id })}
         />
         <SoundSelect
-          label="Hata"
-          description="Hata ve engel bildirimleri"
+          label={t("settings.content.notifications.error")}
+          description={t("settings.content.notifications.errorDescription")}
           enabled={config.sounds.errorsEnabled}
           soundId={config.sounds.errors}
           onEnabledChange={(value) => patchSounds({ errorsEnabled: value })}
@@ -2418,8 +2439,8 @@ function NotificationsSection() {
       </section>
 
       <section className={`${styles.card} ${!config.enabled ? styles.cardDisabled : ""}`}>
-        <h3>Bildirim türleri</h3>
-        <p className={styles.cardDesc}>Yalnızca gerçekten önemli olayları açık bırak.</p>
+        <h3>{t("settings.content.notifications.types")}</h3>
+        <p className={styles.cardDesc}>{t("settings.content.notifications.typesDescription")}</p>
         {typeRows.map((row) => (
           <div key={row.type} className={styles.toggleRow}>
             <span className={styles.toggleLabel}>
@@ -2440,23 +2461,24 @@ function NotificationsSection() {
 }
 
 function AboutSection() {
+  const { t } = useI18n();
   const config = useAppStore((state) => state.config as any);
   return <>
     <section className={styles.card}>
       <h3>Quake Code</h3>
-      <p className={styles.cardDesc}>Terminal-first coding assistant — Desktop, CLI, Web ve Mobile.</p>
+      <p className={styles.cardDesc}>{t("settings.content.about.productDescription")}</p>
       <div className={styles.facts}>
-        <div className={styles.factRow}><b>Sürüm</b><span>{config?.version || "—"}</span></div>
-        <div className={styles.factRow}><b>Platform</b><span>{navigator.platform || "Web"}</span></div>
-        <div className={styles.factRow}><b>Çalışma zamanı</b><span>{window.quakeDesktop ? "Electron Desktop" : "Web"}</span></div>
-        <div className={styles.factRow}><b>Sunucu</b><span>{config?.host ? `${config.host}:${config.port}` : "—"}</span></div>
-        <div className={styles.factRow}><b>Çalışma alanı</b><span>{config?.cwd || "—"}</span></div>
+        <div className={styles.factRow}><b>{t("settings.content.about.version")}</b><span>{config?.version || "—"}</span></div>
+        <div className={styles.factRow}><b>{t("settings.content.about.platform")}</b><span>{navigator.platform || "Web"}</span></div>
+        <div className={styles.factRow}><b>{t("settings.content.about.runtime")}</b><span>{window.quakeDesktop ? "Electron Desktop" : "Web"}</span></div>
+        <div className={styles.factRow}><b>{t("settings.content.about.server")}</b><span>{config?.host ? `${config.host}:${config.port}` : "—"}</span></div>
+        <div className={styles.factRow}><b>{t("settings.content.about.workspace")}</b><span>{config?.cwd || "—"}</span></div>
       </div>
     </section>
     <AutoUpdateSettingsSection />
     <section className={styles.card}>
-      <h3>Yazar</h3>
-      <p className={styles.cardDesc}>Mustafa Bilgin (mrquake) tarafından geliştirildi.</p>
+      <h3>{t("settings.content.about.author")}</h3>
+      <p className={styles.cardDesc}>{t("settings.content.about.authorDescription")}</p>
       <p className={styles.muted}>© {new Date().getFullYear()} Quake Code</p>
     </section>
   </>;
@@ -2464,6 +2486,7 @@ function AboutSection() {
 
 /** S-PUB.2 — Otomatik güncelleme; feed yoksa kapalı + açıklama (unsigned path bozulmaz). */
 function AutoUpdateSettingsSection() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<UpdaterStatus | null>(null);
   const [feedDraft, setFeedDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -2486,7 +2509,7 @@ function AutoUpdateSettingsSection() {
           willCheck: false,
           currentVersion: "",
           feedSource: "none",
-          statusMessage: "Güncelleme durumu alınamadı.",
+          statusMessage: t("settings.content.updates.statusUnavailable"),
         });
       }
     });
@@ -2502,7 +2525,7 @@ function AutoUpdateSettingsSection() {
       const next = await desktop.updater.setEnabled(enabled);
       setStatus(next);
     } catch {
-      useAppStore.getState().showToast("Güncelleme tercihi kaydedilemedi", "error");
+      useAppStore.getState().showToast(t("settings.content.updates.saveFailed"), "error");
     } finally {
       setBusy(false);
     }
@@ -2518,12 +2541,12 @@ function AutoUpdateSettingsSection() {
       if (next.lastError && !next.feedConfigured && feedDraft.trim()) {
         useAppStore.getState().showToast(next.lastError, "error");
       } else if (!feedDraft.trim()) {
-        useAppStore.getState().showToast("Feed URL temizlendi", "success");
+        useAppStore.getState().showToast(t("settings.content.updates.feedCleared"), "success");
       } else {
-        useAppStore.getState().showToast("Feed kaydedildi", "success");
+        useAppStore.getState().showToast(t("settings.content.updates.feedSaved"), "success");
       }
     } catch {
-      useAppStore.getState().showToast("Feed kaydedilemedi", "error");
+      useAppStore.getState().showToast(t("settings.content.updates.feedSaveFailed"), "error");
     } finally {
       setBusy(false);
     }
@@ -2536,14 +2559,14 @@ function AutoUpdateSettingsSection() {
       const next = await desktop.updater.check();
       setStatus(next);
       if (next.updateAvailable && next.updateVersion) {
-        useAppStore.getState().showToast(`Yeni sürüm: ${next.updateVersion}`, "success");
+        useAppStore.getState().showToast(t("settings.content.updates.newVersion", { version: next.updateVersion }), "success");
       } else if (next.lastError) {
         useAppStore.getState().showToast(next.lastError, "warning");
       } else {
-        useAppStore.getState().showToast("Güncel sürümdesiniz", "success");
+        useAppStore.getState().showToast(t("settings.content.updates.upToDate"), "success");
       }
     } catch {
-      useAppStore.getState().showToast("Güncelleme kontrolü başarısız", "error");
+      useAppStore.getState().showToast(t("settings.content.updates.checkFailed"), "error");
     } finally {
       setBusy(false);
     }
@@ -2554,28 +2577,23 @@ function AutoUpdateSettingsSection() {
   const toggleDisabled = !isDesktopShell || !feedConfigured || busy || Boolean(status?.envForced);
   const feedSourceLabel =
     status?.feedSource === "env"
-      ? "Ortam (QUAKE_UPDATE_FEED_URL)"
+      ? "Environment (QUAKE_UPDATE_FEED_URL)"
       : status?.feedSource === "prefs"
-        ? "Ayarlar (kayıtlı)"
+        ? t("settings.title")
         : status?.feedSource === "embedded"
-          ? "Paket (app-update.yml)"
+          ? "Package (app-update.yml)"
           : "—";
 
   return (
     <section className={styles.card}>
-      <h3>Otomatik güncelleme</h3>
-      <p className={styles.cardDesc}>
-        Yayın kanalı (update feed) yapılandırıldığında masaüstü uygulaması yeni sürümleri kontrol edebilir.
-        Feed URL’yi burada kaydedebilir veya <code>QUAKE_UPDATE_FEED_URL</code> ile verebilirsiniz. Feed yokken uygulama normal açılır.
-      </p>
+      <h3>{t("settings.content.updates.title")}</h3>
+      <p className={styles.cardDesc}>{t("settings.content.updates.description")}</p>
 
       {isDesktopShell ? (
         <div className={styles.feedUrlBlock}>
           <label className={styles.feedUrlLabel} htmlFor="quake-update-feed-url">
-            Güncelleme feed URL
-            <small>
-              Generic sağlayıcı tabanı (örn. https://releases.example.com/quake-desktop). Ortam değişkeni varsa o önceliklidir.
-            </small>
+            {t("settings.content.updates.feedUrl")}
+            <small>{t("settings.content.updates.feedDescription")}</small>
           </label>
           <div className={styles.feedUrlRow}>
             <input
@@ -2602,12 +2620,12 @@ function AutoUpdateSettingsSection() {
               disabled={busy || status?.feedSource === "env" || !desktop?.updater?.setFeedUrl}
               onClick={() => void onSaveFeed()}
             >
-              Feed kaydet
+              {t("settings.content.updates.saveFeed")}
             </button>
           </div>
           {status?.feedSource === "env" ? (
             <p className={styles.muted} style={{ marginTop: 6 }}>
-              Feed ortam değişkeninden geliyor; Settings kaydı devre dışı.
+              {t("settings.content.updates.envFeedDisabled")}
             </p>
           ) : null}
         </div>
@@ -2615,50 +2633,50 @@ function AutoUpdateSettingsSection() {
 
       <div className={styles.toggleRow}>
         <span className={styles.toggleLabel}>
-          Otomatik güncelleme
+          {t("settings.content.updates.automatic")}
           <small>
             {!isDesktopShell
-              ? "Yalnızca Electron masaüstü kabuğunda kullanılabilir."
+              ? t("settings.content.updates.onlyElectron")
               : !feedConfigured
-                ? "Feed kaydedin veya QUAKE_UPDATE_FEED_URL ayarlayın. Feed yokken kontrol yapılmaz."
+                ? t("settings.content.updates.configureFeed")
                 : status?.envForced
-                  ? "Ortam değişkeni ile zorlandı (QUAKE_AUTO_UPDATE=1)."
-                  : "Açıkken başlangıçta ve elle kontrol ile feed sorgulanır."}
+                  ? t("settings.content.updates.envForced")
+                  : t("settings.content.updates.enabledDescription")}
           </small>
         </span>
         <Switch
           checked={toggleOn}
           disabled={toggleDisabled}
           onChange={onToggle}
-          label="Otomatik güncelleme"
+          label={t("settings.content.updates.automatic")}
         />
       </div>
       <div className={styles.facts} style={{ marginTop: 12 }}>
         <div className={styles.factRow}>
-          <b>Kanal</b>
+          <b>{t("settings.content.updates.channel")}</b>
           <span>
             <Pill tone={feedConfigured ? "ok" : "warn"}>
-              {feedConfigured ? "Yapılandırıldı" : "Yok"}
+              {feedConfigured ? t("settings.content.updates.configured") : t("settings.content.updates.none")}
             </Pill>
           </span>
         </div>
         <div className={styles.factRow}>
-          <b>Feed</b>
+          <b>{t("settings.content.updates.feed")}</b>
           <span title={status?.updateFeedUrl || status?.feedUrlMasked || ""}>
-            {status?.feedUrlMasked || (isDesktopShell ? "—" : "Web — uygulanmaz")}
+            {status?.feedUrlMasked || (isDesktopShell ? "—" : t("settings.content.updates.webNotApplicable"))}
           </span>
         </div>
         <div className={styles.factRow}>
-          <b>Kaynak</b>
+          <b>{t("settings.content.updates.source")}</b>
           <span>{feedSourceLabel}</span>
         </div>
         <div className={styles.factRow}>
-          <b>Durum</b>
-          <span>{status?.statusMessage || (isDesktopShell ? "Yükleniyor…" : "Web — uygulanmaz")}</span>
+          <b>{t("settings.content.updates.status")}</b>
+          <span>{status?.statusMessage || (isDesktopShell ? t("settings.content.updates.loading") : t("settings.content.updates.webNotApplicable"))}</span>
         </div>
         {status?.currentVersion ? (
           <div className={styles.factRow}>
-            <b>Uygulama sürümü</b>
+            <b>{t("settings.content.updates.appVersion")}</b>
             <span>{status.currentVersion}</span>
           </div>
         ) : null}
@@ -2666,11 +2684,11 @@ function AutoUpdateSettingsSection() {
       {isDesktopShell && feedConfigured ? (
         <div className={styles.actionRow} style={{ marginTop: 12 }}>
           <div className={styles.actionText}>
-            <b>Şimdi kontrol et</b>
-            <span>Feed üzerinden yeni sürüm var mı bak (indirme otomatik değil).</span>
+            <b>{t("settings.content.updates.checkNow")}</b>
+            <span>{t("settings.content.updates.checkDescription")}</span>
           </div>
           <button type="button" className={styles.smallBtn} disabled={busy} onClick={() => void onCheck()}>
-            Kontrol et
+            {t("settings.content.updates.check")}
           </button>
         </div>
       ) : null}
@@ -2679,6 +2697,7 @@ function AutoUpdateSettingsSection() {
 }
 
 function AdvancedSection({ onCompact, onClearPromptHistory, onAutoCompaction }: { onCompact?: () => void; onClearPromptHistory?: () => void; onAutoCompaction?: (enabled: boolean) => void }) {
+  const { t } = useI18n();
   // Only fields used in the UI — avoid full config/state object identity churn.
   const autoCompactionEnabled = useAppStore((s) => (s.state as any)?.autoCompactionEnabled as boolean | undefined);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -2693,7 +2712,7 @@ function AdvancedSection({ onCompact, onClearPromptHistory, onAutoCompaction }: 
   function exportConversationAs(format: "markdown" | "json") {
     const store = useAppStore.getState();
     if (!store.messages.length) {
-      store.showToast("Dışa aktarılacak mesaj yok", "warning");
+      store.showToast(t("settings.content.advanced.noMessages"), "warning");
       return;
     }
     const content = exportConversation(store.messages, store.tools, { format, includeTools: true, includeThinking: false });
@@ -2705,8 +2724,8 @@ function AdvancedSection({ onCompact, onClearPromptHistory, onAutoCompaction }: 
   function resetUiState() {
     LOCAL_UI_STATE_KEYS.forEach(removeStorageValue);
     setConfirmReset(false);
-    useAppStore.getState().showToast("Yerel arayüz durumu sıfırlandı. Sayfayı yenileyin.", "success", {
-      actionLabel: "Yenile",
+    useAppStore.getState().showToast(t("settings.content.advanced.resetSuccess"), "success", {
+      actionLabel: t("settings.content.advanced.reload"),
       action: () => window.location.reload(),
     });
   }
@@ -2733,10 +2752,10 @@ function AdvancedSection({ onCompact, onClearPromptHistory, onAutoCompaction }: 
         for (const [key, value] of Object.entries(parsed.data)) {
           if (key.startsWith("quake-web:") && typeof value === "string") { localStorage.setItem(key, value); count += 1; }
         }
-        useAppStore.getState().showToast(`${count} ayar içe aktarıldı. Yenileniyor…`, "success");
+        useAppStore.getState().showToast(t("settings.content.advanced.imported", { count }), "success");
         window.setTimeout(() => window.location.reload(), 700);
       } catch {
-        useAppStore.getState().showToast("Geçersiz ayar dosyası", "error");
+        useAppStore.getState().showToast(t("settings.content.advanced.invalidFile"), "error");
       }
     });
   }
@@ -2744,11 +2763,11 @@ function AdvancedSection({ onCompact, onClearPromptHistory, onAutoCompaction }: 
   return (
     <>
       <section className={styles.card}>
-        <h3>Sohbeti dışa aktar</h3>
+        <h3>{t("settings.content.advanced.exportChat")}</h3>
         <div className={styles.actionRow}>
           <div className={styles.actionText}>
-            <b>Mevcut sohbeti indir</b>
-            <span>Konuşmayı Markdown veya JSON olarak kaydet.</span>
+            <b>{t("settings.content.advanced.downloadCurrentChat")}</b>
+            <span>{t("settings.content.advanced.downloadCurrentChatDescription")}</span>
           </div>
           <div className={styles.actionButtons}>
             <button type="button" className={styles.smallBtn} onClick={() => exportConversationAs("markdown")}>Markdown</button>
@@ -2759,54 +2778,54 @@ function AdvancedSection({ onCompact, onClearPromptHistory, onAutoCompaction }: 
 
       {(onCompact || onAutoCompaction || onClearPromptHistory) && (
         <section className={styles.card}>
-          <h3>Oturum & bakım</h3>
+          <h3>{t("settings.content.advanced.sessionMaintenance")}</h3>
           {onAutoCompaction && (
             <div className={styles.toggleRow}>
-              <span className={styles.toggleLabel}>Otomatik bağlam sıkıştırma<small>Bağlam dolunca konuşmayı otomatik özetle</small></span>
-              <Switch checked={autoCompactionEnabled !== false} onChange={onAutoCompaction} label="Otomatik bağlam sıkıştırma" />
+              <span className={styles.toggleLabel}>{t("settings.content.advanced.autoCompaction")}<small>{t("settings.content.advanced.autoCompactionDescription")}</small></span>
+              <Switch checked={autoCompactionEnabled !== false} onChange={onAutoCompaction} label={t("settings.content.advanced.autoCompaction")} />
             </div>
           )}
           {onCompact && (
             <div className={styles.actionRow} style={{ marginTop: "var(--space-2)" }}>
-              <div className={styles.actionText}><b>Şimdi sıkıştır</b><span>Mevcut konuşmayı hemen özetle (/compact).</span></div>
-              <button type="button" className={styles.smallBtn} onClick={onCompact}>Sıkıştır</button>
+              <div className={styles.actionText}><b>{t("settings.content.advanced.compactNow")}</b><span>{t("settings.content.advanced.compactNowDescription")}</span></div>
+              <button type="button" className={styles.smallBtn} onClick={onCompact}>{t("settings.content.advanced.compact")}</button>
             </div>
           )}
           {onClearPromptHistory && (
             <div className={styles.actionRow} style={{ marginTop: "var(--space-2)" }}>
-              <div className={styles.actionText}><b>Komut geçmişini temizle</b><span>Composer'daki yukarı/aşağı oklarıyla gezilen geçmişi siler.</span></div>
-              <button type="button" className={styles.smallBtn} onClick={onClearPromptHistory}>Temizle</button>
+              <div className={styles.actionText}><b>{t("settings.content.advanced.clearPromptHistory")}</b><span>{t("settings.content.advanced.clearPromptHistoryDescription")}</span></div>
+              <button type="button" className={styles.smallBtn} onClick={onClearPromptHistory}>{t("settings.content.advanced.clear")}</button>
             </div>
           )}
         </section>
       )}
 
       <section className={styles.card}>
-        <h3>Ayar yedekleme</h3>
+        <h3>{t("settings.content.advanced.backup")}</h3>
         <div className={styles.actionRow}>
-          <div className={styles.actionText}><b>Arayüz tercihlerini yedekle / geri yükle</b><span>Bu cihazdaki quake-web arayüz tercihlerini JSON olarak aktarır; provider hesapları, MCP ve çalışma alanı politikaları dahil değildir.</span></div>
+          <div className={styles.actionText}><b>{t("settings.content.advanced.backupPreferences")}</b><span>{t("settings.content.advanced.backupDescription")}</span></div>
           <div className={styles.actionButtons}>
-            <button type="button" className={styles.smallBtn} onClick={exportSettings}>Dışa aktar</button>
-            <button type="button" className={styles.smallBtn} onClick={() => importRef.current?.click()}>İçe aktar</button>
+            <button type="button" className={styles.smallBtn} onClick={exportSettings}>{t("settings.content.advanced.export")}</button>
+            <button type="button" className={styles.smallBtn} onClick={() => importRef.current?.click()}>{t("settings.content.advanced.import")}</button>
             <input ref={importRef} type="file" accept="application/json" style={{ display: "none" }} onChange={(event) => { const file = event.target.files?.[0]; if (file) importSettings(file); event.target.value = ""; }} />
           </div>
         </div>
       </section>
 
       <section className={`${styles.card} ${styles.danger}`}>
-        <h3>Arayüzü sıfırla</h3>
+        <h3>{t("settings.content.advanced.resetUi")}</h3>
         <div className={styles.actionRow}>
           <div className={styles.actionText}>
-            <b>Yerel arayüz durumunu sıfırla</b>
-            <span>Tema, paneller, geçmiş, sabitlenen modeller ve bildirim tercihleri silinir. Sohbet geçmişi sunucuda kalır.</span>
+            <b>{t("settings.content.advanced.resetLocalUi")}</b>
+            <span>{t("settings.content.advanced.resetDescription")}</span>
           </div>
           {confirmReset ? (
             <div className={styles.actionButtons}>
-              <button type="button" className={styles.dangerBtn} onClick={resetUiState}>Evet, sıfırla</button>
-              <button type="button" className={styles.smallBtn} onClick={() => setConfirmReset(false)}>Vazgeç</button>
+              <button type="button" className={styles.dangerBtn} onClick={resetUiState}>{t("settings.content.advanced.resetYes")}</button>
+              <button type="button" className={styles.smallBtn} onClick={() => setConfirmReset(false)}>{t("settings.content.advanced.cancel")}</button>
             </div>
           ) : (
-            <button type="button" className={styles.dangerBtn} onClick={() => setConfirmReset(true)}>Sıfırla</button>
+            <button type="button" className={styles.dangerBtn} onClick={() => setConfirmReset(true)}>{t("settings.content.advanced.reset")}</button>
           )}
         </div>
       </section>

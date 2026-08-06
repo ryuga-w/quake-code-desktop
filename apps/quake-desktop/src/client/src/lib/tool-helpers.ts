@@ -13,20 +13,21 @@ import {
   toolMutationKind as toolMutationKindModel,
   toolPreviewText as toolPreviewTextModel,
   toolSortTime as toolSortTimeModel,
+  type ToolActivityLocale,
 } from "./tool-activity";
 import { TOOL_SEARCH_TEXT_LIMIT, CHANGE_TOOL_SCAN_LIMIT } from "../constants";
 import { statusLabel } from "./format-utils";
 
-export function toolDisplayName(name: string): string {
-  return toolDisplayNameModel(name);
+export function toolDisplayName(name: string, locale: ToolActivityLocale = "tr"): string {
+  return toolDisplayNameModel(name, locale);
 }
 
-export function summarizeToolArgs(name: string, args: unknown): string | undefined {
-  return summarizeToolArgsModel(name, args, { writeVerb: "create" });
+export function summarizeToolArgs(name: string, args: unknown, locale: ToolActivityLocale = "tr"): string | undefined {
+  return summarizeToolArgsModel(name, args, { writeVerb: "create" }, locale);
 }
 
-export function toolPreviewText(card: ToolCardState): string {
-  return toolPreviewTextModel(card);
+export function toolPreviewText(card: ToolCardState, locale: ToolActivityLocale = "tr"): string {
+  return toolPreviewTextModel(card, locale);
 }
 
 export function toolMutationKind(card: ToolCardState) {

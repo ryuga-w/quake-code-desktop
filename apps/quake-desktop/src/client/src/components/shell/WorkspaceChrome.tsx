@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Bot, ChevronRight, FolderCode, ListTree, PanelBottom, PanelRight, Plus } from "lucide-react";
 import type { WebSubagentSummary } from "../../../../shared/protocol";
 import { apiGet } from "../../lib/api";
+import { type Translate, useI18n } from "../../i18n";
 import { readStorageValue, writeStorageValue } from "../../lib/storage";
 import { useAppStore } from "../../state/app-store";
 import {
@@ -39,6 +40,7 @@ export function WorkspaceChrome({
   onOpenAgents?: () => void;
   onOpenSubagent?: (agentId: string) => void;
 }) {
+  const { t } = useI18n();
   const tools = useAppStore((state) => state.tools);
   const messages = useAppStore((state) => state.messages);
   const subagentStatus = useAppStore((state) => state.statuses.subagents);
@@ -98,9 +100,9 @@ export function WorkspaceChrome({
 
   return <div className="workspace-chrome">
     <div className="workspace-chrome-controls">
-      <button type="button" className={summaryOpen ? "active" : ""} onClick={() => setSummaryVisibility(!summaryOpen)} title="Çıktıları aç/kapat" aria-label="Çıktıları aç/kapat" aria-pressed={summaryOpen}><ListTree size={14} /></button>
-      <button type="button" className={terminalOpen ? "active" : ""} onClick={onToggleTerminal} title="Terminali aç/kapat (Ctrl+J)" aria-label="Terminali aç/kapat" aria-pressed={terminalOpen}><PanelBottom size={15} /></button>
-      <button type="button" className={rightOpen ? "active" : ""} onClick={onToggleRight} title="Yan paneli aç/kapat" aria-label="Yan paneli aç/kapat" aria-pressed={rightOpen}><PanelRight size={15} /></button>
+      <button type="button" className={summaryOpen ? "active" : ""} onClick={() => setSummaryVisibility(!summaryOpen)} title={t("workspace.controls.toggleOutputs")} aria-label={t("workspace.controls.toggleOutputs")} aria-pressed={summaryOpen}><ListTree size={14} /></button>
+      <button type="button" className={terminalOpen ? "active" : ""} onClick={onToggleTerminal} title={t("workspace.controls.toggleTerminal")} aria-label={t("workspace.controls.toggleTerminal")} aria-pressed={terminalOpen}><PanelBottom size={15} /></button>
+      <button type="button" className={rightOpen ? "active" : ""} onClick={onToggleRight} title={t("workspace.controls.toggleRightPanel")} aria-label={t("workspace.controls.toggleRightPanel")} aria-pressed={rightOpen}><PanelRight size={15} /></button>
     </div>
     {summaryOpen && <WorkspaceContextCard
       workspaceName={workspaceName}
@@ -137,6 +139,7 @@ export function WorkspaceContextCard({
   onOpenAgents?: () => void;
   onOpenSubagent?: (agentId: string) => void;
 }) {
+  const { t } = useI18n();
   const tools = useAppStore((state) => state.tools);
   const messages = useAppStore((state) => state.messages);
   const storeSubagentStatus = useAppStore((state) => state.statuses.subagents);
@@ -146,11 +149,11 @@ export function WorkspaceContextCard({
   const steps = plan?.steps || [];
   const hasPlan = Boolean(plan?.artifact || plan?.enabled || steps.length);
 
-  return <aside className={`workspace-context-card ${hasPlan ? "workspace-context-plan" : ""}`} aria-label="Çıktılar">
+  return <aside className={`workspace-context-card ${hasPlan ? "workspace-context-plan" : ""}`} aria-label={t("workspace.outputs.label")}>
     {hasPlan && <>
       <div className="workspace-context-head">
-        <span>Plan</span>
-        <button type="button" onClick={onOpenPlan} aria-label="Planı aç"><Plus aria-hidden="true" /></button>
+        <span>{t("workspace.outputs.plan")}</span>
+        <button type="button" onClick={onOpenPlan} aria-label={t("workspace.outputs.openPlan")}><Plus aria-hidden="true" /></button>
       </div>
       {plan?.artifact && (
         <button type="button" className="workspace-context-row workspace-context-title" onClick={onOpenPlan} title={plan.artifact.title}>
@@ -167,23 +170,23 @@ export function WorkspaceContextCard({
               {status === "active" ? <i className="workspace-context-spinner" aria-hidden="true" /> : status === "completed" ? "✓" : status === "blocked" ? "!" : step.step}
             </span>
             <span>{step.fullText || step.text}</span>
-            <b>{workspacePlanStatusLabel(status)}</b>
+            <b>{workspacePlanStatusLabel(status, t)}</b>
           </button>;
         })}
       </div>
     </>}
 
     <div className={`workspace-context-head ${hasPlan ? "workspace-context-output-head" : ""}`}>
-      <span>Çıktılar</span>
-      <button type="button" onClick={onOpenFiles} aria-label="Yeni çıktı ekle"><Plus aria-hidden="true" /></button>
+      <span>{t("workspace.outputs.label")}</span>
+      <button type="button" onClick={onOpenFiles} aria-label={t("workspace.outputs.add")}><Plus aria-hidden="true" /></button>
     </div>
     {subagents.length === 0 ? (
       <button type="button" className="workspace-context-muted" title={workspacePath || workspaceName} onClick={onOpenFiles}>
-        Dosya veya site oluştur
+        {t("workspace.outputs.empty")}
       </button>
     ) : (
       <div className="workspace-context-items">
-        <div className="workspace-context-section-label">Alt otonom ajanlar</div>
+        <div className="workspace-context-section-label">{t("workspace.outputs.subagents")}</div>
         {subagents.map((agent, index) => {
           const active = isAgentActiveStatus(agent.status);
           return (
@@ -199,53 +202,53 @@ export function WorkspaceContextCard({
             >
               <span className="workspace-context-agent-icon"><Bot aria-hidden="true" /></span>
               <span>{agent.name}</span>
-              <b>{active ? <><i className="workspace-context-status-dot" /> çalışıyor</> : workspaceOutputAgentStatusLabel(agent.status)}</b>
+              <b>{active ? <><i className="workspace-context-status-dot" /> {t("workspace.agentStatus.running")}</> : workspaceOutputAgentStatusLabel(agent.status, t)}</b>
             </button>
           );
         })}
 
         <div className="workspace-context-section-label workspace-context-resources-label">
-          <span>Kaynaklar</span>
-          <button type="button" onClick={onOpenFiles} aria-label="Kaynak ekle"><Plus aria-hidden="true" /></button>
+          <span>{t("workspace.outputs.resources")}</span>
+          <button type="button" onClick={onOpenFiles} aria-label={t("workspace.outputs.addResource")}><Plus aria-hidden="true" /></button>
         </div>
         <button type="button" className="workspace-context-row workspace-context-resource" onClick={onOpenFiles} title={workspacePath}>
           <span className="workspace-context-icon"><FolderCode aria-hidden="true" /></span>
-          <span>{workspaceName || "Proje dosyaları"}</span>
-          <b>proje</b>
+          <span>{workspaceName || t("workspace.outputs.projectFiles")}</span>
+          <b>{t("workspace.outputs.project")}</b>
         </button>
         {onOpenAgents ? (
           <button type="button" className="workspace-context-row workspace-context-view-all" onClick={onOpenAgents}>
             <span className="workspace-context-icon">⌘</span>
-            <span>Tümünü görüntüle</span>
+            <span>{t("workspace.outputs.viewAll")}</span>
             <ChevronRight aria-hidden="true" />
           </button>
         ) : null}
       </div>
     )}
-    {subagentStatus ? <div className="workspace-context-agent-status">{translateSubagentStatus(subagentStatus)}</div> : null}
+    {subagentStatus ? <div className="workspace-context-agent-status">{translateSubagentStatus(subagentStatus, t)}</div> : null}
   </aside>;
 }
 
-export function workspacePlanStatusLabel(status: string): string {
-  if (status === "active") return "aktif";
-  if (status === "completed") return "bitti";
-  if (status === "blocked") return "engelli";
-  return "bekliyor";
+export function workspacePlanStatusLabel(status: string, t: Translate): string {
+  if (status === "active") return t("workspace.planStatus.active");
+  if (status === "completed") return t("workspace.planStatus.completed");
+  if (status === "blocked") return t("workspace.planStatus.blocked");
+  return t("workspace.planStatus.pending");
 }
 
-export function workspaceOutputAgentStatusLabel(status: string): string {
+export function workspaceOutputAgentStatusLabel(status: string, t: Translate): string {
   const value = status.toLowerCase();
-  if (value === "completed" || value === "done" || value === "steered") return "tamamlandı";
-  if (value === "queued" || value === "pending_init") return "sırada";
-  if (value === "error") return "hata";
-  if (value === "aborted" || value === "stopped" || value === "shutdown") return "durduruldu";
-  if (value === "interrupted") return "kesildi";
-  return "çalışıyor";
+  if (value === "completed" || value === "done" || value === "steered") return t("workspace.agentStatus.completed");
+  if (value === "queued" || value === "pending_init") return t("workspace.agentStatus.queued");
+  if (value === "error") return t("workspace.agentStatus.error");
+  if (value === "aborted" || value === "stopped" || value === "shutdown") return t("workspace.agentStatus.stopped");
+  if (value === "interrupted") return t("workspace.agentStatus.interrupted");
+  return t("workspace.agentStatus.running");
 }
 
-export function translateSubagentStatus(value: string): string {
+export function translateSubagentStatus(value: string, t: Translate): string {
   return value
-    .replace(/running/gi, "çalışıyor")
-    .replace(/queued/gi, "sırada")
-    .replace(/agents?/gi, "subagent");
+    .replace(/running/gi, t("workspace.agentStatus.running"))
+    .replace(/queued/gi, t("workspace.agentStatus.queued"))
+    .replace(/agents?/gi, t("workspace.agentStatus.subagent"));
 }

@@ -9,6 +9,7 @@ import {
   isEditTool,
 } from "../../lib/tool-activity";
 import styles from "./FileMutationSnippetCard.module.css";
+import { useI18n } from "../../i18n";
 
 type SnippetLine = {
   kind: "add" | "del" | "ctx";
@@ -59,7 +60,7 @@ function splitLines(text: string): string[] {
 }
 
 /** Prefer unified/apply_patch body; else raw written content as pure adds. */
-function buildSnippetLines(tool: ToolCardState, pathHint?: string): {
+function buildSnippetLines(tool: ToolCardState, pathHint?: string, locale: "tr" | "en" = "tr"): {
   lines: SnippetLine[];
   added: number;
   removed: number;
@@ -76,7 +77,7 @@ function buildSnippetLines(tool: ToolCardState, pathHint?: string): {
     mutations[0]?.path ||
     toolArgPath(args) ||
     String(args.path || args.filePath || args.targetFile || "") ||
-    "dosya";
+    locale === "en" ? "file" : "dosya";
 
   const detailsDiff = typeof details?.diff === "string" ? details.diff : "";
   const patch =
@@ -173,7 +174,7 @@ function buildSnippetLines(tool: ToolCardState, pathHint?: string): {
 
   return {
     path,
-    lines: [{ kind: "ctx", text: "Önizleme yok", lineNo: 1 }],
+    lines: [{ kind: "ctx", text: locale === "en" ? "No preview" : "Önizleme yok", lineNo: 1 }],
     added: stats.added || 0,
     removed: stats.removed || 0,
     truncated: false,
@@ -299,7 +300,8 @@ export function FileMutationSnippetCard({
   /** Filename click opens this exact change in the review panel. */
   onInspect?: (path: string) => void;
 }) {
-  const snippet = useMemo(() => buildSnippetLines(tool, pathOverride), [tool, pathOverride]);
+  const { t, locale } = useI18n();
+  const snippet = useMemo(() => buildSnippetLines(tool, pathOverride, locale), [locale, pathOverride, tool]);
   const name = shortName(snippet.path);
   const open = () => {
     if (onOpenFile) onOpenFile(snippet.path);
@@ -332,28 +334,28 @@ export function FileMutationSnippetCard({
           type="button"
           className={styles.fileName}
           onClick={inspect}
-          title={onInspect ? `${snippet.path} değişikliğini İnceleme panelinde aç` : snippet.path}
-          aria-label={onInspect ? `${snippet.path} değişikliğini incele` : `${snippet.path} dosyasını aç`}
+          title={onInspect ? `${snippet.path} · ${locale === "en" ? "Open in inspector" : "İnceleme panelinde aç"}` : snippet.path}
+          aria-label={onInspect ? `${snippet.path} · ${locale === "en" ? "inspect change" : "değişikliği incele"}` : `${snippet.path} · ${t("tools.renderer.openFile")}`}
         >
           {name}
         </button>
-        <span className={styles.stats} aria-label="Satır değişimi">
+        <span className={styles.stats} aria-label={t("tools.renderer.netLines")}>
           <span className={snippet.added ? styles.add : styles.zero}>+{snippet.added}</span>
           <span className={snippet.removed ? styles.del : styles.zero}>-{snippet.removed}</span>
         </span>
         {shown > 0 && (
-          <span className={styles.lineCount} title="Kartta gösterilen satır">
-            {shown} satır
+          <span className={styles.lineCount} title={locale === "en" ? "Lines shown in card" : "Kartta gösterilen satır"}>
+            {shown} {t("tools.renderer.lines")}
           </span>
         )}
-        <button type="button" className={styles.openBtn} onClick={open} aria-label="Dosyayı aç" title="Dosyayı aç">
+        <button type="button" className={styles.openBtn} onClick={open} aria-label={t("tools.renderer.openFile")} title={t("tools.renderer.openFile")}>
           <ExternalLink size={13} strokeWidth={1.8} aria-hidden />
         </button>
       </div>
       <div
         className={styles.body}
         role="region"
-        aria-label={`${name} önizleme · ${shown} satır`}
+        aria-label={`${name} ${locale === "en" ? "preview" : "önizleme"} · ${shown} ${t("tools.renderer.lines")}`}
         style={{ ["--gutter-ch" as string]: `${gutterDigits}ch` }}
       >
         {snippet.lines.map((line, i) => (
@@ -372,8 +374,8 @@ export function FileMutationSnippetCard({
         {incomplete && (
           <div className={styles.truncatedNote}>
             {snippet.truncated
-              ? `Görüntü limiti · +${snippet.added} −${snippet.removed} toplam (kaydır / dosyayı aç)`
-              : `Toplam +${snippet.added} −${snippet.removed} · önizleme kısmi olabilir`}
+              ? `${locale === "en" ? "Display limit" : "Görüntü limiti"} · +${snippet.added} −${snippet.removed} ${locale === "en" ? "total (scroll / open file)" : "toplam (kaydır / dosyayı aç)"}`
+              : `${locale === "en" ? "Total" : "Toplam"} +${snippet.added} −${snippet.removed} · ${locale === "en" ? "preview may be partial" : "önizleme kısmi olabilir"}`}
           </div>
         )}
       </div>

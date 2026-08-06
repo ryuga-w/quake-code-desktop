@@ -1,4 +1,6 @@
 .root {
+  position: relative;
+  z-index: 20;
   display: grid;
   width: min(100%, 764px);
   margin: 0 auto 12px;

@@ -1,5 +1,6 @@
 import type React from "react";
 import { formatModelDisplayLabel } from "./models";
+import type { ToolActivityLocale } from "./tool-activity";
 
 export function fileIcon(name: string): string {
   const ext = name.split(".").pop()?.toLowerCase();
@@ -25,7 +26,17 @@ export function formatDuration(value: number): string {
   return `${minutes}m ${seconds}s`;
 }
 
-export function thinkingLabel(level: string): string {
+export function thinkingLabel(level: string, locale: ToolActivityLocale = "tr"): string {
+  if (locale === "en") {
+    if (level === "max") return "Maximum";
+    if (level === "xhigh") return "Very high";
+    if (level === "high") return "High";
+    if (level === "medium") return "Medium";
+    if (level === "low") return "Low";
+    if (level === "minimal") return "Minimal";
+    if (level === "off") return "Off";
+    return level || "Medium";
+  }
   if (level === "max") return "Maksimum";
   if (level === "xhigh") return "Çok Yüksek";
   if (level === "high") return "Yüksek";
@@ -46,7 +57,15 @@ export function normalizeQueuedTexts(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }
 
-export function statusLabel(status: string): string {
+export function statusLabel(status: string, locale: ToolActivityLocale = "tr"): string {
+  if (locale === "en") {
+    if (status === "done") return "Completed";
+    if (status === "error") return "Needs attention";
+    if (status === "running") return "Running";
+    if (status === "streaming") return "Streaming";
+    if (status === "queued") return "Queued";
+    return status;
+  }
   if (status === "done") return "Tamamlandı";
   if (status === "error") return "Dikkat gerekiyor";
   if (status === "running" || status === "streaming") return "Çalışıyor";
@@ -60,12 +79,17 @@ export function handleActivationKey(event: React.KeyboardEvent, action: () => vo
   action();
 }
 
-export function statusFilterLabel(value: string): string {
-  if (value === "all") return "Tümü";
-  return statusLabel(value);
+export function statusFilterLabel(value: string, locale: ToolActivityLocale = "tr"): string {
+  if (value === "all") return locale === "en" ? "All" : "Tümü";
+  return statusLabel(value, locale);
 }
 
-export function changeKindLabel(value: "created" | "modified" | "deleted"): string {
+export function changeKindLabel(value: "created" | "modified" | "deleted", locale: ToolActivityLocale = "tr"): string {
+  if (locale === "en") {
+    if (value === "created") return "created";
+    if (value === "deleted") return "deleted";
+    return "edited";
+  }
   if (value === "created") return "oluşturuldu";
   if (value === "deleted") return "silindi";
   return "düzenlendi";

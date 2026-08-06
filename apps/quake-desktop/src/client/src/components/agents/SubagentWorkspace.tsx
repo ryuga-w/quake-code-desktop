@@ -1,9 +1,6 @@
 import React from "react";
 import {
   Bot,
-  Clock3,
-  Copy,
-  GitBranch,
   X,
 } from "lucide-react";
 import type {
@@ -16,8 +13,9 @@ import { apiGet, apiPost } from "../../lib/api";
 import { textFromMessage } from "../../lib/render";
 import { readStorageJson, writeStorageJson } from "../../lib/storage";
 import { DockConversationComposer } from "../composer/DockConversationComposer";
-import { MarkdownContent } from "../markdown/MarkdownContent";
 import { DockPanelTabPortal } from "../shell/DockPanelTabPortal";
+import { ConversationTimeline } from "../timeline/Timeline";
+import { projectSubagentTimeline } from "./subagent-timeline";
 import styles from "./SubagentWorkspace.module.css";
 
 type ToastType = "info" | "success" | "warning" | "error";
@@ -73,27 +71,6 @@ function isActiveStatus(status: string | undefined): boolean {
   return status === "running" || status === "queued";
 }
 
-function statusLabel(status: string | undefined): string {
-  if (status === "running") return "çalışıyor";
-  if (status === "queued") return "sırada";
-  if (status === "completed" || status === "steered") return "tamamlandı";
-  if (status === "error") return "hata";
-  if (status === "interrupted") return "kesildi";
-  if (status === "aborted" || status === "stopped" || status === "shutdown") return "durduruldu";
-  return status || "bekliyor";
-}
-
-function formatDuration(milliseconds: number): string {
-  const seconds = Math.max(0, Math.round(milliseconds / 1_000));
-  if (seconds < 60) return `${seconds} sn`;
-  const minutes = Math.floor(seconds / 60);
-  const remaining = seconds % 60;
-  if (minutes < 60) return remaining ? `${minutes} dk ${remaining} sn` : `${minutes} dk`;
-  const hours = Math.floor(minutes / 60);
-  const minuteRemainder = minutes % 60;
-  return minuteRemainder ? `${hours} sa ${minuteRemainder} dk` : `${hours} sa`;
-}
-
 function thinkingLabel(level: string | undefined): string {
   if (level === "off") return "Standart";
   if (level === "minimal") return "Minimal";
@@ -104,63 +81,11 @@ function thinkingLabel(level: string | undefined): string {
   return "Orta";
 }
 
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function updateSummary(rows: WebSubagentSummary[], snapshot: WebSubagentSnapshot): WebSubagentSummary[] {
   const next = rows.some((agent) => agent.id === snapshot.id)
     ? rows.map((agent) => agent.id === snapshot.id ? snapshot : agent)
     : [...rows, snapshot];
   return next.sort((left, right) => left.createdAt - right.createdAt);
-}
-
-function AgentRunMeta({ snapshot, active, durationMs }: { snapshot: WebSubagentSnapshot; active: boolean; durationMs: number }) {
-  return (
-    <div className={styles.runMeta} data-status={snapshot.status}>
-      {active ? <i className={styles.metaSpinner} aria-hidden="true" /> : <Clock3 aria-hidden="true" />}
-      <span>{formatDuration(durationMs)} boyunca {active ? "çalışıyor" : "çalıştı"}</span>
-      <b>{statusLabel(snapshot.status)}</b>
-      {snapshot.worktreeBranch ? <small title={snapshot.worktreeBranch}><GitBranch aria-hidden="true" /> {snapshot.worktreeBranch}</small> : null}
-    </div>
-  );
-}
-
-function activityLabel(activity: WebSubagentActivity): string {
-  const toolName = activity.toolName.toLowerCase();
-  const running = activity.status === "running";
-  if (/^(bash|shell|terminal|run_terminal_command)$/.test(toolName)) return running ? "Komut çalıştırıyor" : "Komut tamamlandı";
-  if (/(read|cat|get-content)/.test(toolName)) return running ? "Dosya okuyor" : "Dosya okundu";
-  if (/(grep|find|search|rg)/.test(toolName)) return running ? "Kodda arıyor" : "Arama tamamlandı";
-  if (/(write|edit|patch|move|rename)/.test(toolName)) return running ? "Dosyayı güncelliyor" : "Dosya güncellendi";
-  if (/(test|check|lint|typecheck)/.test(toolName)) return running ? "Kontrol çalıştırıyor" : "Kontrol tamamlandı";
-  if (/(browser|web)/.test(toolName)) return running ? "Web içeriğini inceliyor" : "Web incelemesi tamamlandı";
-  return running ? `${activity.toolName} çalıştırıyor` : `${activity.toolName} tamamlandı`;
-}
-
-function LiveAgentActivity({ activities }: { activities: WebSubagentActivity[] }) {
-  const visible = activities.slice(-4);
-  if (!visible.length) return null;
-  return (
-    <div className={styles.liveActivity} aria-label="Canlı subagent etkinliği">
-      {visible.map((activity, index) => (
-        <div className={styles.liveActivityItem} data-status={activity.status} key={activity.id}>
-          <div className={styles.liveActivityHead}>
-            <i aria-hidden="true" />
-            <strong>{activityLabel(activity)}</strong>
-            <span>{activity.toolName}</span>
-          </div>
-          {activity.input ? <code title={activity.input}>{activity.input}</code> : null}
-          {activity.output && index === visible.length - 1 ? <pre>{activity.output}</pre> : null}
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export function SubagentWorkspace({
@@ -197,14 +122,10 @@ export function SubagentWorkspace({
   const [createTask, setCreateTask] = React.useState("");
   const [createIsolation, setCreateIsolation] = React.useState<"worktree" | "none">("worktree");
   const [createForkContext, setCreateForkContext] = React.useState(false);
-  const [now, setNow] = React.useState(() => Date.now());
   const knownAgentIdsRef = React.useRef<Set<string> | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const createTaskRef = React.useRef<HTMLTextAreaElement | null>(null);
   const createWrapRef = React.useRef<HTMLDivElement | null>(null);
-  const scrollRef = React.useRef<HTMLDivElement | null>(null);
-  const endRef = React.useRef<HTMLDivElement | null>(null);
-  const stickToBottomRef = React.useRef(true);
   const listFailureNotifiedRef = React.useRef(false);
 
   const activeSummary = agents.find((agent) => agent.id === activeAgentId);
@@ -228,16 +149,26 @@ export function SubagentWorkspace({
       })),
     ];
   }, [activePending, persistedMessages]);
-  const streamingText = activeSnapshot?.streamingText
-    ? visibleMessageText({ role: "assistant", content: activeSnapshot.streamingText })
-    : activeSnapshot?.streamingMessage
-      ? visibleMessageText(activeSnapshot.streamingMessage)
-      : "";
   const liveActivities = activeSnapshot?.activities || [];
-  const liveActivityMarker = liveActivities
-    .map((activity) => `${activity.id}:${activity.status}:${activity.updatedAt}:${activity.output?.length || 0}`)
-    .join("|");
   const active = isActiveStatus(activeSnapshot?.status || activeSummary?.status);
+  const timelineMessages = React.useMemo(
+    () => projectSubagentTimeline(displayedMessages, liveActivities),
+    [displayedMessages, liveActivities],
+  );
+  const timelineStreamingMessage = activeSnapshot?.streamingMessage
+    || (activeSnapshot?.streamingText
+      ? {
+          role: "assistant",
+          content: activeSnapshot.streamingText,
+          timestamp: liveActivities.at(-1)?.updatedAt || activeSnapshot.startedAt,
+        }
+      : active
+        ? {
+            role: "assistant",
+            content: [{ type: "thinking", thinking: "Düşünüyor" }],
+            timestamp: liveActivities.at(-1)?.updatedAt || activeSnapshot?.startedAt || Date.now(),
+          }
+        : undefined);
 
   React.useEffect(() => {
     writeStorageJson(storageKey, { openAgentIds, activeAgentId, drafts } satisfies StoredSubagentWorkspace);
@@ -277,7 +208,6 @@ export function SubagentWorkspace({
     if (!requestedAgentId) return;
     setOpenAgentIds((current) => current.includes(requestedAgentId) ? current : [...current, requestedAgentId]);
     setActiveAgentId(requestedAgentId);
-    stickToBottomRef.current = true;
   }, [requestVersion, requestedAgentId]);
 
   React.useEffect(() => {
@@ -355,21 +285,9 @@ export function SubagentWorkspace({
     };
   }, [activeAgentId, applySnapshot, sessionId]);
 
-  React.useEffect(() => {
-    if (!agents.some((agent) => isActiveStatus(agent.status))) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
-    return () => window.clearInterval(timer);
-  }, [agents]);
-
-  React.useEffect(() => {
-    if (!stickToBottomRef.current) return;
-    endRef.current?.scrollIntoView({ block: "end" });
-  }, [activeAgentId, displayedMessages.length, liveActivityMarker, streamingText]);
-
   function activateAgent(id: string) {
     setOpenAgentIds((current) => current.includes(id) ? current : [...current, id]);
     setActiveAgentId(id);
-    stickToBottomRef.current = true;
     requestAnimationFrame(() => textareaRef.current?.focus());
   }
 
@@ -382,12 +300,6 @@ export function SubagentWorkspace({
       }
       return next;
     });
-  }
-
-  function onThreadScroll() {
-    const element = scrollRef.current;
-    if (!element) return;
-    stickToBottomRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 84;
   }
 
   async function submitMessage() {
@@ -407,8 +319,6 @@ export function SubagentWorkspace({
     setAgents((current) => current.map((agent) => agent.id === activeAgentId
       ? { ...agent, status: "running", isStreaming: true, startedAt: Date.now(), completedAt: undefined }
       : agent));
-    stickToBottomRef.current = true;
-
     try {
       const response = await apiPost<{ agent: WebSubagentSnapshot }>(agentUrl(activeAgentId, "message", sessionId), {
         message,
@@ -468,24 +378,8 @@ export function SubagentWorkspace({
     }
   }
 
-  async function copyResponse(text: string) {
-    const copied = await copyText(text);
-    onToast(copied ? "Subagent yanıtı kopyalandı" : "Yanıt kopyalanamadı", copied ? "success" : "error");
-  }
-
   const effectiveSnapshot = activeSnapshot || (activeSummary ? ({ ...activeSummary, messages: [], activities: [] } as WebSubagentSnapshot) : undefined);
-  const durationMs = effectiveSnapshot
-    ? Math.max(0, (effectiveSnapshot.completedAt || now) - effectiveSnapshot.startedAt)
-    : 0;
   const modelLabel = effectiveSnapshot?.model?.name || effectiveSnapshot?.model?.id || effectiveSnapshot?.type || "Ajan";
-  const runAssistantIndex = displayedMessages.findIndex((message) =>
-    message?.role === "assistant"
-    && Boolean(visibleMessageText(message))
-    && Number(message?.timestamp || 0) >= Number(effectiveSnapshot?.startedAt || 0) - 100,
-  );
-  const runMeta = effectiveSnapshot ? (
-    <AgentRunMeta snapshot={effectiveSnapshot} active={active} durationMs={durationMs} />
-  ) : null;
 
   return (
     <section className={styles.panel} data-testid="subagent-workspace" aria-label="Subagent çalışma alanı">
@@ -568,44 +462,16 @@ export function SubagentWorkspace({
             <button type="button" onClick={() => { setCreateOpen(true); requestAnimationFrame(() => createTaskRef.current?.focus()); }}>Yeni subagent</button>
           </div>
         ) : (
-          <div className={styles.scroll} ref={scrollRef} onScroll={onThreadScroll}>
-            <div className={styles.thread} aria-live="polite">
-              {displayedMessages.map((message, index) => {
-                if (message?.role !== "user" && message?.role !== "assistant") return null;
-                const text = visibleMessageText(message);
-                if (!text) return null;
-                const key = String(message.id || message.messageId || `${message.role}-${message.timestamp || index}-${index}`);
-                if (message.role === "user") {
-                  return <article className={styles.userMessage} key={key}><p>{text}</p></article>;
-                }
-                return (
-                  <React.Fragment key={key}>
-                    {index === runAssistantIndex ? runMeta : null}
-                    <article className={styles.assistantMessage}>
-                      <div className={styles.assistantBody}><MarkdownContent content={text} isStreaming={false} onOpenFile={onOpenFile} /></div>
-                      <div className={styles.messageActions}>
-                        <button type="button" aria-label="Yanıtı kopyala" title="Yanıtı kopyala" onClick={() => void copyResponse(text)}><Copy aria-hidden="true" /></button>
-                      </div>
-                    </article>
-                  </React.Fragment>
-                );
-              })}
-
-              {runAssistantIndex < 0 ? runMeta : null}
-
-              {active ? (
-                <article className={styles.assistantMessage} data-streaming="true">
-                  <LiveAgentActivity activities={liveActivities} />
-                  {streamingText ? (
-                    <div className={styles.assistantBody}><MarkdownContent content={streamingText} isStreaming animated adaptiveSignalTrail onOpenFile={onOpenFile} /></div>
-                  ) : liveActivities.length === 0 ? (
-                    <div className={styles.thinking} aria-label="Subagent düşünüyor"><i /><i /><i /></div>
-                  ) : null}
-                </article>
-              ) : null}
-              {effectiveSnapshot?.error ? <div className={styles.errorNotice}>{effectiveSnapshot.error}</div> : null}
-              <div ref={endRef} className={styles.endAnchor} />
-            </div>
+          <div className={styles.timelineHost}>
+            <ConversationTimeline
+              messages={timelineMessages}
+              streamingMessage={timelineStreamingMessage}
+              isStreaming={active}
+              conversationKey={`subagent:${activeAgentId || "none"}`}
+              onOpenFile={onOpenFile}
+              onToast={onToast}
+            />
+            {effectiveSnapshot?.error ? <div className={styles.errorNotice}>{effectiveSnapshot.error}</div> : null}
           </div>
         )}
 

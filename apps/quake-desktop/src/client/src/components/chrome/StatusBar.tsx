@@ -1,5 +1,6 @@
 import React from "react";
 import { Cpu, Sparkles, Map, Target } from "lucide-react";
+import { useI18n } from "../../i18n";
 import styles from "./StatusBar.module.css";
 
 /**
@@ -27,33 +28,34 @@ export function StatusBar({
   goalTurn?: number;
   goalMaxTurns?: number;
 }) {
+  const { t } = useI18n();
   return (
-    <footer className={styles.statusbar} aria-label="Durum çubuğu">
-      <div className={styles.group} aria-label={`Çalışma alanı: ${workspaceName}`} title={workspacePath}>
+    <footer className={styles.statusbar} aria-label={t("runtime.chrome.statusBar")}>
+      <div className={styles.group} aria-label={t("runtime.chrome.workspace", { name: workspaceName })} title={workspacePath}>
         <span className={styles.readyDot} aria-hidden="true" />
-        <span className={styles.readyLabel}>Hazır</span>
+        <span className={styles.readyLabel}>{t("runtime.chrome.ready")}</span>
       </div>
       <div className={styles.group}>
         {goalActive && (
-          <span className={`${styles.item} ${styles.goal}`} title="Otonom Hedef (Goal) Modu Aktif">
+          <span className={`${styles.item} ${styles.goal}`} title={t("runtime.chrome.goalActive")}>
             <Target size={12} strokeWidth={2} aria-hidden="true" />
-            Hedef{goalTurn ? ` · Tur ${goalTurn}/${goalMaxTurns || 15}` : ""}
+            {t("runtime.chrome.goal")}{goalTurn ? ` · ${t("runtime.chrome.goalTurn", { current: goalTurn, total: goalMaxTurns || 15 })}` : ""}
           </span>
         )}
         {planMode && (
-          <span className={`${styles.item} ${styles.plan}`} title="Plan modu — salt-okunur keşif">
+          <span className={`${styles.item} ${styles.plan}`} title={t("runtime.chrome.planReadOnly")}>
             <Map size={12} strokeWidth={2} aria-hidden="true" />
             Plan{planPhase ? ` · ${planPhase}` : ""}
           </span>
         )}
         {modelLabel && (
-          <span className={styles.item} title="Aktif model">
+          <span className={styles.item} title={t("runtime.chrome.activeModel")}>
             <Cpu size={12} strokeWidth={2} aria-hidden="true" />
             {modelLabel}
           </span>
         )}
         {thinking && (
-          <span className={styles.item} title="Düşünme seviyesi">
+          <span className={styles.item} title={t("runtime.chrome.thinkingLevel")}>
             <Sparkles size={12} strokeWidth={2} aria-hidden="true" />
             {thinking}
           </span>

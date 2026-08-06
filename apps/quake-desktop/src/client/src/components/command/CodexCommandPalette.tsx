@@ -11,6 +11,7 @@ import {
   Search,
   FileSearch,
 } from "lucide-react";
+import { useI18n } from "../../i18n";
 import { apiGet } from "../../lib/api";
 import styles from "./CodexCommandPalette.module.css";
 
@@ -61,6 +62,7 @@ export function CodexCommandPalette({
   onPrevChat?: () => void | Promise<void>;
   onFileSearch?: (query: string) => void | Promise<void>;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -92,7 +94,7 @@ export function CodexCommandPalette({
         className={styles.palette}
         role="dialog"
         aria-modal="true"
-        aria-label="Komut paleti"
+        aria-label={t("runtime.codexPalette.dialog")}
         onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -107,16 +109,16 @@ export function CodexCommandPalette({
             ref={inputRef}
             value={query}
             onValueChange={setQuery}
-            placeholder="Sohbet ara veya komut çalıştır"
+            placeholder={t("runtime.codexPalette.placeholder")}
             className={styles.input}
           />
         </div>
 
         <Command.List className={styles.list}>
-          <Command.Empty className={styles.empty}>Eşleşme yok</Command.Empty>
+          <Command.Empty className={styles.empty}>{t("runtime.codexPalette.noMatches")}</Command.Empty>
 
           {sessions.length > 0 && (
-            <Command.Group heading="Sohbetler" className={styles.group}>
+            <Command.Group heading={t("runtime.codexPalette.chats")} className={styles.group}>
               {sessions.map((session, index) => (
                 <Command.Item
                   key={`session:${session.path}:${index}`}
@@ -134,58 +136,58 @@ export function CodexCommandPalette({
             </Command.Group>
           )}
 
-          <Command.Group heading="Önerilen" className={styles.group}>
+          <Command.Group heading={t("runtime.codexPalette.suggested")} className={styles.group}>
             <PaletteItem
               icon={<MessageSquarePlus size={16} strokeWidth={2} aria-hidden="true" />}
-              label="Yeni sohbet"
+              label={t("runtime.commandPalette.newChat")}
               shortcut="Ctrl+N"
               value="yeni sohbet new chat"
               onSelect={() => run(onNewChat)}
             />
             <PaletteItem
               icon={<FolderOpen size={16} strokeWidth={2} aria-hidden="true" />}
-              label="Klasörü aç"
+              label={t("runtime.codexPalette.openFolder")}
               shortcut="Ctrl+O"
               value="klasoru ac open folder"
               onSelect={() => run(onOpenFolder)}
             />
             <PaletteItem
               icon={<Settings size={16} strokeWidth={2} aria-hidden="true" />}
-              label="Ayarlar"
+              label={t("runtime.codexPalette.settings")}
               shortcut="Ctrl+,"
               value="ayarlar settings"
               onSelect={() => run(onSettings)}
             />
           </Command.Group>
 
-          <Command.Group heading="Sohbet" className={styles.group}>
+          <Command.Group heading={t("runtime.codexPalette.chat")} className={styles.group}>
             <PaletteItem
               icon={<Zap size={16} strokeWidth={2} aria-hidden="true" />}
-              label="Yeni hızlı sohbet"
+              label={t("runtime.codexPalette.quickChat")}
               shortcut="Ctrl+Alt+N"
               value="yeni hizli sohbet quick chat"
               onSelect={() => run(onQuickChat)}
             />
             <PaletteItem
               icon={<Archive size={16} strokeWidth={2} aria-hidden="true" />}
-              label="Sohbeti arşivle"
+              label={t("runtime.codexPalette.archiveChat")}
               shortcut="Ctrl+Shift+A"
               value="sohbeti arsivle archive"
               onSelect={() => run(onArchive)}
             />
             <PaletteItem
               icon={<Pin size={16} strokeWidth={2} aria-hidden="true" />}
-              label="Sabitlemeyi aç/kapat"
+              label={t("runtime.codexPalette.togglePin")}
               shortcut="Ctrl+Alt+P"
               value="sabitlemeyi ac kapat toggle pin"
               onSelect={() => run(onTogglePin)}
             />
           </Command.Group>
 
-          <Command.Group heading="Gezinme" className={styles.group}>
+          <Command.Group heading={t("runtime.codexPalette.navigation")} className={styles.group}>
             <PaletteItem
               icon={<ArrowUp size={16} strokeWidth={2} aria-hidden="true" />}
-              label="Önceki sohbet"
+              label={t("runtime.codexPalette.previousChat")}
               shortcut="Ctrl+Shift+["
               value="onceki sohbet previous chat"
               onSelect={() => run(onPrevChat)}
@@ -193,10 +195,10 @@ export function CodexCommandPalette({
           </Command.Group>
 
           {hasQuery && (
-            <Command.Group heading="Arama" className={styles.group}>
+            <Command.Group heading={t("runtime.codexPalette.search")} className={styles.group}>
               <PaletteItem
                 icon={<FileSearch size={16} strokeWidth={2} aria-hidden="true" />}
-                label={`Dosyalarda ara: "${trimmed}"`}
+                label={t("runtime.codexPalette.searchFiles", { query: trimmed })}
                 value={`dosyalarda ara ${trimmed} file search`}
                 onSelect={() => runFileSearch(trimmed, onFileSearch, close)}
               />

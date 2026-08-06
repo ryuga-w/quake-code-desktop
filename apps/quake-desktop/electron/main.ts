@@ -7,6 +7,7 @@ import { startServer, stopServer } from "./serverHandle";
 import { listMcpSecretNames, loadMcpSecrets, removeMcpSecret, setMcpSecret } from "./mcp-secret-vault";
 import { resolveWorkspaceCwd, getWorkspaceRoots, rememberWorkspaceRoots, setLastWorkspace, pickWorkspace, pickWorkspaces, createQuickProject, resolveNoProjectDir } from "./workspace";
 import { buildMenu } from "./menu";
+import { getNativeLocale, setNativeLocale, type NativeLocale } from "./native-locale";
 import {
   forceEndComputerUseSession,
   setComputerUseBridgeHooks,
@@ -41,6 +42,11 @@ import { maybeStartAutoUpdater, registerAutoUpdateIpc } from "./auto-update";
 const APP_DISPLAY_NAME = "Quake Code";
 const APP_USER_MODEL_ID = "com.mrquake.quake-desktop";
 let goalPowerSaveBlockerId: number | undefined;
+let nativeLocale: NativeLocale = "tr";
+
+function refreshApplicationMenu(): void {
+  Menu.setApplicationMenu(buildMenu({ onOpenFolder: () => void changeWorkspace() }, nativeLocale));
+}
 
 app.commandLine.appendSwitch("remote-debugging-port", "9222");
 process.env.QUAKE_BROWSER_EMBEDDED = process.env.QUAKE_BROWSER_EMBEDDED || "1";
@@ -373,6 +379,14 @@ function registerWindowIpc() {
   ipcMain.on("theme:setResolved", (_event, theme: unknown) => {
     if (theme !== "light" && theme !== "dark") return;
     nativeTheme.themeSource = theme;
+  });
+
+  // The renderer resolves "auto" against the system and sends an explicit
+  // locale, keeping native application menus aligned with the web UI.
+  ipcMain.on("locale:setNative", (_event, locale: unknown) => {
+    if (locale !== "tr" && locale !== "en") return;
+    nativeLocale = setNativeLocale(locale);
+    refreshApplicationMenu();
   });
 
   // Project picker: native folder dialog + quick start
@@ -1073,7 +1087,8 @@ async function boot() {
   currentCwd = resolveWorkspaceCwd();
   currentUrl = await startBackend(currentCwd);
   createWindow(currentUrl);
-  Menu.setApplicationMenu(buildMenu({ onOpenFolder: () => void changeWorkspace() }));
+  nativeLocale = getNativeLocale();
+  refreshApplicationMenu();
   // S-PUB.2: optional electron-updater — no-op without feed; never blocks boot.
   maybeStartAutoUpdater();
 }

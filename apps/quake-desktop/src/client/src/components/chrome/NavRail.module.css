@@ -237,6 +237,14 @@
   letter-spacing: 0.01em;
 }
 
+.pinnedSection {
+  margin-bottom: 8px;
+}
+
+.pinnedSectionHead {
+  color: var(--text-navigation-muted, #777c83);
+}
+
 .threads {
   display: none;
   flex-direction: column;

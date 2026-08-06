@@ -10,7 +10,7 @@ describe("NavRail project workspace action", () => {
     expect(navRail).toContain('className={styles.navItemRow}');
     expect(navRail).toContain('className={styles.navItemTrailing}');
     expect(navRail).toContain('onClick={onOpenWorkspace}');
-    expect(navRail).toContain('aria-label="Workspace seç"');
+    expect(navRail).toContain('aria-label={t("navRail.selectWorkspace")}');
     expect(navRailStyles).toContain('.navItemRow:hover .navItemTrailing');
     expect(navRailStyles).toContain('opacity: 0');
     expect(navRailStyles).toContain('pointer-events: none');

@@ -1,5 +1,6 @@
 import React from "react";
 import { ChevronRight, ListTodo } from "lucide-react";
+import { useI18n } from "../../i18n";
 import { MarkdownMessage } from "../markdown/MarkdownMessage";
 import styles from "./PlanTimelineCards.module.css";
 
@@ -14,6 +15,7 @@ export function CreatedPlanCard({
   onOpen: () => void;
   onOpenFile: (path: string) => void;
 }) {
+  const { t } = useI18n();
   const documentRef = React.useRef<HTMLDivElement>(null);
   const [fadeEdges, setFadeEdges] = React.useState({ top: false, bottom: false });
   const syncFadeEdges = React.useCallback(() => {
@@ -39,10 +41,10 @@ export function CreatedPlanCard({
     };
   }, [markdown, syncFadeEdges]);
 
-  return <section className={styles.created} aria-label={`${title} planı`}>
+  return <section className={styles.created} aria-label={t("runtime.plan.planFor", { title })}>
     <header>
-      <span><ListTodo size={13} strokeWidth={1.8} aria-hidden="true" />Plan</span>
-      <button type="button" onClick={onOpen} aria-label={`${title} planını panelde aç`} title="Planı aç">
+      <span><ListTodo size={13} strokeWidth={1.8} aria-hidden="true" />{t("runtime.plan.panel")}</span>
+      <button type="button" onClick={onOpen} aria-label={t("runtime.plan.openPlanPanel", { title })} title={t("runtime.plan.openPlan")}>
         <ChevronRight size={15} aria-hidden="true" />
       </button>
     </header>

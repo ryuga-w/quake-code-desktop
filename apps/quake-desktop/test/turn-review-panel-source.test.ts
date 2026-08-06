@@ -24,7 +24,7 @@ describe("turn review dock source contract", () => {
     expect(shell).toContain("onReviewTurn={openTurnReview}");
     expect(shell).toContain('rightTab === "review" && turnReview');
     expect(main).toContain("openTurnReview");
-    expect(rightTabs).toContain('tab === "review" ? "İnceleme"');
+    expect(rightTabs).toContain('t("rightPanel.tabs.review")');
   });
 
   it("keeps both the review tab and its selected turn session-owned", () => {

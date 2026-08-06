@@ -3,6 +3,7 @@ import { FilePenLine, FilePlus2, FileText, Globe2, Search, Wrench } from "lucide
 import type { ToolCardImage, ToolCardState } from "../../state/app-store";
 import styles from "./ToolRenderer.module.css";
 import { SourceFavicons } from "./SourceFavicons";
+import { useI18n } from "../../i18n";
 import { extractWebSources, sourceFromUrl } from "../../lib/extract-web-sources";
 import {
   isReadTool,
@@ -26,8 +27,9 @@ export function ToolRenderer({ tool, onOpenFile }: ToolRendererProps) {
 // Dosya yolu — gercek <button> (klavye + focus erisilebilir). .path CSS'i butonu
 // inline metin gibi gosterir. Onceden <span onClick> idi, klavyeyle ulasilamiyordu.
 function PathButton({ path, onOpenFile }: { path: string; onOpenFile?: (path: string) => void }) {
+  const { t } = useI18n();
   return (
-    <button type="button" className={styles.path} onClick={() => onOpenFile?.(path)} title={`${path} dosyasını aç`}>
+    <button type="button" className={styles.path} onClick={() => onOpenFile?.(path)} title={`${path} — ${t("tools.renderer.openFile")}`}>
       {path}
     </button>
   );
@@ -52,6 +54,7 @@ function getToolRenderer(toolName: string): (tool: ToolCardState, onOpenFile?: (
 }
 
 function BashRenderer({ tool }: ToolRendererProps) {
+  const { t } = useI18n();
   const args = (tool.args || {}) as Record<string, any>;
   const command = args.command || args.CommandLine || "";
   const output = tool.output || "";
@@ -64,7 +67,7 @@ function BashRenderer({ tool }: ToolRendererProps) {
         <code className={styles.command}>{command}</code>
         {duration && <span className={styles.meta}>{duration}</span>}
       </div>
-      <pre className={styles.output}>{output || "Çıktı yok"}</pre>
+      <pre className={styles.output}>{output || t("tools.renderer.noOutput")}</pre>
       {exitCode !== null && exitCode !== 0 && (
         <div className={styles.error}>Exit code: {exitCode}</div>
       )}
@@ -73,6 +76,7 @@ function BashRenderer({ tool }: ToolRendererProps) {
 }
 
 function ReadRenderer({ tool, onOpenFile }: ToolRendererProps) {
+  const { t } = useI18n();
   const args = (tool.args || {}) as Record<string, any>;
   const path = args.path || args.filePath || args.AbsolutePath || "";
   const output = tool.output || "";
@@ -82,14 +86,15 @@ function ReadRenderer({ tool, onOpenFile }: ToolRendererProps) {
       <div className={styles.header}>
         <span className={styles.badge} aria-hidden="true"><FileText size={14} /></span>
         <PathButton path={path} onOpenFile={onOpenFile} />
-        <span className={styles.meta}>{lines} satır</span>
+        <span className={styles.meta}>{lines} {t("tools.renderer.lines")}</span>
       </div>
-      <pre className={styles.preview}>{output || "Çıktı yok"}</pre>
+      <pre className={styles.preview}>{output || t("tools.renderer.noOutput")}</pre>
     </div>
   );
 }
 
 function WriteRenderer({ tool, onOpenFile }: ToolRendererProps) {
+  const { t } = useI18n();
   const args = (tool.args || {}) as Record<string, any>;
   const path = args.path || args.filePath || args.targetFile || args.TargetFile || "";
   const content = args.content || args.text || args.codeContent || args.CodeContent || "";
@@ -102,7 +107,7 @@ function WriteRenderer({ tool, onOpenFile }: ToolRendererProps) {
         <span className={`${styles.badge} ${isNew ? styles.created : styles.modified}`} aria-hidden="true">{isNew ? <FilePlus2 size={14} /> : <FilePenLine size={14} />}</span>
         <PathButton path={path} onOpenFile={onOpenFile} />
         <span className={styles.meta}>
-          {isRunning ? (lines ? `yazılıyor · ${lines} satır` : "yazılıyor…") : `${lines} satır`}
+          {isRunning ? (lines ? `${t("tools.renderer.writing")} · ${lines} ${t("tools.renderer.lines")}` : t("tools.renderer.writingEllipsis")) : `${lines} ${t("tools.renderer.lines")}`}
         </span>
         {lines > 0 && (
           <span className={styles.meta} style={{ color: "var(--success, #16a34a)" }}>+{lines}</span>
@@ -111,13 +116,14 @@ function WriteRenderer({ tool, onOpenFile }: ToolRendererProps) {
       {content ? (
         <pre className={styles.preview}>{String(content).slice(0, 4000)}{String(content).length > 4000 ? "\n…" : ""}</pre>
       ) : isRunning ? (
-        <pre className={styles.preview}>İçerik akıyor…</pre>
+        <pre className={styles.preview}>{t("tools.renderer.contentFlowing")}</pre>
       ) : null}
     </div>
   );
 }
 
 function EditRenderer({ tool, onOpenFile }: ToolRendererProps) {
+  const { t } = useI18n();
   const args = (tool.args || {}) as Record<string, any>;
   const path = args.path || args.filePath || args.targetFile || args.TargetFile || "";
   const edits = Array.isArray(args.edits) ? args.edits : (Array.isArray(args.replacementChunks) ? args.replacementChunks : (Array.isArray(args.ReplacementChunks) ? args.ReplacementChunks : []));
@@ -135,8 +141,8 @@ function EditRenderer({ tool, onOpenFile }: ToolRendererProps) {
         <PathButton path={path} onOpenFile={onOpenFile} />
         <span className={styles.meta}>
           {isRunning
-            ? (totalEdits ? `düzenleniyor · ${totalEdits}` : "düzenleniyor…")
-            : `${totalEdits} düzenleme`}
+            ? (totalEdits ? `${t("tools.renderer.editing")} · ${totalEdits}` : t("tools.renderer.editingEllipsis"))
+            : `${totalEdits} ${t("tools.renderer.edits")}`}
         </span>
       </div>
       {diff ? (
@@ -147,13 +153,14 @@ function EditRenderer({ tool, onOpenFile }: ToolRendererProps) {
           {newText ? `+ ${String(newText).slice(0, 800)}` : ""}
         </pre>
       ) : isRunning ? (
-        <pre className={styles.preview}>Değişiklik hazırlanıyor…</pre>
+        <pre className={styles.preview}>{t("tools.renderer.preparingChanges")}</pre>
       ) : null}
     </div>
   );
 }
 
 function SearchRenderer({ tool }: ToolRendererProps) {
+  const { t } = useI18n();
   const args = (tool.args || {}) as Record<string, any>;
   const query = args.pattern || args.query || args.q || "";
   const output = tool.output || "";
@@ -163,7 +170,7 @@ function SearchRenderer({ tool }: ToolRendererProps) {
       <div className={styles.header}>
         <span className={styles.badge} aria-hidden="true"><Search size={14} /></span>
         <code>{query}</code>
-        <span className={styles.meta}>{matchCount} eşleşme</span>
+        <span className={styles.meta}>{matchCount} {t("tools.renderer.matches")}</span>
       </div>
       <pre className={styles.output}>{output.slice(0, 1000)}{output.length > 1000 ? "\n…" : ""}</pre>
     </div>
@@ -173,6 +180,7 @@ function SearchRenderer({ tool }: ToolRendererProps) {
 type StructuredWebResult = { title: string; url: string; snippet: string; hostname: string };
 
 function WebSearchRenderer({ tool }: ToolRendererProps) {
+  const { t } = useI18n();
   const args = (tool.args || {}) as Record<string, any>;
   const details = tool.details && typeof tool.details === "object" ? tool.details as Record<string, any> : {};
   const query = args.query || args.q || args.search || details.query || "";
@@ -191,31 +199,32 @@ function WebSearchRenderer({ tool }: ToolRendererProps) {
       <div className={styles.webSearchHeader}>
         <span className={styles.badge} aria-hidden="true"><Globe2 size={14} /></span>
         <div className={styles.webSearchIdentity}>
-          <span>{isRunning ? "Web aranıyor" : failed ? "Web araması başarısız" : status === "empty" ? "Sonuç bulunamadı" : "Web sonuçları"}</span>
+          <span>{isRunning ? t("tools.renderer.webSearching") : failed ? t("tools.renderer.webSearchFailed") : status === "empty" ? t("tools.renderer.noResults") : t("tools.renderer.webResults")}</span>
           {query && <code>{query}</code>}
         </div>
         <div className={styles.webSearchMeta}>
-          {provider && <span>{provider === "cache" ? "önbellek" : provider}</span>}
-          {!isRunning && !failed && <strong>{results.length} sonuç</strong>}
+          {provider && <span>{provider === "cache" ? t("tools.renderer.cache") : provider}</span>}
+          {!isRunning && !failed && <strong>{results.length} {t("tools.renderer.results")}</strong>}
         </div>
       </div>
-      {(sources.length > 0 || isRunning) && <SourceFavicons sources={sources} isRunning={isRunning} label="Kaynaklar" max={8} />}
-      {isRunning && <div className={styles.webSearchLoading} role="status"><i /><span>Kaynaklar taranıyor ve tekilleştiriliyor</span></div>}
-      {!isRunning && failed && <div className={styles.webSearchState}><strong>Arama tamamlanamadı</strong><span>Ağ, sağlayıcı veya tarayıcı runtime hatası. Aramayı yeniden deneyebilirsiniz.</span><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("quake:retry-web-search", { detail: { query } }))}>Yeniden dene</button></div>}
-      {!isRunning && !failed && status === "empty" && <div className={styles.webSearchState}><strong>Bu sorgu için sonuç bulunamadı</strong><span>Daha geniş veya farklı anahtar kelimeler deneyebilirsiniz.</span><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("quake:retry-web-search", { detail: { query } }))}>Farklı ifadeyle ara</button></div>}
+      {(sources.length > 0 || isRunning) && <SourceFavicons sources={sources} isRunning={isRunning} label={t("tools.renderer.sources")} max={8} />}
+      {isRunning && <div className={styles.webSearchLoading} role="status"><i /><span>{t("tools.renderer.scanning")}</span></div>}
+      {!isRunning && failed && <div className={styles.webSearchState}><strong>{t("tools.renderer.searchFailed")}</strong><span>{t("tools.renderer.searchFailedDescription")}</span><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("quake:retry-web-search", { detail: { query } }))}>{t("tools.renderer.retry")}</button></div>}
+      {!isRunning && !failed && status === "empty" && <div className={styles.webSearchState}><strong>{t("tools.renderer.queryNoResults")}</strong><span>{t("tools.renderer.queryNoResultsDescription")}</span><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("quake:retry-web-search", { detail: { query } }))}>{t("tools.renderer.searchDifferent")}</button></div>}
       {visibleResults.length > 0 && <div className={styles.webResults}>
         {visibleResults.map((result, index) => <a className={styles.webResult} href={result.url} target="_blank" rel="noopener noreferrer" key={`${result.url}-${index}`}>
           <span className={styles.webResultIndex}>{String(index + 1).padStart(2, "0")}</span>
           <span className={styles.webResultBody}><strong>{result.title}</strong>{result.snippet && <span>{result.snippet}</span>}<small>{result.hostname || sourceFromUrl(result.url)?.hostname}</small></span>
         </a>)}
       </div>}
-      {results.length > 5 && <button type="button" className={styles.webResultsToggle} onClick={() => setExpanded((value) => !value)}>{expanded ? "Daha az göster" : `Tüm ${results.length} sonucu göster`}</button>}
-      {tool.output && <details className={styles.webRawOutput}><summary>Ham arama çıktısı</summary><pre>{tool.output}</pre></details>}
+      {results.length > 5 && <button type="button" className={styles.webResultsToggle} onClick={() => setExpanded((value) => !value)}>{expanded ? t("tools.renderer.showLess") : t("tools.renderer.showAllResults", { count: results.length })}</button>}
+      {tool.output && <details className={styles.webRawOutput}><summary>{t("tools.renderer.rawSearchOutput")}</summary><pre>{tool.output}</pre></details>}
     </div>
   );
 }
 
 function BrowserRenderer({ tool }: ToolRendererProps) {
+  const { t } = useI18n();
   const args = (tool.args || {}) as Record<string, any>;
   const url = args.url || "";
   const target = args.target || args.selector || "";
@@ -241,7 +250,7 @@ function BrowserRenderer({ tool }: ToolRendererProps) {
             <img
               key={i}
               src={img.src}
-              alt={`Browser screenshot ${i + 1}`}
+              alt={t("tools.renderer.generatedImage", { count: i + 1 })}
               className={styles.generatedImage}
             />
           ))}
@@ -281,6 +290,7 @@ function browserToolImages(tool: ToolCardState): Array<{ src: string }> {
 }
 
 function DefaultRenderer({ tool }: ToolRendererProps) {
+  const { t } = useI18n();
   const images = (tool.images as ToolCardImage[] | undefined) || (tool.details as any)?.images;
   const output = tool.output || "";
   return (
@@ -292,7 +302,7 @@ function DefaultRenderer({ tool }: ToolRendererProps) {
       {images && images.length > 0 && (
         <div className={styles.images}>
           {images.map((img: ToolCardImage, i: number) => (
-            <img key={i} src={`data:${img.mimeType};base64,${img.data}`} alt={`Generated ${i + 1}`} className={styles.generatedImage} />
+            <img key={i} src={`data:${img.mimeType};base64,${img.data}`} alt={t("tools.renderer.generatedImage", { count: i + 1 })} className={styles.generatedImage} />
           ))}
         </div>
       )}
@@ -302,6 +312,7 @@ function DefaultRenderer({ tool }: ToolRendererProps) {
 }
 
 function DiffPreview({ diff }: { diff: string }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const lines = diff.split("\n").slice(0, expanded ? 100 : 8);
   if (!diff.trim()) return null;
@@ -315,7 +326,7 @@ function DiffPreview({ diff }: { diff: string }) {
       </pre>
       {diff.split("\n").length > 8 && (
         <button type="button" className={styles.expandBtn} onClick={() => setExpanded(!expanded)}>
-          {expanded ? "Daha az" : `${diff.split("\n").length - 8} satır daha`}
+          {expanded ? t("tools.renderer.showLess") : t("tools.renderer.diffMore", { count: diff.split("\n").length - 8 })}
         </button>
       )}
     </div>

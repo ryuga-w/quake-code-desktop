@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Command } from "cmdk";
+import { type Translate, useI18n } from "../../i18n";
 import { formatDate, formatSessionTitle } from "../../lib/render";
 import { formatModelRefLabel } from "../../lib/models";
 import { useAppStore } from "../../state/app-store";
@@ -26,6 +27,7 @@ export function CommandPalette({
   onSetModel: (value: string) => void;
   onAction: (action: string) => void | Promise<void>;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const commands = useAppStore((s) => s.commands);
@@ -51,13 +53,13 @@ export function CommandPalette({
       run: () => onAction(name),
     });
     const staticItems: PaletteItem[] = [
-      action("new", "Yeni sohbet", "Temiz bir konuşma başlat", "yeni", "new"),
-      action("refresh", "Durumu yenile", "Yapılandırma, sohbetler, modeller ve dosyaları tazele", "yenile", "refresh"),
-      action("terminal", "Terminali aç", "Komut çıktıları ve canlı oturum akışları", "terminal", "terminal"),
-      action("files", "Dosyaları göster", "Çalışma alanı gezgini ve dosya önizlemeleri", "dosyalar", "files"),
-      action("settings", "Ayarları aç", "Tema, model varsayılanları, kimlik ve terminal politikası", "ayarlar", "settings"),
-      action("toggle-left", "Sol menüyü değiştir", "Gezinti alanını odaklı moda al", "yerleşim", "toggle-left"),
-      action("abort", "Aktif yanıtı durdur", "Çalışan agent yanıtını kes", "durdur", "abort"),
+      action("new", t("runtime.commandPalette.newChat"), t("runtime.commandPalette.newChatDescription"), "new yeni", "new"),
+      action("refresh", t("runtime.commandPalette.refresh"), t("runtime.commandPalette.refreshDescription"), "refresh yenile", "refresh"),
+      action("terminal", t("runtime.commandPalette.openTerminal"), t("runtime.commandPalette.terminalDescription"), "terminal", "terminal"),
+      action("files", t("runtime.commandPalette.showFiles"), t("runtime.commandPalette.filesDescription"), "files dosyalar", "files"),
+      action("settings", t("runtime.commandPalette.openSettings"), t("runtime.commandPalette.settingsDescription"), "settings ayarlar", "settings"),
+      action("toggle-left", t("runtime.commandPalette.toggleLeft"), t("runtime.commandPalette.toggleLeftDescription"), "layout yerleşim", "toggle-left"),
+      action("abort", t("runtime.commandPalette.abort"), t("runtime.commandPalette.abortDescription"), "stop durdur", "abort"),
     ];
     return [
       ...(mode === "all" ? staticItems : []),
@@ -88,9 +90,9 @@ export function CommandPalette({
             id: `session:${session.path}:${index}`,
             type: "Session" as const,
             title: formatSessionTitle(session),
-            subtitle: `${formatDate(session.modified)} · ${session.messageCount} mesaj`,
+            subtitle: `${formatDate(session.modified)} · ${t("runtime.commandPalette.messageCount", { count: session.messageCount })}`,
             keywords: [session.name, session.firstMessage, session.id].filter(Boolean) as string[],
-            hint: "sürdür",
+            hint: t("runtime.commandPalette.continue"),
             run: () => onSwitchSession(session.path),
           }))
         : []),
@@ -99,14 +101,14 @@ export function CommandPalette({
             id: `model:${model.provider}/${model.id}:${index}`,
             type: "Model" as const,
             title: formatModelRefLabel(model),
-            subtitle: model.current ? "Geçerli model" : model.provider === "opencode-free" ? "Quake Code Free" : model.name || "Tanımlı",
+            subtitle: model.current ? t("runtime.commandPalette.currentModel") : model.provider === "opencode-free" ? "Quake Code Free" : model.name || t("runtime.commandPalette.defined"),
             keywords: [model.provider, model.id, model.name, "quake free", "free"].filter(Boolean) as string[],
             hint: "model",
             run: () => onSetModel(`${model.provider}/${model.id}`),
           }))
         : []),
     ];
-  }, [commands, files, mode, models, onAction, onOpenFile, onRunCommand, onSetModel, onSwitchSession, q, sessions]);
+  }, [commands, files, mode, models, onAction, onOpenFile, onRunCommand, onSetModel, onSwitchSession, q, sessions, t]);
 
   const runById = useMemo(() => {
     // cmdk lowercases item `value` and echoes that lowercased string back to onSelect,
@@ -121,7 +123,7 @@ export function CommandPalette({
   const execute = (run: (() => void | Promise<void>) | undefined) => {
     if (!run) return;
     void Promise.resolve(run())
-      .catch((error: any) => showToast(`Komut çalıştırılamadı: ${error?.message || "bilinmeyen hata"}`, "error"))
+      .catch((error: any) => showToast(t("runtime.commandPalette.commandFailed", { error: error?.message || t("runtime.commandPalette.unknownError") }), "error"))
       .finally(onClose);
   };
 
@@ -134,7 +136,7 @@ export function CommandPalette({
         className={styles.palette}
         role="dialog"
         aria-modal="true"
-        aria-label="Komut paleti"
+        aria-label={t("runtime.commandPalette.dialog")}
         // cmdk values are lowercased; our ids are already lowercase-stable, so filter on the raw query (q) against keywords/value.
         shouldFilter={Boolean(q)}
         filter={(value, search, keywords) => paletteFilter(value, search, keywords)}
@@ -156,13 +158,13 @@ export function CommandPalette({
             ref={inputRef}
             value={query}
             onValueChange={setQuery}
-            placeholder={mode === "command" ? "Komut ara…" : mode === "file" ? "Dosya ara…" : "Aksiyon, dosya veya sohbet ara…"}
+            placeholder={mode === "command" ? t("runtime.commandPalette.commandSearch") : mode === "file" ? t("runtime.commandPalette.fileSearch") : t("runtime.commandPalette.search")}
           />
         </div>
         <Command.List className={styles.list}>
-          <Command.Empty className={styles.empty}>Eşleşme yok</Command.Empty>
+          <Command.Empty className={styles.empty}>{t("runtime.commandPalette.noMatches")}</Command.Empty>
           {grouped.map((group) => (
-            <Command.Group key={group.type} heading={paletteTypeLabel(group.type)} className={styles.group}>
+            <Command.Group key={group.type} heading={paletteTypeLabel(group.type, t)} className={styles.group}>
               {group.items.map((item) => (
                 <Command.Item key={item.id} value={item.id} keywords={item.keywords} onSelect={handleSelect} className={styles.item}>
                   <strong>{item.title}</strong>
@@ -257,10 +259,10 @@ function groupPaletteItems(items: PaletteItem[]): Array<{ type: PaletteItem["typ
   return order.map((type) => ({ type, items: items.filter((item) => item.type === type) })).filter((group) => group.items.length);
 }
 
-function paletteTypeLabel(type: PaletteItem["type"]): string {
-  if (type === "Action") return "Aksiyon";
-  if (type === "Command") return "Komut";
-  if (type === "File") return "Dosya";
-  if (type === "Session") return "Sohbet";
+function paletteTypeLabel(type: PaletteItem["type"], t: Translate): string {
+  if (type === "Action") return t("runtime.commandPalette.action");
+  if (type === "Command") return t("runtime.commandPalette.command");
+  if (type === "File") return t("runtime.commandPalette.file");
+  if (type === "Session") return t("runtime.commandPalette.conversation");
   return "Model";
 }

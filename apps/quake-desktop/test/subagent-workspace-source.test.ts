@@ -66,12 +66,12 @@ describe("reference subagent execution workspace", () => {
   });
 
   it("auto-opens only the responsive Outputs card when a new agent appears", () => {
-    expect(outputs).toContain('aria-label="Çıktılar"');
+    expect(outputs).toContain('aria-label={t("workspace.outputs.label")}');
     expect(outputs).toContain("knownAgentIdsRef");
     expect(outputs).toContain("!previousIds.has(agent.id)");
     expect(outputs).toContain("setSummaryVisibility(true)");
-    expect(outputs).toContain("Alt otonom ajanlar");
-    expect(outputs).toContain("Kaynaklar");
+    expect(outputs).toContain('t("workspace.outputs.subagents")');
+    expect(outputs).toContain('t("workspace.outputs.resources")');
     expect(outputs).toContain('data-active={active ? "true" : undefined}');
     expect(outputs).toContain("onOpenSubagent?.(agent.id)");
     expect(outputs).toContain("/api/subagents");
@@ -111,16 +111,17 @@ describe("reference subagent execution workspace", () => {
     expect(workspace).toContain("<DockPanelTabPortal");
     expect(workspace).toContain('kind="subagents"');
     expect(rightTabs).toContain('data-dock-dynamic-tabs={dynamicTabKind}');
-    expect(rightTabs).toContain('aria-label="Yeni panel sekmesi"');
-    expect(rightTabs).toContain('tab: "files", label: "Dosyalar"');
-    expect(rightTabs).toContain('tab: "sidechat", label: "Yan görev"');
-    expect(rightTabs).toContain('tab: "browser", label: "Tarayıcı"');
+    expect(rightTabs).toContain('aria-label={t("rightPanel.newTab")}');
+    expect(rightTabs).toContain('tab: "files", labelKey: "rightPanel.tabs.files"');
+    expect(rightTabs).toContain('tab: "sidechat", labelKey: "rightPanel.tabs.sidechat"');
+    expect(rightTabs).toContain('tab: "browser", labelKey: "rightPanel.tabs.browser"');
     expect(workspace).not.toContain("styles.newAgent");
     expect(workspace).toContain('aria-label="Yeni subagent oluştur"');
     expect(workspace).toContain("createForkContext");
     expect(workspace).toContain("createIsolation");
     expect(workspace).toContain("agentTypes.map");
-    expect(workspace).toContain("<MarkdownContent");
+    expect(workspace).toContain("<ConversationTimeline");
+    expect(workspace).not.toContain("<MarkdownContent");
     expect(workspace).toContain("<DockConversationComposer");
     expect(workspace).toContain('ariaLabel="Subagent mesajı"');
     expect(sharedComposer).toContain("onKeyDown");
@@ -129,11 +130,16 @@ describe("reference subagent execution workspace", () => {
     expect(workspace).toContain('agentUrl(activeAgentId, "abort"');
     expect(workspace).toContain("pendingMessages");
     expect(workspace).toContain("active ?");
-    expect(workspace).toContain("<LiveAgentActivity activities={liveActivities}");
+    expect(workspace).toContain("projectSubagentTimeline");
+    expect(workspace).not.toContain("<LiveAgentActivity");
     expect(workspace).toContain("activeSnapshot?.streamingText");
-    expect(workspaceStyles).toContain(".liveActivityItem[data-status=\"running\"]");
+    expect(workspace).toContain('content: [{ type: "thinking", thinking: "Düşünüyor" }]');
+    expect(workspace).not.toContain('content: "[thinking]Düşünüyor[/thinking]"');
+    expect(workspaceStyles).toContain(".timelineHost");
     expect(workspaceStyles).toContain("--subagent-thread-width: 690px");
     expect(workspaceStyles).toContain("--conversation-composer-width: 720px");
+    expect(workspaceStyles).toContain("padding: 14px 18px 108px");
+    expect(workspaceStyles).toContain("width: min(var(--conversation-composer-width, 720px), 100%)");
     expect(sharedComposerStyles).toContain("min-height: 104px");
     expect(sharedComposerStyles).toContain("border-radius: 19px");
     expect(sharedComposerStyles).toContain("background: var(--composer-surface, #2b2b2b)");

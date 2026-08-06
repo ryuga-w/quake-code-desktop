@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import type { WebPlanClarificationAnswer, WebPlanClarificationState } from "../../../../shared/protocol";
+import { useI18n } from "../../i18n";
 import styles from "./PlanQuestionsPanel.module.css";
 
 export function PlanQuestionsPanel({
@@ -21,6 +22,7 @@ function QuestionsCard({ clarification, onComplete, onSkip }: {
   onComplete: (args: { requestId: string; clarificationId: string; answers: Record<string, WebPlanClarificationAnswer> }) => Promise<void>;
   onSkip: (args: { requestId: string; clarificationId: string }) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const requestId = clarification.requestId || "";
   const [answers, setAnswers] = useState<Record<string, WebPlanClarificationAnswer>>(() => Object.fromEntries(
     clarification.questions.filter((question) => question.answer).map((question) => [question.id, question.answer!]),
@@ -72,19 +74,20 @@ function QuestionsCard({ clarification, onComplete, onSkip }: {
     }
   };
 
-  return <section className={styles.root} aria-label="Plan soruları">
+  return <section className={styles.root} aria-label={t("runtime.plan.questions")}>
     <header className={styles.header}>
-      <span>Questions</span>
+      <span>{t("runtime.plan.questions")}</span>
       <div className={styles.progress}>
-        <button type="button" aria-label="Önceki soru" disabled={activeIndex === 0} onClick={() => setActiveIndex((value) => Math.max(0, value - 1))}><ChevronLeft size={14} /></button>
-        <b>{activeIndex + 1} of {clarification.questions.length}</b>
-        <button type="button" aria-label="Sonraki soru" disabled={activeIndex === clarification.questions.length - 1} onClick={() => setActiveIndex((value) => Math.min(clarification.questions.length - 1, value + 1))}><ChevronRight size={14} /></button>
+        <button type="button" aria-label={t("runtime.plan.previousQuestion")} disabled={activeIndex === 0} onClick={() => setActiveIndex((value) => Math.max(0, value - 1))}><ChevronLeft size={14} /></button>
+        <b>{t("runtime.plan.questionProgress", { current: activeIndex + 1, total: clarification.questions.length })}</b>
+        <button type="button" aria-label={t("runtime.plan.nextQuestion")} disabled={activeIndex === clarification.questions.length - 1} onClick={() => setActiveIndex((value) => Math.min(clarification.questions.length - 1, value + 1))}><ChevronRight size={14} /></button>
         <ChevronDown size={14} aria-hidden="true" />
       </div>
     </header>
 
     <div className={styles.list}>
       {clarification.questions.map((question, questionIndex) => {
+        if (questionIndex !== activeIndex) return null;
         const currentAnswer = answers[question.id];
         const otherSelected = Object.prototype.hasOwnProperty.call(currentAnswer || {}, "text");
         return <div className={styles.question} key={question.id} onClick={() => setActiveIndex(questionIndex)}>
@@ -102,17 +105,17 @@ function QuestionsCard({ clarification, onComplete, onSkip }: {
             </button>)}
             <button type="button" className={`${styles.option} ${otherSelected ? styles.selected : ""}`} onClick={() => chooseOther(question.id)}>
               <span className={styles.optionKey}>{String.fromCharCode(65 + question.options.length)}</span>
-              <span className={styles.optionCopy}>Other...</span>
+              <span className={styles.optionCopy}>{t("runtime.plan.other")}</span>
             </button>
-            {otherSelected && <input className={styles.otherInput} autoFocus value={drafts[question.id] || ""} onChange={(event) => updateText(question.id, event.target.value)} placeholder="Kendi cevabın…" />}
-          </div> : <textarea className={styles.textInput} value={drafts[question.id] || ""} onChange={(event) => updateText(question.id, event.target.value)} placeholder="Kısa yanıtın…" rows={2} />}
+            {otherSelected && <input className={styles.otherInput} autoFocus value={drafts[question.id] || ""} onChange={(event) => updateText(question.id, event.target.value)} placeholder={t("runtime.plan.customAnswer")} />}
+          </div> : <textarea className={styles.textInput} value={drafts[question.id] || ""} onChange={(event) => updateText(question.id, event.target.value)} placeholder={t("runtime.plan.shortAnswer")} rows={2} />}
         </div>;
       })}
     </div>
 
     <footer className={styles.actions}>
-      <button type="button" className={styles.skip} disabled={submitting} onClick={() => void skip()}>Skip</button>
-      <button type="button" className={styles.next} disabled={submitting} onClick={advance}>{activeIndex < clarification.questions.length - 1 ? "Next" : submitting ? "Sending" : "Submit"}<span>↵</span></button>
+      <button type="button" className={styles.skip} disabled={submitting} onClick={() => void skip()}>{t("runtime.plan.skip")}</button>
+      <button type="button" className={styles.next} disabled={submitting} onClick={advance}>{activeIndex < clarification.questions.length - 1 ? t("runtime.plan.next") : submitting ? t("runtime.plan.sending") : t("runtime.plan.submit")}<span>↵</span></button>
     </footer>
   </section>;
 }

@@ -60,14 +60,17 @@ export function quakeManualChunk(id: string): string | undefined {
 
   if (packageName === "monaco-editor" || packageName === "@monaco-editor/react") return "monaco";
   if (packageName === "react" || packageName === "react-dom" || packageName === "scheduler") return "react-vendor";
-  if (packageName === "@streamdown/code") return "markdown-code";
-  if (MARKDOWN_MATH_PACKAGES.has(packageName)) return "markdown-math";
-  if (packageName === "@streamdown/mermaid") return "markdown-diagrams";
   if (
-    MARKDOWN_CORE_PACKAGES.has(packageName)
+    packageName === "@streamdown/code"
+    || packageName === "@streamdown/mermaid"
+    || MARKDOWN_MATH_PACKAGES.has(packageName)
+    || MARKDOWN_CORE_PACKAGES.has(packageName)
     || MARKDOWN_CORE_PACKAGE_PREFIXES.some((prefix) => packageName.startsWith(prefix))
   ) {
-    return "markdown-core";
+    // These packages form a shared runtime graph. Splitting core, math, code,
+    // and diagrams into separate named chunks can create a circular ESM
+    // evaluation order in a packaged renderer, leaving exports in the TDZ.
+    return "markdown-runtime";
   }
   return undefined;
 }
@@ -106,10 +109,12 @@ export default defineConfig({
         streamingLab: resolve(import.meta.dirname, "src/client/streaming-lab.html"),
       },
       output: {
-        // Do not let Rollup absorb transitive lazy Shiki/Mermaid modules into
-        // an explicit rich-render chunk; that preserves their on-demand graph
-        // and avoids order-dependent cross-chunk cycles.
-        onlyExplicitManualChunks: true,
+        // Rollup's explicit-only mode split shared modules back into the app
+        // entry, producing runtime cycles such as
+        // `index -> markdown-core -> index` in the packaged renderer. Let
+        // Rollup include the transitive graph of each named chunk so imports
+        // are evaluated in a stable order in production.
+        onlyExplicitManualChunks: false,
         manualChunks: quakeManualChunk,
       },
     },

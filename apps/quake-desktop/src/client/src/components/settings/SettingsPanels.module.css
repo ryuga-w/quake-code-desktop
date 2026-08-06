@@ -948,7 +948,7 @@
    Settings operational UI — consolidated active layer
    ============================================================ */
 .settingsModalRoot {
-  --settings-rail: var(--left-sidebar-width, 340px);
+  --settings-rail: var(--left-sidebar-width, 320px);
   --settings-content-width: 820px;
   --settings-page-gap: 30px;
   --settings-card-radius: 13px;

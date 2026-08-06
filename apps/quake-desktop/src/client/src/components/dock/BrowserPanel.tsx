@@ -66,7 +66,6 @@ const browserStateBySession = new Map<string, SessionBrowserState>();
 type BrowserPanelProps = {
   sessionKey: string;
   initialUrl?: string;
-  chromeMenuOpen?: boolean;
   onElementSelected?: (element: ElementInspectResult, comment?: string) => void;
   onAnnotationBundle?: (bundle: BrowserAnnotationBundle) => void;
   onMetadataChange?: (metadata: { title: string; url: string }) => void;
@@ -75,7 +74,6 @@ type BrowserPanelProps = {
 export function BrowserPanel({
   sessionKey,
   initialUrl,
-  chromeMenuOpen = false,
   onElementSelected: _onElementSelected,
   onAnnotationBundle,
   onMetadataChange,
@@ -124,7 +122,7 @@ export function BrowserPanel({
 
   useEffect(() => {
     setDraft(current);
-  }, [chromeMenuOpen, current]);
+  }, [current]);
 
   const navigate = useCallback((rawUrl: string) => {
     const next = normalizeUrl(rawUrl);
@@ -202,7 +200,7 @@ export function BrowserPanel({
   useEffect(() => {
     if (!isDesktop || !desktop?.browser) return;
     const browser = desktop.browser;
-    if (!current || chromeMenuOpen) {
+    if (!current) {
       browser.hide();
       return;
     }

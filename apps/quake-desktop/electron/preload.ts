@@ -14,6 +14,9 @@ contextBridge.exposeInMainWorld("quakeDesktop", {
   /** Keep native browser pages' prefers-color-scheme aligned with Quake. */
   setResolvedTheme: (theme: "light" | "dark") =>
     ipcRenderer.send("theme:setResolved", theme),
+  /** Keep native app menus aligned with the renderer's resolved locale. */
+  setNativeLocale: (locale: "tr" | "en") =>
+    ipcRenderer.send("locale:setNative", locale),
   /** Native klasör seçici (Create Project → Add Folder). */
   pickFolder: (): Promise<string | null> => ipcRenderer.invoke("workspace:pickFolder"),
   /** Native çoklu klasör seçici (multi-root workspace). */

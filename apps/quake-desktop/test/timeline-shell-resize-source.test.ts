@@ -67,13 +67,13 @@ describe("timeline shell and left sidebar sizing", () => {
   it("keeps expanded sizing bounded while allowing a little more width", () => {
     expect(LEFT_SIDEBAR_CLOSE_THRESHOLD).toBe(240);
     expect(LEFT_SIDEBAR_MIN_WIDTH).toBe(280);
-    expect(LEFT_SIDEBAR_DEFAULT_WIDTH).toBe(340);
-    expect(LEFT_SIDEBAR_MAX_WIDTH).toBe(500);
+    expect(LEFT_SIDEBAR_DEFAULT_WIDTH).toBe(320);
+    expect(LEFT_SIDEBAR_MAX_WIDTH).toBe(360);
     expect(clampLeftSidebarWidth(120)).toBe(280);
     expect(clampLeftSidebarWidth(352.4)).toBe(352);
-    expect(clampLeftSidebarWidth(480)).toBe(480);
-    expect(clampLeftSidebarWidth(900)).toBe(500);
-    expect(clampLeftSidebarWidth(Number.NaN)).toBe(340);
+    expect(clampLeftSidebarWidth(480)).toBe(360);
+    expect(clampLeftSidebarWidth(900)).toBe(360);
+    expect(clampLeftSidebarWidth(Number.NaN)).toBe(320);
   });
 
   it("persists and exposes pointer and keyboard accessible resizing", () => {
@@ -84,14 +84,16 @@ describe("timeline shell and left sidebar sizing", () => {
     expect(shell).toContain('role="separator"');
     expect(shell).toContain('aria-orientation="vertical"');
     expect(shell).toContain("handleLeftResizeKey");
-    expect(shell).toContain("nextWidth <= LEFT_SIDEBAR_CLOSE_THRESHOLD");
-    expect(shell).toContain("if (collapseReady) {");
+    expect(shell).not.toContain("nextWidth <= LEFT_SIDEBAR_CLOSE_THRESHOLD");
+    expect(shell).not.toContain("collapseReady");
+    expect(shell).toContain("Math.max(LEFT_SIDEBAR_MIN_WIDTH, nextWidth)");
     expect(shell).toContain("toggleLeftPanel();");
     expect(shell).toContain('style.setProperty("--left-sidebar-preview-width"');
     expect(shell).toContain('style.removeProperty("--left-sidebar-preview-width")');
     expect(shell).toContain('appGridRef.current?.style.removeProperty("--left-sidebar-width")');
-    expect(styles).toContain("var(--left-sidebar-preview-width, var(--left-sidebar-width, 340px))");
-    expect(shell).toContain("Sola sürükleyerek kapat");
+    expect(styles).toContain("var(--left-sidebar-preview-width, var(--left-sidebar-width, 320px))");
+    expect(shell).toContain('t("navRail.resizeHandleLabel")');
+    expect(shell).toContain('t("navRail.resizeHandleTitle")');
     expect(shell).toContain("onDoubleClick");
     expect(styles).toContain("left-sidebar-collapse-ready");
     expect(styles).toContain("--left-sidebar-width");

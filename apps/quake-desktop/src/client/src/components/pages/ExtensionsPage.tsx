@@ -13,6 +13,7 @@ import {
   Puzzle,
 } from "lucide-react";
 import type { WebExtensionInfo, WebSkillInfo } from "../../../../shared/protocol";
+import { localeForIntl, useI18n } from "../../i18n";
 import { apiGet, apiPost } from "../../lib/api";
 import { SkeletonLines } from "../common/Feedback";
 import styles from "./ExtensionsPage.module.css";
@@ -31,17 +32,17 @@ export type ExtensionsPageProps = {
 type TabKey = "extensions" | "skills";
 type FilterKey = "bundled" | "workspace" | "personal";
 
-const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: "bundled", label: "OpenAI tarafından" },
-  { key: "workspace", label: "Çalışma alanın tarafından" },
-  { key: "personal", label: "Kişisel" },
+const FILTERS: { key: FilterKey; labelKey: "extensions.filter.bundled" | "extensions.filter.workspace" | "extensions.filter.personal" }[] = [
+  { key: "bundled", labelKey: "extensions.filter.bundled" },
+  { key: "workspace", labelKey: "extensions.filter.workspace" },
+  { key: "personal", labelKey: "extensions.filter.personal" },
 ];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  featured: "Öne çıkanlar",
-  productivity: "Üretkenlik",
-  education: "Eğitim ve araştırma",
-  other: "Diğer",
+const CATEGORY_KEYS: Record<string, "extensions.category.featured" | "extensions.category.productivity" | "extensions.category.education" | "extensions.category.other"> = {
+  featured: "extensions.category.featured",
+  productivity: "extensions.category.productivity",
+  education: "extensions.category.education",
+  other: "extensions.category.other",
 };
 
 function extensionIcon(ext: WebExtensionInfo): React.ReactNode {
@@ -58,6 +59,7 @@ function extensionIcon(ext: WebExtensionInfo): React.ReactNode {
 }
 
 export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: ExtensionsPageProps) {
+  const { locale, t } = useI18n();
   const [tab, setTab] = useState<TabKey>("extensions");
   const [filter, setFilter] = useState<FilterKey>("bundled");
   const [query, setQuery] = useState("");
@@ -106,9 +108,9 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
     onInstall?.(ext.id);
   }
 
-  const q = query.trim().toLocaleLowerCase("tr");
+  const q = query.trim().toLocaleLowerCase(localeForIntl(locale));
   const matchText = (name: string, description = "") =>
-    !q || name.toLocaleLowerCase("tr").includes(q) || description.toLocaleLowerCase("tr").includes(q);
+    !q || name.toLocaleLowerCase(localeForIntl(locale)).includes(q) || description.toLocaleLowerCase(localeForIntl(locale)).includes(q);
 
   const filteredExtensions = useMemo(() => {
     return extensions.filter((ext) => {
@@ -125,8 +127,8 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
       const category = extension.category || "other";
       groups.set(category, [...(groups.get(category) || []), extension]);
     }
-    return [...groups.entries()].map(([category, items]) => ({ label: CATEGORY_LABELS[category] || category, items }));
-  }, [filteredExtensions]);
+    return [...groups.entries()].map(([category, items]) => ({ label: t(CATEGORY_KEYS[category] || "extensions.category.other"), items }));
+  }, [filteredExtensions, t]);
 
   const installed = useMemo(
     () => extensions.filter((ext) => ext.enabled),
@@ -141,7 +143,7 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
   return (
     <div className={styles.page}>
       <header className={styles.topbar}>
-        <div className={styles.tabs} role="tablist" aria-label="Eklentiler görünümü">
+        <div className={styles.tabs} role="tablist" aria-label={t("extensions.view")}>
           <button
             type="button"
             role="tab"
@@ -149,7 +151,7 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
             className={`${styles.tab} ${tab === "extensions" ? styles.tabActive : ""}`}
             onClick={() => setTab("extensions")}
           >
-            Eklentiler
+            {t("extensions.extensionsTab")}
           </button>
           <button
             type="button"
@@ -158,14 +160,14 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
             className={`${styles.tab} ${tab === "skills" ? styles.tabActive : ""}`}
             onClick={() => setTab("skills")}
           >
-            Beceriler
+            {t("extensions.skillsTab")}
           </button>
         </div>
         <div className={styles.topActions}>
           <button
             type="button"
             className={styles.topIconBtn}
-            aria-label="Yenile"
+            aria-label={t("extensions.refresh")}
             onClick={() => setReloadKey((k) => k + 1)}
           >
             <RefreshCw size={15} aria-hidden="true" />
@@ -173,22 +175,22 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
           <button
             type="button"
             className={styles.topIconBtn}
-            aria-label="Eklenti ayarları"
+            aria-label={t("extensions.settings")}
             onClick={onOpenSettings}
           >
             <Settings2 size={15} aria-hidden="true" />
           </button>
           <div className={styles.topAddGroup}>
-            <button type="button" className={styles.topAddBtn} aria-label="Eklenti ekle" onClick={onOpenSettings}>
+            <button type="button" className={styles.topAddBtn} aria-label={t("extensions.add")} onClick={onOpenSettings}>
               <Plus size={15} aria-hidden="true" />
             </button>
-            <button type="button" className={styles.topCaretBtn} aria-label="Ekleme seçenekleri" aria-expanded={addMenuOpen} onClick={() => setAddMenuOpen((open) => !open)}>
+            <button type="button" className={styles.topCaretBtn} aria-label={t("extensions.addOptions")} aria-expanded={addMenuOpen} onClick={() => setAddMenuOpen((open) => !open)}>
               <ChevronDown size={14} aria-hidden="true" />
             </button>
             {addMenuOpen && <div className={styles.actionMenu}>
-              <button type="button" onClick={() => { setFilter("workspace"); setAddMenuOpen(false); }}>Çalışma alanı eklentileri</button>
-              <button type="button" onClick={() => { setFilter("personal"); setAddMenuOpen(false); }}>Kişisel eklentiler</button>
-              <button type="button" onClick={() => { onOpenSettings?.(); setAddMenuOpen(false); }}>Eklenti ayarlarını aç</button>
+              <button type="button" onClick={() => { setFilter("workspace"); setAddMenuOpen(false); }}>{t("extensions.workspaceExtensions")}</button>
+              <button type="button" onClick={() => { setFilter("personal"); setAddMenuOpen(false); }}>{t("extensions.personalExtensions")}</button>
+              <button type="button" onClick={() => { onOpenSettings?.(); setAddMenuOpen(false); }}>{t("extensions.openSettings")}</button>
             </div>}
           </div>
         </div>
@@ -197,9 +199,9 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
       <div className={styles.scroll}>
         <div className={styles.container}>
           {tab === "extensions" ? (
-            <section role="tabpanel" aria-label="Eklentiler">
-              <h1 className={styles.heading}>Eklentiler</h1>
-              <p className={styles.subhead}>Quake Code'u favori araçlarınla genişlet</p>
+            <section role="tabpanel" aria-label={t("extensions.extensionsTab")}>
+              <h1 className={styles.heading}>{t("extensions.title")}</h1>
+              <p className={styles.subhead}>{t("extensions.subtitle")}</p>
 
               <div className={styles.searchBox}>
                 <Search size={16} className={styles.searchIcon} aria-hidden="true" />
@@ -207,18 +209,18 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
                   className={styles.searchInput}
                   type="search"
                   value={query}
-                  placeholder="Eklenti ara"
-                  aria-label="Eklenti ara"
+                  placeholder={t("extensions.searchExtension")}
+                  aria-label={t("extensions.searchExtension")}
                   onChange={(event) => setQuery(event.target.value)}
                 />
               </div>
 
               <div className={styles.installedHead}>
-                <span className={styles.installedTitle}>Kurulu</span>
+                <span className={styles.installedTitle}>{t("extensions.installed")}</span>
                 <button
                   type="button"
                   className={styles.installedGear}
-                  aria-label="Kurulu eklenti ayarları"
+                  aria-label={t("extensions.installedSettings")}
                   onClick={onOpenSettings}
                 >
                   <Settings2 size={16} aria-hidden="true" />
@@ -226,9 +228,9 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
               </div>
               <div className={styles.installedRow}>
                 {loading ? (
-                  <span className={styles.installedEmpty}>Yükleniyor…</span>
+                  <span className={styles.installedEmpty}>{t("extensions.loading")}</span>
                 ) : installed.length === 0 ? (
-                  <span className={styles.installedEmpty}>Henüz kurulu eklenti yok.</span>
+                  <span className={styles.installedEmpty}>{t("extensions.noneInstalled")}</span>
                 ) : (
                   installed.map((ext) => (
                     <span
@@ -244,7 +246,7 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
               </div>
 
               <div className={styles.filterRow}>
-                <div className={styles.filterTabs} role="tablist" aria-label="Eklenti kaynağı filtresi">
+                <div className={styles.filterTabs} role="tablist" aria-label={t("extensions.sourceFilter")}>
                   {FILTERS.map((f) => (
                     <button
                       key={f.key}
@@ -254,11 +256,11 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
                       className={`${styles.filterTab} ${filter === f.key ? styles.filterTabActive : ""}`}
                       onClick={() => setFilter(f.key)}
                     >
-                      {f.label}
+                      {t(f.labelKey)}
                     </button>
                   ))}
                 </div>
-                <button type="button" className={`${styles.filterIconBtn} ${installedOnly ? styles.filterIconActive : ""}`} aria-label="Yalnızca kurulu eklentileri göster" aria-pressed={installedOnly} title="Yalnızca kurulu" onClick={() => setInstalledOnly((value) => !value)}>
+                <button type="button" className={`${styles.filterIconBtn} ${installedOnly ? styles.filterIconActive : ""}`} aria-label={t("extensions.installedOnly")} aria-pressed={installedOnly} title={t("extensions.installedOnlyTitle")} onClick={() => setInstalledOnly((value) => !value)}>
                   <SlidersHorizontal size={16} aria-hidden="true" />
                 </button>
               </div>
@@ -268,7 +270,7 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
                   <SkeletonLines count={4} />
                 </div>
               ) : filteredExtensions.length === 0 ? (
-                <div className={styles.empty}>Eklenti bulunamadı.</div>
+                <div className={styles.empty}>{t("extensions.notFound")}</div>
               ) : (
                 extensionSections.map((section) => (
                   <ExtensionSection
@@ -285,12 +287,12 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
                 ))
               )}
 
-              <p className={styles.footer}>{extensions.length} eklenti runtime tarafından keşfedildi</p>
+              <p className={styles.footer}>{t("extensions.discovered", { count: extensions.length })}</p>
             </section>
           ) : (
-            <section role="tabpanel" aria-label="Beceriler">
-              <h1 className={styles.heading}>Beceriler</h1>
-              <p className={styles.subhead}>Ajanın kullanabildiği aktif yetenekler</p>
+            <section role="tabpanel" aria-label={t("extensions.skillsTab")}>
+              <h1 className={styles.heading}>{t("extensions.skillsTitle")}</h1>
+              <p className={styles.subhead}>{t("extensions.skillsSubtitle")}</p>
 
               <div className={styles.searchBox}>
                 <Search size={16} className={styles.searchIcon} aria-hidden="true" />
@@ -298,20 +300,20 @@ export function ExtensionsPage({ onTryInChat, onInstall, onOpenSettings }: Exten
                   className={styles.searchInput}
                   type="search"
                   value={query}
-                  placeholder="Beceri ara"
-                  aria-label="Beceri ara"
+                  placeholder={t("extensions.searchSkill")}
+                  aria-label={t("extensions.searchSkill")}
                   onChange={(event) => setQuery(event.target.value)}
                 />
               </div>
 
-              <div className={styles.sectionLabel}>Yüklü beceriler</div>
+              <div className={styles.sectionLabel}>{t("extensions.installedSkills")}</div>
               <div className={styles.divider} />
               {loading ? (
                 <div className={styles.skeletonWrap}>
                   <SkeletonLines count={4} />
                 </div>
               ) : filteredSkills.length === 0 ? (
-                <div className={styles.empty}>Beceri bulunamadı.</div>
+                <div className={styles.empty}>{t("extensions.skillsNotFound")}</div>
               ) : (
                 <div className={styles.cardList}>
                   {filteredSkills.map((skill) => (
@@ -355,6 +357,7 @@ function ExtensionSection({
   onInstall: (ext: WebExtensionInfo) => void;
   onToggle: (ext: WebExtensionInfo, enabled: boolean) => void;
 }) {
+  const { t } = useI18n();
   if (items.length === 0) return null;
   return (
     <>
@@ -369,17 +372,17 @@ function ExtensionSection({
               <span className={styles.cardIcon}>{extensionIcon(ext)}</span>
               <div className={styles.cardMain}>
                 <div className={styles.cardName}>{ext.name}</div>
-                <div className={styles.cardDesc}>{ext.description || "Eklenti"}</div>
+                <div className={styles.cardDesc}>{ext.description || t("extensions.extensionFallback")}</div>
               </div>
               <div className={styles.cardActions}>
                 {needsInstall ? (
                   <button type="button" className={styles.installBtn} onClick={() => onInstall(ext)}>
-                    Kur
+                    {t("extensions.install")}
                   </button>
                 ) : active ? (
                   <>
                     <button type="button" className={styles.tryBtn} onClick={() => onTryInChat?.(ext.name)}>
-                      Sohbette dene
+                      {t("extensions.tryInChat")}
                     </button>
                     {ext.optIn && (
                       <button
@@ -387,7 +390,7 @@ function ExtensionSection({
                         className={styles.installBtn}
                         onClick={() => onToggle(ext, false)}
                       >
-                        Devre dışı
+                        {t("extensions.disable")}
                       </button>
                     )}
                   </>
@@ -397,13 +400,13 @@ function ExtensionSection({
                   </button>
                 )}
                 <div className={styles.extensionMenuWrap}>
-                  <button type="button" className={styles.menuBtn} aria-label={`${ext.name} menüsü`} aria-expanded={openMenuId === ext.id} onClick={() => onOpenMenu(openMenuId === ext.id ? undefined : ext.id)}>
+                  <button type="button" className={styles.menuBtn} aria-label={t("extensions.menu", { name: ext.name })} aria-expanded={openMenuId === ext.id} onClick={() => onOpenMenu(openMenuId === ext.id ? undefined : ext.id)}>
                     <MoreHorizontal size={16} aria-hidden="true" />
                   </button>
                   {openMenuId === ext.id && <div className={styles.extensionMenu}>
-                    <button type="button" onClick={() => { onTryInChat?.(ext.name); onOpenMenu(undefined); }}>Sohbette dene</button>
-                    <button type="button" onClick={() => { onToggle(ext, !active); onOpenMenu(undefined); }}>{active ? "Devre dışı bırak" : "Etkinleştir"}</button>
-                    <button type="button" onClick={() => { onOpenSettings?.(); onOpenMenu(undefined); }}>Ayarları aç</button>
+                    <button type="button" onClick={() => { onTryInChat?.(ext.name); onOpenMenu(undefined); }}>{t("extensions.tryInChat")}</button>
+                    <button type="button" onClick={() => { onToggle(ext, !active); onOpenMenu(undefined); }}>{active ? t("extensions.disable") : t("extensions.enable")}</button>
+                    <button type="button" onClick={() => { onOpenSettings?.(); onOpenMenu(undefined); }}>{t("extensions.openSettings")}</button>
                   </div>}
                 </div>
               </div>

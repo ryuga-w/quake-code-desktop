@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import type { WebSource } from "../../lib/extract-web-sources";
 import { faviconUrl } from "../../lib/extract-web-sources";
 import styles from "./SourceFavicons.module.css";
+import { useI18n } from "../../i18n";
 
 function truncate(value: string, max: number): string {
   if (!value) return "";
@@ -78,7 +79,7 @@ function FaviconBadge({
 export function SourceFavicons({
   sources,
   isRunning,
-  label = "Kaynaklar",
+  label,
   compact,
   inline,
   max,
@@ -92,6 +93,8 @@ export function SourceFavicons({
   inline?: boolean;
   max?: number;
 }) {
+  const { locale } = useI18n();
+  const resolvedLabel = label ?? (locale === "en" ? "Sources" : "Kaynaklar");
   const visible = max ? sources.slice(0, max) : sources;
   const overflow = max && sources.length > max ? sources.length - max : 0;
   const keys = React.useMemo(() => visible.map((s) => s.hostname).join("|"), [visible]);
@@ -107,7 +110,7 @@ export function SourceFavicons({
     >
       {!inline && (
         <div className={styles.header}>
-          <span>{label}</span>
+          <span>{resolvedLabel}</span>
           <span className={styles.headerCount}>{sources.length}</span>
           {isRunning && (
             <motion.span
@@ -116,7 +119,7 @@ export function SourceFavicons({
               transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
             >
               <span className={styles.scanDot} />
-              taranıyor
+              {locale === "en" ? "scanning" : "taranıyor"}
             </motion.span>
           )}
         </div>

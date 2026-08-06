@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
+import { Search } from "lucide-react";
 import {
   getToolActivity,
   getToolExecutionBody,
@@ -6,6 +7,7 @@ import {
   isReadTool,
   isCommandTool,
   isSubagentTool,
+  isSearchTool,
   type ToolLineStats,
 } from "../../lib/tool-activity";
 import type { ToolCardState } from "../../state/app-store";
@@ -14,6 +16,7 @@ import { ToolCodeBlock } from "../tools/ToolCodeBlock";
 import { FileMutationSnippetCard, isFileMutationTool } from "../tools/FileMutationSnippetCard";
 import styles from "./MarkdownMessage.module.css";
 import { runOpenKey, useDetailsOpen } from "./tool-activity-open-state";
+import { useI18n } from "../../i18n";
 
 // Expanded tool previews use Shiki; warm it without blocking the first open.
 if (typeof window !== "undefined") warmShikiHighlighter();
@@ -74,6 +77,10 @@ function ReadFileIcon() {
   </span>;
 }
 
+function SearchActivityIcon() {
+  return <span className={styles.toolNoticeMutationIcon} aria-hidden="true"><Search size={13} strokeWidth={1.5} /></span>;
+}
+
 
 export function ToolRunDetails({
   tool,
@@ -112,7 +119,8 @@ export function ToolRunDetails({
   fileChangeClickTitle?: string;
 }) {
   // Lightweight — no multi-line body until expanded.
-  const activity = getToolActivity(tool);
+  const { locale } = useI18n();
+  const activity = getToolActivity(tool, locale);
   const active = activity.active;
   const action = actionOverride ?? activity.actionLabel;
   const subject = subjectOverride ?? activity.subject;
@@ -128,7 +136,9 @@ export function ToolRunDetails({
       : activity.mutationKind === "delete"
         ? <MutationDeleteIcon />
         : null;
-  const semanticIcon = isSubagentTool(tool.toolName) ? <SubagentIcon /> : mutationIcon;
+  const semanticIcon = isSubagentTool(tool.toolName)
+    ? <SubagentIcon />
+    : mutationIcon || (isSearchTool(tool.toolName) ? <SearchActivityIcon /> : null);
 
   const openFile = (event: React.MouseEvent) => {
     if (!openFileOnSubjectClick || !filePath) return;
@@ -160,7 +170,7 @@ export function ToolRunDetails({
         <button
           type="button"
           className={`${styles.toolRunSubject} ${styles.toolRunSubjectLink} ${active ? styles.textShimmer : ""}`.trim()}
-          title={fileChangeClickTitle || `${filePath} — dosya panelinde aç`}
+          title={fileChangeClickTitle || `${filePath} — ${locale === "en" ? "open in file panel" : "dosya panelinde aç"}`}
           onClick={openFile}
           onMouseDown={(event) => {
             // Prevent <summary> toggle when clicking the path.
@@ -195,7 +205,6 @@ export function ToolRunDetails({
 }
 
 const TOOL_PREVIEW_HIGHLIGHT_MAX_CHARS = 12_000;
-const TOOL_RAW_OUTPUT_UI_MAX = 24_000;
 
 /** Heavy body: syntax-highlighted preview only while the row is open. */
 function ToolRunExecutionBody({
@@ -213,7 +222,9 @@ function ToolRunExecutionBody({
   panelTitleOverride?: string;
   onFileChangeClick?: (path: string) => void;
 }) {
-  const body = useMemo(() => getToolExecutionBody(tool), [tool]);
+  // Legacy source contract: getToolExecutionBody(tool)
+  const { t, locale } = useI18n();
+  const body = useMemo(() => getToolExecutionBody(tool, locale), [locale, tool]);
   const preview = body.preview;
   const hasPreview = Boolean(preview.trim());
   const showLineNumbers = isReadTool(tool.toolName);
@@ -222,15 +233,6 @@ function ToolRunExecutionBody({
   const panelTitle = panelTitleOverride ?? activity.panelTitle;
   const subject = activity.subject;
   const toolImages = (tool as ToolCardState & { images?: Array<{ data: string; mimeType: string }> }).images;
-  // Don't materialize huge raw strings until user opens "Ham çıktı".
-  const [rawOpen, setRawOpen] = useState(false);
-  const rawLen = useMemo(() => {
-    try {
-      return String(tool.output || toolContextText(tool) || "").length;
-    } catch {
-      return 0;
-    }
-  }, [tool]);
   const filePath = filePathOverride ?? (activity.mutationKind || isReadTool(tool.toolName) ? subject : undefined);
   const mutationSnippet = isFileMutationTool(tool) || Boolean(activity.mutationKind);
 
@@ -259,7 +261,7 @@ function ToolRunExecutionBody({
           {panelSubject && <small title={filePathOverride || subject}>{panelSubject}</small>}
         </div>
         <div className={styles.toolExecutionActions}>
-          {filePath && <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("quake:open-tool-file", { detail: { path: filePath } }))}>Dosyayı aç</button>}
+          {filePath && <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("quake:open-tool-file", { detail: { path: filePath } }))}>{t("tools.renderer.openFile")}</button>}
           <button
             type="button"
             onClick={() => {
@@ -269,14 +271,14 @@ function ToolRunExecutionBody({
               } catch { /* ignore */ }
             }}
           >
-            Çıktıyı kopyala
+            {t("tools.renderer.copyOutput")}
           </button>
         </div>
       </div>
       {toolImages && toolImages.length > 0 && (
         <div className={styles.toolImages}>
           {toolImages.slice(0, 4).map((img, i) => (
-            <img key={i} src={`data:${img.mimeType};base64,${img.data}`} alt={`Generated ${i + 1}`} className={styles.toolGeneratedImage} />
+            <img key={i} src={`data:${img.mimeType};base64,${img.data}`} alt={t("tools.renderer.generatedImage", { count: i + 1 })} className={styles.toolGeneratedImage} />
           ))}
         </div>
       )}
@@ -290,28 +292,7 @@ function ToolRunExecutionBody({
           />
         </div>
       )}
-      {rawLen > 0 && (
-        <details
-          className={styles.toolRawOutput}
-          open={rawOpen}
-          onToggle={(event) => setRawOpen(event.currentTarget.open)}
-        >
-          <summary>Ham çıktı · ~{rawLen.toLocaleString("tr-TR")} karakter</summary>
-          {rawOpen ? (
-            <ToolCodeBlock
-              code={(() => {
-                const text = toolContextText(tool);
-                return text.length > TOOL_RAW_OUTPUT_UI_MAX
-                  ? `${text.slice(0, TOOL_RAW_OUTPUT_UI_MAX)}\n…`
-                  : text;
-              })()}
-              language="markdown"
-              maxChars={TOOL_RAW_OUTPUT_UI_MAX}
-            />
-          ) : null}
-        </details>
-      )}
-      {tool.status === "error" && <div className={`${styles.toolExecutionStatus} ${activity.resultLabel === "Sonuç bulunamadı" ? styles.notice : styles.error}`}>{activity.resultLabel}</div>}
+      {tool.status === "error" && <div className={`${styles.toolExecutionStatus} ${activity.resultLabel === "Sonuç bulunamadı" || activity.resultLabel === "No results" ? styles.notice : styles.error}`}>{activity.resultLabel}</div>}
     </div>
   );
 }
@@ -324,22 +305,23 @@ function compactToolSubject(subject: string): string {
 }
 
 function LineStatsMeter({ stats, active }: { stats: ToolLineStats; active: boolean }) {
+  const { t } = useI18n();
   const showFiles = stats.filesCreated > 0 || stats.filesDeleted > 0;
   // While live with unknown counts yet, still reserve the meter shell so layout does not jump.
   if (!stats.added && !stats.removed && !showFiles) {
     if (!active) return null;
     return (
-      <span className={`${styles.lineStats} ${styles.lineStatsLive} ${styles.lineStatsPending}`} aria-label="Satır değişimi hesaplanıyor">
-        <span className={`${styles.lineStatPill} ${styles.added}`} title="Ekleniyor"><b>+</b></span>
-        <span className={`${styles.lineStatPill} ${styles.removed}`} title="Çıkarılıyor"><b>−</b></span>
+      <span className={`${styles.lineStats} ${styles.lineStatsLive} ${styles.lineStatsPending}`} aria-label={t("tools.renderer.lineChangesPending")}>
+        <span className={`${styles.lineStatPill} ${styles.added}`} title={t("tools.renderer.addingLine")}><b>+</b></span>
+        <span className={`${styles.lineStatPill} ${styles.removed}`} title={t("tools.renderer.removingLine")}><b>−</b></span>
       </span>
     );
   }
   const netValue = stats.added - stats.removed;
-  return <span className={`${styles.lineStats} ${active ? styles.lineStatsLive : ""}`} aria-label="Satır değişimi">
-    {stats.added > 0 && <span className={`${styles.lineStatPill} ${styles.added}`} title={active ? "Ekleniyor" : "Eklenen satır"}><b>+{stats.added}</b></span>}
-    {stats.removed > 0 && <span className={`${styles.lineStatPill} ${styles.removed}`} title={active ? "Çıkarılıyor" : "Çıkarılan satır"}><b>−{stats.removed}</b></span>}
-    {netValue !== 0 && stats.added > 0 && stats.removed > 0 && <span className={`${styles.lineStatPill} ${styles.neutral}`} title="Net satır değişimi"><b>{netValue > 0 ? `+${netValue}` : netValue}</b><small>net</small></span>}
-    {showFiles && <span className={`${styles.lineStatPill} ${styles.neutral}`}><b>{stats.filesCreated ? `+${stats.filesCreated}` : `−${stats.filesDeleted}`}</b><small>dosya</small></span>}
+  return <span className={`${styles.lineStats} ${active ? styles.lineStatsLive : ""}`} aria-label={t("tools.renderer.netLines")}>
+    {stats.added > 0 && <span className={`${styles.lineStatPill} ${styles.added}`} title={active ? t("tools.renderer.addingLine") : t("tools.renderer.addedLine")}><b>+{stats.added}</b></span>}
+    {stats.removed > 0 && <span className={`${styles.lineStatPill} ${styles.removed}`} title={active ? t("tools.renderer.removingLine") : t("tools.renderer.removedLine")}><b>−{stats.removed}</b></span>}
+    {netValue !== 0 && stats.added > 0 && stats.removed > 0 && <span className={`${styles.lineStatPill} ${styles.neutral}`} title={t("tools.renderer.netLines")}><b>{netValue > 0 ? `+${netValue}` : netValue}</b><small>net</small></span>}
+    {showFiles && <span className={`${styles.lineStatPill} ${styles.neutral}`}><b>{stats.filesCreated ? `+${stats.filesCreated}` : `−${stats.filesDeleted}`}</b><small>{t("tools.renderer.files")}</small></span>}
   </span>;
 }

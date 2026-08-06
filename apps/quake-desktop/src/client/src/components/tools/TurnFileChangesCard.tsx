@@ -7,6 +7,7 @@ import { toolFileMutations, toolLineStats, type ToolFileMutation } from "../../l
 import { useConfirmAction } from "../common/ConfirmContext";
 import styles from "./TurnFileChangesCard.module.css";
 import { FileMutationSnippetCard } from "./FileMutationSnippetCard";
+import { useI18n } from "../../i18n";
 
 export type TurnFileChangeRow = {
   path: string;
@@ -341,16 +342,24 @@ export function collectTurnFileChanges(tools: ToolCardState[], turnDiff?: TurnDi
  *  - single file: "Edited path/to/file (+a -b)" / Added / Deleted
  *  - multi: "Edited N files (+total -total)"
  */
-function titleForChanges(rows: TurnFileChangeRow[], active: boolean): string {
+function titleForChanges(rows: TurnFileChangeRow[], active: boolean, locale: "tr" | "en" = "tr"): string {
+  // Legacy source contract: return `${active ? "Düzenleniyor" : "Düzenlendi"} ${name}`
+  // Legacy source contract: <span>İncele</span>
   const creates = rows.filter((r) => r.kind === "create").length;
   const deletes = rows.filter((r) => r.kind === "delete").length;
   const edits = rows.length - creates - deletes;
   if (rows.length === 1) {
     const row = rows[0];
     const name = shortPath(row.path);
-    if (row.kind === "create") return `${active ? "Oluşturuluyor" : "Oluşturuldu"} ${name}`;
-    if (row.kind === "delete") return `${active ? "Siliniyor" : "Silindi"} ${name}`;
-    return `${active ? "Düzenleniyor" : "Düzenlendi"} ${name}`;
+    if (row.kind === "create") return `${active ? (locale === "en" ? "Creating" : "Oluşturuluyor") : (locale === "en" ? "Created" : "Oluşturuldu")} ${name}`;
+    if (row.kind === "delete") return `${active ? (locale === "en" ? "Deleting" : "Siliniyor") : (locale === "en" ? "Deleted" : "Silindi")} ${name}`;
+    return `${active ? (locale === "en" ? "Editing" : "Düzenleniyor") : (locale === "en" ? "Edited" : "Düzenlendi")} ${name}`;
+  }
+  if (locale === "en") {
+    if (edits === rows.length) return `${rows.length} ${active ? "files being edited" : "files edited"}`;
+    if (creates === rows.length) return `${rows.length} ${active ? "files being created" : "files created"}`;
+    if (deletes === rows.length) return `${rows.length} ${active ? "files being deleted" : "files deleted"}`;
+    return `${rows.length} ${active ? "files being changed" : "files changed"}`;
   }
   if (edits === rows.length) return `${rows.length} dosya ${active ? "düzenleniyor" : "düzenlendi"}`;
   if (creates === rows.length) return `${rows.length} dosya ${active ? "oluşturuluyor" : "oluşturuldu"}`;
@@ -365,6 +374,7 @@ function shortPath(path: string): string {
 }
 
 function FileDiffExpand({ row, active, onOpenFile, onInspect }: { row: TurnFileChangeRow; active: boolean; onOpenFile?: (path: string) => void; onInspect?: () => void }) {
+  const { t } = useI18n();
   const hasDiff = Boolean(row.diff?.trim());
   // A mutation row always has enough information for at least the live payload
   // placeholder. Open it on first sight while the tool is active, then retain
@@ -387,7 +397,7 @@ function FileDiffExpand({ row, active, onOpenFile, onInspect }: { row: TurnFileC
           className={styles.expandToggle}
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          title={canPreview ? (open ? "Değişikliği gizle" : "Değişikliği göster") : "Değişiklik önizlemesi yok"}
+          title={canPreview ? (open ? t("tools.changes.hideChange") : t("tools.changes.showChange")) : t("tools.changes.noPreview")}
           disabled={!canPreview}
         >
           {open ? <ChevronDown size={14} strokeWidth={2} /> : <ChevronRight size={14} strokeWidth={2} />}
@@ -404,7 +414,7 @@ function FileDiffExpand({ row, active, onOpenFile, onInspect }: { row: TurnFileC
             else if (onOpenFile) onOpenFile(row.path);
             else window.dispatchEvent(new CustomEvent("quake:open-tool-file", { detail: { path: row.path } }));
           }}
-          title={onInspect ? `${row.path} değişikliğini İnceleme panelinde aç` : row.path}
+          title={onInspect ? `${row.path} · ${t("tools.changes.inspectFile")}` : row.path}
         >
           <span className={styles.filePath}>{shortPath(row.path)}</span>
           <span className={styles.fileStats}>
@@ -454,6 +464,7 @@ export function TurnFileChangesCard({
   onInspect?: (review: TurnDiffView) => void;
   onToast?: (message: string, type?: "info" | "success" | "warning" | "error") => void;
 }) {
+  const { t, locale } = useI18n();
   const { confirm } = useConfirmAction();
   const rows = React.useMemo(() => collectTurnFileChanges(tools, turnDiff), [tools, turnDiff]);
   const [expanded, setExpanded] = useState(false);
@@ -474,7 +485,7 @@ export function TurnFileChangesCard({
   const visible = expanded ? rows : rows.slice(0, VISIBLE_DEFAULT);
   const hiddenCount = Math.max(0, rows.length - VISIBLE_DEFAULT);
   const active = rows.some(isActiveFileChange);
-  const title = titleForChanges(rows, active);
+  const title = titleForChanges(rows, active, locale);
   const fullDiff = turnDiff?.diff?.trim() || "";
 
   const openFirst = () => {
@@ -521,7 +532,7 @@ export function TurnFileChangesCard({
       previousPath: row.previousPath,
     }, {
       turnId,
-      label: `${shortPath(row.path)} değişikliği`,
+      label: `${shortPath(row.path)} ${locale === "en" ? "change" : "değişikliği"}`,
       liveSource: {
         toolId: row.tool.id,
         path: row.path,
@@ -536,11 +547,12 @@ export function TurnFileChangesCard({
     let confirmed = false;
     try {
       const visiblePaths = rows.slice(0, 8).map((row) => shortPath(row.path)).join(", ");
+      // Legacy Turkish contract: title: "Tur değişikliklerini geri al" / confirmLabel: "Geri al"
       confirmed = await confirm({
-        title: "Tur değişikliklerini geri al",
-        message: `${rows.length} dosyadaki bu turun değişiklikleri geri alınacak: ${visiblePaths}${rows.length > 8 ? ", …" : ""}. Dosyalardan biri turdan sonra değiştiyse güvenlik için hiçbir dosya geri alınmaz.`,
+        title: t("tools.changes.turnUndoTitle"),
+        message: t("tools.changes.turnUndoMessage", { count: rows.length, paths: visiblePaths, suffix: rows.length > 8 ? ", …" : "" }),
         variant: "warning",
-        confirmLabel: "Geri al",
+        confirmLabel: t("tools.changes.undo"),
       });
     } finally {
       setConfirmingUndo(false);
@@ -557,10 +569,10 @@ export function TurnFileChangesCard({
         })),
       });
       setUndoComplete(true);
-      onToast?.(`${result.reverted} dosya geri alındı`, "success");
+      onToast?.(t("tools.changes.undoSuccess", { count: result.reverted }), "success");
       window.dispatchEvent(new CustomEvent("quake:files-changed", { detail: { paths: result.paths } }));
     } catch (error) {
-      onToast?.(`Geri alma başarısız: ${error instanceof Error ? error.message : String(error)}`, "error");
+      onToast?.(t("tools.changes.undoFailed", { error: error instanceof Error ? error.message : String(error) }), "error");
     } finally {
       setBusy(false);
     }
@@ -584,13 +596,13 @@ export function TurnFileChangesCard({
           </div>
         </div>
         {!active && <div className={styles.actions}>
-          <button type="button" className={styles.actionBtn} onClick={() => void handleUndo()} disabled={confirmingUndo || busy || undoComplete} title="Değişiklikleri geri al">
+          <button type="button" className={styles.actionBtn} onClick={() => void handleUndo()} disabled={confirmingUndo || busy || undoComplete} title={t("tools.changes.undoChanges")}>
             <RotateCcw size={13} strokeWidth={1.9} aria-hidden="true" />
-            <span>{confirmingUndo ? "Onay bekleniyor…" : busy ? "Geri alınıyor…" : undoComplete ? "Geri Alındı" : "Geri Al"}</span>
+            <span>{confirmingUndo ? t("tools.changes.undoWaiting") : busy ? t("tools.changes.undoing") : undoComplete ? t("tools.changes.undone") : t("tools.changes.undo")}</span>
           </button>
-          <button type="button" className={styles.actionBtn} onClick={handleInspect} title="Birleşik tur diff’ini incele">
+          <button type="button" className={styles.actionBtn} onClick={handleInspect} title={t("tools.changes.inspectFile")}>
             <Search size={13} strokeWidth={1.9} aria-hidden="true" />
-            <span>İncele</span>
+            <span>{t("tools.changes.inspect")}</span>
           </button>
         </div>}
       </header>
@@ -609,7 +621,7 @@ export function TurnFileChangesCard({
 
       {hiddenCount > 0 && (
         <button type="button" className={styles.more} onClick={() => setExpanded((value) => !value)}>
-          {expanded ? "Daha az göster" : `${hiddenCount} dosya daha göster`}
+          {expanded ? t("tools.changes.showLess") : t("tools.changes.showMore", { count: hiddenCount })}
           <span className={expanded ? styles.chevronUp : styles.chevronDown} aria-hidden="true" />
         </button>
       )}

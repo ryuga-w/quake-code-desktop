@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Info } from "lucide-react";
+import { useI18n } from "../../i18n";
 import styles from "./ConfirmDialog.module.css";
 
 export interface ConfirmDialogProps {
@@ -13,11 +14,14 @@ export interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
-export function ConfirmDialog({ title, message, confirmLabel = "Onayla", cancelLabel = "İptal", variant = "danger", requireText, onConfirm, onCancel }: ConfirmDialogProps) {
+export function ConfirmDialog({ title, message, confirmLabel, cancelLabel, variant = "danger", requireText, onConfirm, onCancel }: ConfirmDialogProps) {
+  const { t } = useI18n();
   const dialogRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState("");
   const [isPending, setIsPending] = useState(false);
   const canConfirm = requireText ? inputValue === requireText : true;
+  const resolvedConfirmLabel = confirmLabel ?? t("common.confirmDialog.confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("common.confirmDialog.cancel");
 
   useEffect(() => {
     const el = dialogRef.current;
@@ -65,14 +69,18 @@ export function ConfirmDialog({ title, message, confirmLabel = "Onayla", cancelL
         <p className={styles.message}>{message}</p>
         {requireText && (
           <div className={styles.inputGroup}>
-            <label>Devam etmek için <code>{requireText}</code> yazın:</label>
+            <label>
+              {t("common.confirmDialog.typeToContinuePrefix")}
+              <code>{requireText}</code>
+              {t("common.confirmDialog.typeToContinueSuffix")}
+            </label>
             <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={requireText} autoFocus />
           </div>
         )}
         <div className={styles.actions}>
-          <button type="button" className={styles.cancel} onClick={onCancel}>{cancelLabel}</button>
+          <button type="button" className={styles.cancel} onClick={onCancel}>{resolvedCancelLabel}</button>
           <button type="button" className={styles.confirm} disabled={!canConfirm || isPending} onClick={() => void handleConfirm()}>
-            {isPending ? "İşleniyor…" : confirmLabel}
+            {isPending ? t("common.confirmDialog.processing") : resolvedConfirmLabel}
           </button>
         </div>
       </div>

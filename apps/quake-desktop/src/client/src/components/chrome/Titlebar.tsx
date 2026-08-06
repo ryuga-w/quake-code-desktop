@@ -6,6 +6,7 @@ import {
 import styles from "./Titlebar.module.css";
 import { desktop } from "../../lib/desktop";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
+import { useI18n } from "../../i18n";
 
 /**
  * Frameless compact titlebar. Yalnızca çalışan kontrolleri ve aktif proje bağlamını
@@ -42,6 +43,7 @@ export function Titlebar({
   showTimelineFade?: boolean;
   onMenuAction?: (action: MenuAction) => void;
 }) {
+  const { t } = useI18n();
   const isMac = desktop?.platform === "darwin";
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const barRef = React.useRef<HTMLElement | null>(null);
@@ -88,34 +90,34 @@ export function Titlebar({
   const menus: Array<{ id: string; label: string; items: Array<{ label: string; action: MenuAction } | "sep"> }> = [
     {
       id: "file",
-      label: "Dosya",
+      label: t("common.titlebar.file"),
       items: [
-        { label: "Yeni sohbet", action: "new-chat" },
-        { label: "Klasör aç…", action: "open-folder" },
+        { label: t("common.titlebar.newChat"), action: "new-chat" },
+        { label: t("common.titlebar.openFolder"), action: "open-folder" },
         "sep",
-        { label: "Ayarlar", action: "settings" },
+        { label: t("common.titlebar.settings"), action: "settings" },
       ],
     },
     {
       id: "edit",
-      label: "Düzenle",
-      items: [{ label: "Sohbet ara / sürdür…", action: "new-chat" }],
+      label: t("common.titlebar.edit"),
+      items: [{ label: t("common.titlebar.searchOrContinueChat"), action: "new-chat" }],
     },
     {
       id: "view",
-      label: "Görünüm",
+      label: t("common.titlebar.view"),
       items: [
-        { label: "Kenar çubuğunu aç/kapat", action: "toggle-sidebar" },
-        { label: "Alt paneli aç/kapat", action: "toggle-bottom-panel" },
-        { label: "Sağ paneli aç/kapat", action: "toggle-right-panel" },
+        { label: t("common.titlebar.toggleSidebar"), action: "toggle-sidebar" },
+        { label: t("common.titlebar.toggleBottomPanel"), action: "toggle-bottom-panel" },
+        { label: t("common.titlebar.toggleRightPanel"), action: "toggle-right-panel" },
         "sep",
-        { label: "Temayı değiştir", action: "toggle-theme" },
+        { label: t("common.titlebar.toggleTheme"), action: "toggle-theme" },
       ],
     },
     {
       id: "help",
-      label: "Yardım",
-      items: [{ label: "Hakkında", action: "about" }],
+      label: t("common.titlebar.help"),
+      items: [{ label: t("common.titlebar.about"), action: "about" }],
     },
   ];
 
@@ -140,19 +142,19 @@ export function Titlebar({
             type="button"
             className={styles.iconBtn}
             onClick={onToggleSidebar}
-            aria-label={leftOpen ? "Yan menüyü daralt" : "Yan menüyü genişlet"}
-            title="Kenar çubuğu"
+            aria-label={leftOpen ? t("common.titlebar.collapseSidebar") : t("common.titlebar.expandSidebar")}
+            title={t("common.titlebar.sidebar")}
           >
             <PanelLeft size={18} strokeWidth={2.25} aria-hidden="true" />
           </button>
         </div>
 
-        <button type="button" className={`${styles.projectContext} ${leftOpen ? styles.projectContextSidebarOpen : ""}`} onClick={() => runAction("open-folder")} title={workspacePath || "Çalışma alanı aç"}>
+        <button type="button" className={`${styles.projectContext} ${leftOpen ? styles.projectContextSidebarOpen : ""}`} onClick={() => runAction("open-folder")} title={workspacePath || t("common.titlebar.openWorkspace")}>
           <Folder size={14} strokeWidth={1.9} aria-hidden="true" />
-          <span>{workspaceName || "Proje seç"}</span>
+          <span>{workspaceName || t("common.titlebar.selectProject")}</span>
         </button>
 
-        <nav className={styles.menubar} aria-label="Menü">
+        <nav className={styles.menubar} aria-label={t("common.titlebar.menuBar")}>
           {menus.map((menu) => (
             <div key={menu.id} className={styles.menuItem}>
               <button
@@ -175,7 +177,7 @@ export function Titlebar({
                   ref={dropdownRef}
                   className={styles.dropdown}
                   role="menu"
-                  aria-label={`${menu.label} menüsü`}
+                  aria-label={t("common.titlebar.menuLabel", { label: menu.label })}
                   onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: () => closeOpenMenu(true) })}
                 >
                   {menu.items.map((item, i) =>

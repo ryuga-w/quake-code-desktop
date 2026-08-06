@@ -202,6 +202,138 @@
   border: 0;
 }
 
+/* Codex conversation minimap: a fixed turn navigator just inside the main
+ * pane, independent from the centred prose column. */
+.conversation-minimap {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  z-index: 7;
+  width: 32px;
+  padding: 10px 0;
+  transform: translateY(-50%);
+}
+
+.conversation-minimap-track {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  width: 32px;
+}
+
+.conversation-minimap-tick {
+  position: relative;
+  display: block;
+  width: 32px;
+  min-width: 32px;
+  height: 7px;
+  min-height: 7px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  transform: none;
+}
+
+.conversation-minimap-tick::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: var(--conversation-minimap-tick-width, 10px);
+  height: 1.5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted-2, var(--muted)) 70%, transparent);
+  content: "";
+  opacity: 0.68;
+  transform: translateY(-50%);
+  transition:
+    width 145ms cubic-bezier(.2, .78, .24, 1),
+    background 120ms ease,
+    opacity 120ms ease;
+}
+
+.conversation-minimap-tick:hover,
+.conversation-minimap-tick:focus-visible {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.conversation-minimap-tick.is-active::before {
+  background: color-mix(in srgb, var(--heading) 62%, transparent);
+  opacity: 0.9;
+}
+
+.conversation-minimap-tick.is-hovered::before,
+.conversation-minimap-tick:focus-visible::before {
+  background: var(--heading);
+  opacity: 1;
+}
+
+.conversation-minimap-tick:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--focus-ring, var(--accent-2)) 72%, transparent);
+  outline-offset: 1px;
+}
+
+.conversation-minimap-preview {
+  position: absolute;
+  right: 39px;
+  display: grid;
+  width: min(330px, calc(100vw - 90px));
+  gap: 8px;
+  padding: 13px 14px;
+  border: 1px solid color-mix(in srgb, var(--heading) 11%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--surface-overlay, var(--panel)) 96%, #080809);
+  color: var(--text);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.38);
+  pointer-events: none;
+  transform: translateY(-50%);
+  animation: conversation-minimap-preview-in 120ms ease-out both;
+}
+
+.conversation-minimap-preview strong,
+.conversation-minimap-preview p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+.conversation-minimap-preview strong {
+  color: var(--heading);
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1.42;
+  -webkit-line-clamp: 2;
+}
+
+.conversation-minimap-preview p {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 450;
+  line-height: 1.48;
+  -webkit-line-clamp: 4;
+}
+
+@keyframes conversation-minimap-preview-in {
+  from { opacity: 0; transform: translate(4px, -50%) scale(0.985); }
+  to { opacity: 1; transform: translate(0, -50%) scale(1); }
+}
+
+.timeline-compact-overlay .conversation-minimap {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .conversation-minimap { display: none; }
+}
+
 .message.assistant:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 7px;

@@ -54,7 +54,7 @@ describe("a11y smoke source contracts", () => {
     expect(tabPortal).toContain('role="tab"');
     expect(tabPortal).toContain('aria-selected={active}');
     expect(composer).toContain("stopLabel");
-    expect(rightTabs).toContain('aria-label="Sağ paneli kapat"');
+    expect(rightTabs).toContain('aria-label={t("rightPanel.closeRightPanel")}');
   });
 
   it("settings permissions surface keeps Kalıcı izinler card", () => {

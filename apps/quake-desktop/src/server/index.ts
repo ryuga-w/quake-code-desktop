@@ -376,6 +376,7 @@ function wireScheduler(instance: Scheduler): Scheduler {
 }
 
 let scheduler = wireScheduler(new Scheduler(workspaceCwd));
+activeRuntime.setScheduleTaskCreator((input) => scheduler.create(input));
 
 function approvalMetaFromPolicy(mode: typeof terminalPolicyMode): {
   approvalPresetId: "read-only" | "auto" | "full-access";

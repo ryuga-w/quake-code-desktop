@@ -253,7 +253,8 @@
 .turnSemanticFlow {
   display: flex;
   align-items: center;
-  width: min(780px, 100%);
+  width: 100%;
+  max-width: 100%;
   min-height: 22px;
   gap: 0;
   margin: 0 0 4px;
@@ -265,7 +266,7 @@
   display: block;
   box-sizing: border-box;
   min-width: 0;
-  width: min(780px, 100%);
+  width: 100%;
   max-width: 100%;
   margin: 0 0 6px;
   padding: 0 0 0 20px;
@@ -430,6 +431,7 @@
 .toolTitleRow {
   display: inline-flex;
   flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   align-items: center;
   gap: 0;
@@ -438,6 +440,8 @@
 .toolNotice > summary.toolNoticeSummarySemantic::after { display: block; }
 .toolSemanticHeadline {
   display: inline-flex;
+  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   min-height: 20px;
   align-items: baseline;
@@ -466,6 +470,7 @@
   font-weight: 500;
 }
 .toolSemanticSubject {
+  min-width: 0;
   max-width: min(520px, 58vw);
   overflow: hidden;
   color: var(--muted);
@@ -473,6 +478,7 @@
   font-size: 12.5px;
   font-weight: 500;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .toolNoticeMutationFileButton {
   appearance: none;
@@ -508,7 +514,8 @@
   max-width: 100%;
 }
 .toolSemanticLiveThought {
-  width: min(610px, 100%);
+  flex: 1 1 auto;
+  width: 100%;
   max-width: 100%;
 }
 .toolSemanticLiveThought .toolSemanticVerb {
@@ -516,11 +523,41 @@
   font-weight: 500;
 }
 .toolSemanticLiveThought .toolSemanticSubject {
-  max-width: min(500px, 58vw);
+  flex: 1 1 auto;
+  max-width: none;
   font-family: var(--font-sans);
   font-size: 12.5px;
   font-weight: 500;
   letter-spacing: -0.01em;
+}
+.toolSemanticTypewriterVisual {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: baseline;
+  vertical-align: bottom;
+}
+.toolSemanticTypewriterCopy {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolSemanticTypewriterCaret {
+  display: inline-block;
+  width: 1px;
+  height: 0.92em;
+  flex: 0 0 1px;
+  margin-left: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.76;
+  transform: translateY(1px);
+  animation: toolSemanticCaretBlink 620ms steps(1, end) infinite;
+}
+@keyframes toolSemanticCaretBlink {
+  50% { opacity: 0.16; }
 }
 .toolSemanticLeaving {
   animation: toolSemanticLeave 240ms cubic-bezier(.4, 0, 1, 1) forwards;
@@ -1701,14 +1738,14 @@
 .tableWrap tr:nth-child(even) td { background: var(--paper); }
 .tableWrap tr:last-child td { border-bottom: 0; }
 .tableWrap td code {
-  display: inline-block;
-  padding: 2px 6px;
-  background: var(--code-inline-bg, var(--accent-soft));
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--code-inline-fg, var(--heading));
+  display: inline;
+  padding: 0.5px 4px;
+  background: var(--code-inline-bg, rgba(255, 255, 255, 0.06));
+  border: 0;
+  border-radius: 4px;
+  color: var(--code-inline-fg, var(--muted));
   font-family: var(--font-mono);
-  font-size: 0.88em;
+  font-size: 0.85em;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -1716,15 +1753,15 @@
 .listItem { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 4px; margin: 4px 0; }
 .listItem > span:first-child { color: var(--accent); font-weight: 700; }
 .inlineCode {
-  border: 1px solid var(--border) !important;
-  border-radius: 5px;
-  padding: 1px 5px;
-  background: var(--code-inline-bg, var(--panel-2)) !important;
-  color: var(--code-inline-fg, var(--heading)) !important;
+  border: 0 !important;
+  border-radius: 4px;
+  padding: 0.5px 4px;
+  background: var(--code-inline-bg, rgba(255, 255, 255, 0.06)) !important;
+  color: var(--code-inline-fg, var(--muted)) !important;
   box-shadow: none !important;
   font-family: var(--font-mono);
-  font-size: 0.9em;
-  font-weight: 500;
+  font-size: 0.85em;
+  font-weight: 450;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -1791,6 +1828,10 @@
     -webkit-text-fill-color: var(--muted) !important;
     background: none !important;
     filter: none !important;
+  }
+
+  .toolSemanticTypewriterCaret {
+    display: none;
   }
 
   .toolSemanticLeaving { display: none; }

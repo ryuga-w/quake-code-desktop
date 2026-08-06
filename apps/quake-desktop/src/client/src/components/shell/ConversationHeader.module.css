@@ -1,0 +1,90 @@
+.header {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  flex: 0 0 42px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  background: var(--surface-timeline, var(--bg));
+  color: var(--heading);
+}
+
+.icon {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin: 0 1px;
+  background: color-mix(in srgb, var(--heading) 12%, transparent);
+}
+
+.workspaceIcon {
+  display: inline-grid;
+  width: 18px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: color-mix(in srgb, var(--heading) 82%, var(--muted));
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menuButton {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  margin-left: 1px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.menuButton:hover,
+.menuButton[aria-expanded="true"] {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--heading) 7%, transparent);
+  color: var(--heading);
+  transform: none;
+  box-shadow: none;
+}
+
+.renameForm {
+  flex: 0 1 min(420px, calc(100% - 70px));
+  min-width: 120px;
+  margin: 0;
+}
+
+.renameForm input {
+  width: 100%;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 52%, var(--border));
+  border-radius: 7px;
+  padding: 0 8px;
+  outline: 0;
+  background: var(--panel);
+  color: var(--heading);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 12%, transparent);
+}

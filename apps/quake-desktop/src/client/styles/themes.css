@@ -42,8 +42,8 @@
   --code-header-bg: #222221;
   --code-border: rgba(255, 255, 255, 0.1);
   --code-fg: #e6e6e8;
-  --code-inline-bg: #1a1a1a;
-  --code-inline-fg: #f0f0f2;
+  --code-inline-bg: rgba(255, 255, 255, 0.09);
+  --code-inline-fg: #97979e;
   /* Composer and user message surfaces. */
   --composer-surface: #242426;
   --composer-project-surface: #18191b;
@@ -117,8 +117,8 @@
   --code-header-bg: #efeff1;
   --code-border: rgba(0, 0, 0, 0.1);
   --code-fg: #1f2328;
-  --code-inline-bg: #ececef;
-  --code-inline-fg: #1c1c1e;
+  --code-inline-bg: rgba(0, 0, 0, 0.06);
+  --code-inline-fg: #57606a;
   --composer-surface: #ffffff;
   --composer-text: #1c1c1e;
   --composer-placeholder: #747479;

@@ -194,7 +194,11 @@ export function isProviderVisibleInModelPicker(
   if (!catalogEntry) return registryHasConfiguredAuth;
 
   const status = resolveStatusForProvider(authStorage, providerId, catalogEntry.kind);
-  return status.status === "connected_oauth" || status.status === "connected_api_key";
+  return (
+    status.status === "connected_oauth" ||
+    status.status === "connected_api_key" ||
+    status.status === "connected_env"
+  );
 }
 
 function hasVertexAdcCredentials(): boolean {

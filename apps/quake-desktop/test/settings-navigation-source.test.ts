@@ -15,7 +15,7 @@ describe("settings navigation", () => {
   it("shares the main sidebar width and navigation surface tokens", () => {
     const css = readFileSync(join(root, "src/client/src/components/settings/SettingsPanels.module.css"), "utf8");
 
-    expect(css).toContain("--settings-rail: var(--left-sidebar-width, 340px)");
+    expect(css).toContain("--settings-rail: var(--left-sidebar-width, 320px)");
     expect(css).toContain("background: var(--surface-navigation, #201e20)");
     expect(css).toContain("border-right: 1px solid var(--stroke-navigation, #343134)");
     expect(css).toContain("background: var(--surface-navigation-hover, #302d30)");
@@ -34,7 +34,9 @@ describe("settings navigation", () => {
     expect(back).toBeGreaterThan(-1);
     expect(search).toBeGreaterThan(back);
     expect(navigation).toBeGreaterThan(search);
-    expect(panel).toContain("<span>Uygulamaya geri dön</span>");
+    expect(panel).toContain('<span>{t("settings.backToApp")}</span>');
+    expect(panel).toContain("useI18n()");
+    expect(panel).toContain("createSettingsNavigation(t)");
     expect(panel).toContain("className={styles.backToAppButton} onClick={onClose}");
     expect(panel).not.toContain("settingsPageTop");
     expect(panel).not.toContain("settingsBackBtn");

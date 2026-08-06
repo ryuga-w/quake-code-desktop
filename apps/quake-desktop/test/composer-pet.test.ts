@@ -108,7 +108,7 @@ describe("composer Quakelet MVP", () => {
 
   it("persists and applies the Appearance preference before React mounts", () => {
     expect(appearance).toContain("composerPet: boolean");
-    expect(appearance).toContain('title="Composer peti"');
+    expect(appearance).toContain('t("appearance.composerPet")');
     expect(appearance).toContain("applyAppearanceRuntimeAttributes(preferences)");
     expect(appearanceRuntime).toContain("stored.composerPet !== false");
     expect(main).toContain("applyStoredAppearanceRuntimeAttributes();");

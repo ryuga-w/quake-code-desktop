@@ -9,6 +9,7 @@ import { loadNotificationConfig } from "../lib/notifications";
 import { useConfirm } from "../components/common/ConfirmDialog";
 import type { MenuAction } from "../components/chrome/Titlebar";
 import { desktop } from "../lib/desktop";
+import { useI18n } from "../i18n";
 import {
   clampLeftSidebarWidth,
   getLeftSidebarMaximumWidth,
@@ -57,6 +58,7 @@ function parseDocumentTemplateInvocation(message: string): DocumentTemplateInvoc
 }
 
 export function App() {
+  const { t } = useI18n();
   const { confirm, ConfirmPortal } = useConfirm();
   const {
     visibleMessageCount,
@@ -265,7 +267,7 @@ export function App() {
   const [selectedToolId, setSelectedToolId] = useState<string | undefined>();
   const [openTabs, setOpenTabs] = useState<FileTab[]>([]);
   const [activeTabPath, setActiveTabPath] = useState<string | undefined>();
-  const [filePreview, setFilePreview] = useState<{ path?: string; content: string }>({ content: "Dosya seçilmedi" });
+  const [filePreview, setFilePreview] = useState<{ path?: string; content: string }>(() => ({ content: t("runtime.shell.fileNotSelected") }));
   const [queuedMessages, setQueuedMessages] = useState<QueuedMessages>({ steering: [], followUp: [] });
   const [userMessageQueue, setUserMessageQueue] = useState<QueuedUserMessage[]>([]);
   const [currentFileDir, setCurrentFileDir] = useState(readStorageValue("quake-web:fileDir", "."));
@@ -367,7 +369,7 @@ export function App() {
     applyFileSnapshot: (snapshot) => {
       setCurrentFileDir(snapshot.fileDir || ".");
       currentFileDirRef.current = snapshot.fileDir || ".";
-      setFilePreview(snapshot.filePreview || { content: "Dosya seçilmedi" });
+      setFilePreview(snapshot.filePreview || { content: t("runtime.shell.fileNotSelected") });
     },
     initialSessionKey: sessionFile || sessionId || "boot",
     onOpenTerminal: () => setBottomOpen(true),
@@ -379,7 +381,7 @@ export function App() {
         return base ? `@bilgisayar ${base}` : "@bilgisayar ";
       });
       requestAnimationFrame(() => promptRef.current?.focus());
-      showToast("@bilgisayar — görevini yazıp gönder (ekranda imleç + kenar ışığı)", "info");
+      showToast(t("runtime.app.computerUsePrompt"), "info");
     },
   });
   const monacoOpenSeqRef = useRef(0);
@@ -403,7 +405,7 @@ export function App() {
   }, [unattendedGoalActive, goalUiSettings.preventSleep]);
   const workspaceName = noProject
     ? "No Project"
-    : (currentWorkspace.split(/[\\/]/).filter(Boolean).pop() || "Çalışma alanı");
+    : (currentWorkspace.split(/[\\/]/).filter(Boolean).pop() || t("runtime.app.workspaceName"));
   const {
     pinnedPaths,
     archivedPaths,
@@ -536,10 +538,10 @@ export function App() {
   });
 
   useEffect(() => desktop?.onWorkspaceSelected?.((path) => {
-    void openWorkspaceFromModal(path, { toast: "Çalışma alanı kökü açıldı", startSession: false }).catch((error: any) => {
-      showToast(`Çalışma alanı açılamadı: ${error?.message || "bilinmeyen hata"}`, "error");
+    void openWorkspaceFromModal(path, { toast: t("runtime.app.workspaceRootOpened"), startSession: false }).catch((error: any) => {
+      showToast(t("runtime.app.workspaceOpenFailed", { error: error?.message || t("runtime.app.unknownError") }), "error");
     });
-  }), [openWorkspaceFromModal, showToast]);
+  }), [openWorkspaceFromModal, showToast, t]);
   const {
     pinnedModels,
     visibleModels,
@@ -739,7 +741,7 @@ export function App() {
         return result;
       })
       .catch((error: any) => {
-        if (!quiet) showToast(`Çalışma zamanı durumu alınamadı: ${error?.message || "bilinmeyen hata"}`, "error");
+        if (!quiet) showToast(t("runtime.app.runtimeStatusFailed", { error: error?.message || t("runtime.app.unknownError") }), "error");
         throw error;
       })
       .finally(() => {
@@ -804,7 +806,7 @@ export function App() {
   useEffect(() => {
     const unsub = desktop?.computerUse?.onSession?.((state) => {
       if (state?.active) {
-        showToast("Masaüstü modu: ajan imleci ve kenar ışıkları ekranda", "info");
+        showToast(t("runtime.app.computerUseActive"), "info");
         return;
       }
       setRightTab((tab) => tab === "computer" ? "launcher" : tab);
@@ -840,7 +842,7 @@ export function App() {
     const onRetryWebSearch = (event: Event) => {
       const query = String((event as CustomEvent<{ query?: string }>).detail?.query || "").trim();
       if (!query) return;
-      setPromptDraft(`Web'de yeniden ara ve sonuçları özetle: ${query}`);
+      setPromptDraft(t("runtime.app.webSearchPrompt", { query }));
       requestAnimationFrame(() => promptRef.current?.focus());
     };
     const onMobileAnnotation = async (event: Event) => {
@@ -850,8 +852,8 @@ export function App() {
       const blob = await response.blob();
       const data = await new Promise<string>((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result || "").split(",")[1] || ""); reader.readAsDataURL(blob); });
       setComposerImagesDraft((current) => [...current, { id: detail.id, name: detail.name, mimeType: blob.type || "image/png", data, previewUrl: detail.previewUrl, annotation: detail.annotation, annotationTarget: detail.annotationTarget }].slice(0, 6));
-      addContextChip({ type: "annotation", label: "1 mobil açıklama", text: detail.annotation });
-      showToast("Mobil element composer'a eklendi", "success");
+      addContextChip({ type: "annotation", label: t("runtime.app.mobileAnnotation"), text: detail.annotation });
+      showToast(t("runtime.app.mobileElementAdded"), "success");
     };
     window.addEventListener("quake:restore-user-prompt", onRestore as EventListener);
     window.addEventListener("quake:open-tool-file", onOpenToolFile as EventListener);
@@ -1063,7 +1065,7 @@ export function App() {
       }
     } catch (error: any) {
       if (requestSeq !== configRefreshSeqRef.current) return;
-      showToast(`Ayarlar alınamadı: ${error.message}`, "error");
+      showToast(t("runtime.app.settingsLoadFailed", { error: error.message }), "error");
     } finally {
       if (requestSeq === configRefreshSeqRef.current) setLoading((state) => ({ ...state, config: false }));
     }
@@ -1112,7 +1114,7 @@ export function App() {
       setStore({ sessions: serverList });
     } catch (error: any) {
       if (requestSeq !== sessionsRefreshSeqRef.current) return;
-      showToast(`Sohbetler alınamadı: ${error.message}`, "error");
+      showToast(t("runtime.app.conversationsLoadFailed", { error: error.message }), "error");
     } finally {
       if (requestSeq === sessionsRefreshSeqRef.current) setLoading((state) => ({ ...state, sessions: false }));
     }
@@ -1229,21 +1231,21 @@ export function App() {
 
   async function sendCommand(command: any) {
     const response = await apiPost<any>("/api/command", command);
-    if (response?.success === false) throw new Error(response.error || "Komut çalıştırılamadı");
+    if (response?.success === false) throw new Error(response.error || t("runtime.app.commandFailed"));
     return response;
   }
 
-  function runUiCommand(command: any, failureMessage = "Komut çalıştırılamadı") {
+  function runUiCommand(command: any, failureMessage = t("runtime.app.commandFailed")) {
     void sendCommand(command).catch((error: any) => {
-      showToast(`${failureMessage}: ${error?.message || "bilinmeyen hata"}`, "error");
+      showToast(`${failureMessage}: ${error?.message || t("runtime.app.unknownError")}`, "error");
     });
   }
 
-  async function runAwaitedUiCommand(command: any, failureMessage = "Komut çalıştırılamadı"): Promise<void> {
+  async function runAwaitedUiCommand(command: any, failureMessage = t("runtime.app.commandFailed")): Promise<void> {
     try {
       await sendCommand(command);
     } catch (error: any) {
-      showToast(`${failureMessage}: ${error?.message || "bilinmeyen hata"}`, "error");
+      showToast(`${failureMessage}: ${error?.message || t("runtime.app.unknownError")}`, "error");
       throw error;
     }
   }
@@ -1305,71 +1307,39 @@ export function App() {
       setSessionSurfacePending(false);
       activateComposerDraft(previousDraftKey);
       activateRightPanelSnapshot(previousDraftKey);
-      showToast(`Yeni sohbet başlatılamadı: ${error?.message || "bilinmeyen hata"}`, "error");
+      showToast(t("runtime.app.newChatFailed", { error: error?.message || t("runtime.app.unknownError") }), "error");
       return false;
     }
   }
 
   /** True when current chat already has user content (must isolate mode switches). */
-  function currentChatHasHistory(): boolean {
-    const messages = useAppStore.getState().messages || [];
-    return messages.some((message: any) => {
-      if (message?.role !== "user") return false;
-      const text = typeof message.content === "string"
-        ? message.content
-        : Array.isArray(message.content)
-          ? message.content.map((part: any) => String(part?.text || "")).join("")
-          : "";
-      return Boolean(String(text || "").trim());
-    });
-  }
-
   /**
-   * Open Plan or Goal in an isolated chat:
-   * - Empty draft → apply mode in place
-   * - Existing history / other mode → park current chat, open new isolated session
+   * Enable Plan or Goal mode on the CURRENT chat (no new session).
+   * Mode toggles apply in place so an active conversation is preserved.
    */
   async function openIsolatedMode(mode: "plan" | "goal") {
     if (useAppStore.getState().state?.isStreaming) {
-      showToast("Aktif görev çalışırken yeni izole sohbet açılamaz. Önce durdurun veya bitirin.", "info");
+      showToast(t("runtime.app.isolatedTaskBlocked"), "info");
       return;
     }
-    const hasHistory = currentChatHasHistory();
     const goalTerminal = !sessionGoal || ["completed", "failed", "cancelled"].includes(sessionGoal.status);
     const hasActiveGoal = Boolean(sessionGoal && !goalTerminal);
     const currentlyPlan = planEnabled;
-    const currentlyGoal = Boolean(goalModePref || hasActiveGoal);
 
-    // Already pure empty session of this mode → stay.
-    if (!hasHistory) {
-      if (mode === "plan") {
-        if (currentlyGoal && hasActiveGoal) {
-          void runUiCommand({ type: "goal_cancel" }, "Goal iptal edilemedi");
-        }
-        setGoalModePref(false);
-        void switchComposerMode("plan");
-        showToast("Plan modu bu sohbette açıldı", "info");
-        return;
-      }
-      if (currentlyPlan) void switchComposerMode("execute");
-      setGoalModePref(true);
-      showToast("Hedef modu bu sohbette açıldı", "info");
-      return;
-    }
-
-    // History (or conflicting mode) → brand-new isolated chat.
-    const ok = await startNewSession({ isolation: mode, keepModePrefs: true });
-    if (!ok) return;
     if (mode === "plan") {
+      if (hasActiveGoal) {
+        void runUiCommand({ type: "goal_cancel" }, "Goal iptal edilemedi");
+      }
       setGoalModePref(false);
       void switchComposerMode("plan");
-      showToast("Plan için yeni izole sohbet açıldı", "info");
+      showToast(t("runtime.app.planModeEnabled"), "info");
       return;
     }
+
+    // Goal mode.
+    if (currentlyPlan) void switchComposerMode("execute");
     setGoalModePref(true);
-    // Server isolation=goal leaves collaboration as default/agent.
-    void switchComposerMode("execute");
-    showToast("Hedef için yeni izole sohbet açıldı", "info");
+    showToast(t("runtime.app.goalModeEnabled"), "info");
   }
 
   async function runSlash(text: string) {
@@ -1431,14 +1401,14 @@ export function App() {
     setQueuedMessages({ steering: [], followUp: [] });
     try {
       await sendCommand({ type: "turn_interrupt" });
-      showToast("Tur kesildi (interrupt)", "info");
+      showToast(t("runtime.app.turnAborted"), "info");
     } catch (error: any) {
       // Fallback alias
       try {
         await sendCommand({ type: "abort" });
-        showToast("Tur kesildi (interrupt)", "info");
+        showToast(t("runtime.app.turnAborted"), "info");
       } catch (err2: any) {
-        showToast(`Yanıt durdurulamadı: ${err2?.message || error?.message || "bilinmeyen hata"}`, "error");
+        showToast(t("runtime.app.responseAbortFailed", { error: err2?.message || error?.message || t("runtime.app.unknownError") }), "error");
       }
     }
   }
@@ -1456,11 +1426,11 @@ export function App() {
     // Annotation text already travels with its annotated image. Keeping the
     // matching annotation chip in this envelope would send the same context twice.
     const nonAnnotationContextChips = contextChips.filter((chip) => chip.type !== "annotation");
-    const contextHint = nonAnnotationContextChips.length ? `\n\n[Bağlam]\n${nonAnnotationContextChips.map((chip) => `### ${chip.type}: ${chip.label}\n${chip.text}`).join("\n\n")}` : "";
+    const contextHint = nonAnnotationContextChips.length ? `\n\n[${t("runtime.app.contextHeader")}]\n${nonAnnotationContextChips.map((chip) => `### ${chip.type}: ${chip.label}\n${chip.text}`).join("\n\n")}` : "";
     const images = composerImagesRef.current;
     const annotationHint = images
       .filter((image) => image.annotation || image.annotationTarget)
-      .map((image, index) => `### Açıklama ${index + 1}${image.annotationTarget ? ` · ${image.annotationTarget}` : ""}\n${image.annotation || "Bu seçimi incele."}`)
+      .map((image, index) => `### ${t("runtime.app.annotationHeader", { count: index + 1 })}${image.annotationTarget ? ` · ${image.annotationTarget}` : ""}\n${image.annotation || t("runtime.app.annotationFallback")}`)
       .join("\n\n");
     const message = promptValueRef.current.trim();
     if (!hasComposerPayload(message, images.length, nonAnnotationContextChips.length)) return;
@@ -1586,7 +1556,7 @@ export function App() {
         setPromptDraft(message);
         setComposerImagesDraft(images);
       }
-      showToast(`Mesaj gönderilemedi: ${error.message}`, "error");
+      showToast(t("runtime.app.messageSendFailed", { error: error.message }), "error");
     } finally {
       setIsPromptPending(false);
       promptSubmitLockRef.current = false;
@@ -1598,7 +1568,7 @@ export function App() {
     if (!artifact || sessionPlan?.phase !== "ready" || !readyPlanApprovalKey) return;
     if (promptSubmitLockRef.current || isPromptPending || isComposerStreaming) return;
 
-    const executionPrompt = "Evet, bu planı uygula. Hazırladığın son planı eksiksiz uygula ve sonucu doğrula.";
+    const executionPrompt = t("runtime.app.applyPlanPrompt");
     promptSubmitLockRef.current = true;
     abortedTurnSuppressedRef.current = false;
     setPlanApplyPending(true);
@@ -1657,7 +1627,7 @@ export function App() {
         },
       });
       setDismissedPlanApprovalKey("");
-      showToast(`Plan uygulanamadı: ${error?.message || "bilinmeyen hata"}`, "error");
+      showToast(t("runtime.app.planApplyFailed", { error: error?.message || t("runtime.app.unknownError") }), "error");
     } finally {
       setPlanApplyPending(false);
       setIsPromptPending(false);
@@ -1668,7 +1638,7 @@ export function App() {
   function reviseReadyPlan() {
     if (!readyPlanApprovalKey) return;
     setDismissedPlanApprovalKey(readyPlanApprovalKey);
-    if (!promptValueRef.current.trim()) setPromptDraft("Planı şu şekilde değiştir: ");
+    if (!promptValueRef.current.trim()) setPromptDraft(t("runtime.app.revisePlanPrompt"));
     requestAnimationFrame(() => {
       const textarea = promptRef.current;
       textarea?.focus();
@@ -1698,7 +1668,7 @@ export function App() {
         id: `plan-created:${planId}`,
         role: "custom",
         customType: "plan-created",
-        content: String(artifact.title || "Uygulama Planı"),
+        content: String(artifact.title || t("runtime.app.defaultPlanTitle")),
         display: true,
         details: { planId, title: artifact.title, documentPath: artifact.documentPath, markdown: artifact.markdown },
         timestamp: artifact.updatedAt || artifact.createdAt || Date.now(),
@@ -1759,7 +1729,7 @@ export function App() {
             if (/@bilgisayar\b/i.test(base)) return base;
             return base ? `@bilgisayar ${base}` : "@bilgisayar ";
           });
-          showToast("Masaüstü modu: @bilgisayar — görevini yaz", "info");
+          showToast(t("runtime.app.computerUseDraft"), "info");
         } else if (focus === "browser") {
           openRightPanel("browser");
         }
@@ -1845,7 +1815,7 @@ export function App() {
 
   async function switchComposerMode(mode: "plan" | "execute") {
     if (useAppStore.getState().state?.isStreaming) {
-      showToast("Aktif görev çalışırken Plan modu değiştirilemez.", "info");
+      showToast(t("runtime.app.planModeBlocked"), "info");
       return;
     }
     setConversationMode(mode);
@@ -1868,7 +1838,7 @@ export function App() {
         activeStep: sessionPlan?.activeStep,
       },
     });
-    runUiCommand({ type: "set_plan_mode", enabled: enable }, enable ? "Plan modu açılamadı" : "Plan modu kapatılamadı");
+    runUiCommand({ type: "set_plan_mode", enabled: enable }, enable ? t("runtime.app.planModeEnableFailed") : t("runtime.app.planModeDisableFailed"));
   }
 
   return (

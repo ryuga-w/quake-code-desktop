@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { CirclePause, CirclePlay, Pencil, Target, Trash2 } from "lucide-react";
 import type { WebGoalState } from "../../../../shared/protocol";
+import { type Translate, useI18n } from "../../i18n";
 import styles from "./GoalPanel.module.css";
 
 export function GoalPanel({
@@ -17,6 +18,7 @@ export function GoalPanel({
   /** Fill composer with objective for mid-run edit (Codex pencil). */
   onEdit?: (objective: string) => void;
 }) {
+  const { t } = useI18n();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -37,8 +39,8 @@ export function GoalPanel({
     Math.floor(((isComplete ? goal.completedAt || goal.updatedAt : now) - goal.createdAt) / 1000),
   );
   const usage = formatUsage(goal, elapsedSec);
-  const phrase = statusPhrase(goal.status);
-  const objective = goal.objective.trim() || "Hedef";
+  const phrase = statusPhrase(goal.status, t);
+  const objective = goal.objective.trim() || t("runtime.goalPanel.defaultObjective");
 
   return (
     <div
@@ -64,22 +66,22 @@ export function GoalPanel({
 
       <div className={styles.actions}>
         {!isComplete && onEdit ? (
-          <button type="button" onClick={() => onEdit(objective)} title="Hedefi düzenle" aria-label="Hedefi düzenle">
+          <button type="button" onClick={() => onEdit(objective)} title={t("runtime.goalPanel.edit")} aria-label={t("runtime.goalPanel.edit")}>
             <Pencil size={14} strokeWidth={1.9} aria-hidden="true" />
           </button>
         ) : null}
         {isRunning ? (
-          <button type="button" onClick={onPause} title="Hedefi duraklat" aria-label="Hedefi duraklat">
+          <button type="button" onClick={onPause} title={t("runtime.goalPanel.pause")} aria-label={t("runtime.goalPanel.pause")}>
             <CirclePause size={15} strokeWidth={1.9} aria-hidden="true" />
           </button>
         ) : null}
         {isPausedLike ? (
-          <button type="button" onClick={onResume} title="Hedefe devam et" aria-label="Hedefe devam et">
+          <button type="button" onClick={onResume} title={t("runtime.goalPanel.resume")} aria-label={t("runtime.goalPanel.resume")}>
             <CirclePlay size={15} strokeWidth={1.9} aria-hidden="true" />
           </button>
         ) : null}
         {!isComplete ? (
-          <button type="button" onClick={onCancel} title="Hedefi iptal et" aria-label="Hedefi iptal et">
+          <button type="button" onClick={onCancel} title={t("runtime.goalPanel.cancel")} aria-label={t("runtime.goalPanel.cancel")}>
             <Trash2 size={14} strokeWidth={1.9} aria-hidden="true" />
           </button>
         ) : null}
@@ -88,23 +90,23 @@ export function GoalPanel({
   );
 }
 
-function statusPhrase(status: WebGoalState["status"]): string {
+function statusPhrase(status: WebGoalState["status"], t: Translate): string {
   switch (status) {
     case "paused":
-      return "Duraklatılan hedef";
+      return t("runtime.goalPanel.paused");
     case "blocked":
-      return "Engellenen hedef";
+      return t("runtime.goalPanel.blocked");
     case "budget_limited":
-      return "Bütçe limiti";
+      return t("runtime.goalPanel.budgetLimited");
     case "completed":
-      return "Tamamlanan hedef";
+      return t("runtime.goalPanel.completed");
     case "verifying":
-      return "Doğrulanan hedef";
+      return t("runtime.goalPanel.verifying");
     case "planning":
-      return "Planlanan hedef";
+      return t("runtime.goalPanel.planning");
     case "executing":
     default:
-      return "Aktif hedef";
+      return t("runtime.goalPanel.active");
   }
 }
 

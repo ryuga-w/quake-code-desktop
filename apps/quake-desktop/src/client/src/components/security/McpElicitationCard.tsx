@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, Layers } from "lucide-react";
+import { useI18n } from "../../i18n";
 import styles from "./ComposerApproval.module.css";
 
 export type McpElicitationField = {
@@ -39,6 +40,7 @@ export function McpElicitationCard({
   url,
   onRespond,
 }: McpElicitationCardProps) {
+  const { t } = useI18n();
   const rootRef = useRef<HTMLElement | null>(null);
   const initial = useMemo(() => {
     const values: Record<string, string | boolean | number> = {};
@@ -78,7 +80,7 @@ export function McpElicitationCard({
       if (!f.required) continue;
       const v = values[f.name];
       if (v === undefined || v === "" || v === null) {
-        setError(`${f.title || f.name} zorunlu`);
+        setError(t("runtime.mcp.required", { name: f.title || f.name }));
         return;
       }
     }
@@ -98,7 +100,7 @@ export function McpElicitationCard({
       ref={rootRef}
       className={styles.root}
       role="alertdialog"
-      aria-label="MCP bilgi isteği"
+      aria-label={t("runtime.mcp.request")}
       aria-modal="true"
       data-approval-kind="mcp_elicitation"
     >
@@ -106,7 +108,7 @@ export function McpElicitationCard({
         <span className={styles.icon} aria-hidden>
           <Layers size={16} strokeWidth={1.9} />
         </span>
-        <h3 className={styles.title}>MCP · {serverName || "Sunucu"}</h3>
+        <h3 className={styles.title}>MCP · {serverName || t("runtime.mcp.server")}</h3>
       </header>
 
       <p className={styles.reason}>{message}</p>
@@ -149,7 +151,7 @@ export function McpElicitationCard({
                     padding: "0 10px",
                   }}
                 >
-                  <option value="">Seç…</option>
+                  <option value="">{t("runtime.mcp.select")}</option>
                   {f.enum.map((opt, i) => (
                     <option key={opt} value={opt}>
                       {f.enumNames?.[i] || opt}
@@ -185,10 +187,10 @@ export function McpElicitationCard({
 
       <footer className={styles.footer}>
         <button type="button" className={styles.decline} onClick={() => onRespond({ action: "decline" })}>
-          Reddet
+          {t("runtime.mcp.decline")}
         </button>
         <button type="button" className={styles.decline} onClick={() => onRespond({ action: "cancel" })}>
-          İptal
+          {t("runtime.mcp.cancel")}
         </button>
         {isUrl && url ? (
           <button
@@ -204,13 +206,13 @@ export function McpElicitationCard({
             style={{ marginRight: 0 }}
           >
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <ExternalLink size={13} /> Bağlantıyı aç
+              <ExternalLink size={13} /> {t("runtime.mcp.openLink")}
             </span>
           </button>
         ) : null}
         <div className={styles.allowGroup}>
           <button type="button" className={styles.allow} onClick={submit}>
-            {isUrl ? "Tamamladım" : "Gönder"}
+            {isUrl ? t("runtime.mcp.completed") : t("runtime.mcp.send")}
           </button>
         </div>
       </footer>

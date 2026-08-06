@@ -1,8 +1,9 @@
 import React from "react";
-import { ArrowUp, Box, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X, Sparkles, Bug, TestTube, type LucideIcon } from "lucide-react";
+import { ArrowUp, Box, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X } from "lucide-react";
 import type { WebContextUsage, WebPlanState, WebSkillInfo } from "../../../../shared/protocol";
 import type { ComposerImage, QueuedUserMessage } from "../../types";
 import { THINKING_OPTIONS } from "../../constants";
+import { useI18n } from "../../i18n";
 import { apiGet } from "../../lib/api";
 import { COMPOSER_FILE_ACCEPT, hasComposerPayload } from "../../lib/composer-files";
 import { composeGithubLinkValue, parseComposerGithubLink } from "../../lib/composer-github-link";
@@ -30,33 +31,6 @@ type PreferencesSubmenu = "model" | "effort";
 type PreferencesSubmenuPlacement = "right" | "left" | "stacked";
 export type TerminalPolicyMode = "safe" | "allow-all" | "disabled";
 
-/** Codex-style approval mode options (maps to terminal policy / guardian presets). */
-const APPROVAL_MODE_OPTIONS: Array<{
-  mode: TerminalPolicyMode;
-  label: string;
-  description: string;
-  Icon: LucideIcon;
-}> = [
-  {
-    mode: "disabled",
-    label: "Onay iste",
-    description: "Harici dosyaları düzenlemeden ve interneti kullanmadan önce her zaman sor",
-    Icon: Hand,
-  },
-  {
-    mode: "safe",
-    label: "Benim için onayla",
-    description: "Yalnızca potansiyel olarak güvenli olmadığı algılanan işlemler için sor",
-    Icon: ShieldCheck,
-  },
-  {
-    mode: "allow-all",
-    label: "Tam erişim",
-    description: "İnternete ve bilgisayarınızdaki tüm dosyalara sınırsız erişim",
-    Icon: ShieldAlert,
-  },
-];
-
 type Props = {
   promptRef: React.RefObject<HTMLTextAreaElement | null>;
   prompt: string;
@@ -71,7 +45,7 @@ type Props = {
   planActive: boolean;
   plan?: WebPlanState;
   goalActive?: boolean;
-  /** Codex approval mode (terminal policy): disabled=Onay iste, safe=Benim için, allow-all=Tam erişim */
+  /** Codex approval mode (terminal policy) mappings. */
   terminalPolicyMode?: TerminalPolicyMode;
   terminalPolicyPending?: boolean;
   currentModel?: ComposerModel;
@@ -163,6 +137,18 @@ export function ChatComposer({
   formatThinkingLabel,
   compact = false,
 }: Props) {
+  const { t } = useI18n();
+  const thinkingLabels: Record<ComposerThinkingOption["value"], string> = {
+    minimal: t("composer.preferences.effortLevels.minimal"),
+    low: t("composer.preferences.effortLevels.low"),
+    medium: t("composer.preferences.effortLevels.medium"),
+    high: t("composer.preferences.effortLevels.high"),
+    xhigh: t("composer.preferences.effortLevels.xhigh"),
+    max: t("composer.preferences.effortLevels.max"),
+  };
+  const translateThinkingLabel = (level: string) => (
+    thinkingLabels[level as ComposerThinkingOption["value"]] || formatThinkingLabel(level)
+  );
   const documentMatch = prompt.match(/^(?:@documents(?:\[([a-z0-9-]+)\])?\s+|\/(?:docx|documents?)\s*)/i);
   const documentPrefix = documentMatch?.[0];
   const selectedDocumentSkill = documentMatch?.[1];
@@ -176,7 +162,27 @@ export function ChatComposer({
   const editablePrompt = githubLink?.rest ?? visiblePrompt;
   const expanded = editablePrompt.length > 120 || editablePrompt.includes("\n");
   const availableThinkingOptions = getAvailableThinkingOptions(currentModel);
-  const currentEffortLabel = currentModel?.reasoning ? formatThinkingLabel(currentThinking) : "Standart";
+  const currentEffortLabel = currentModel?.reasoning ? translateThinkingLabel(currentThinking) : t("composer.preferences.standard");
+  const approvalModeOptions = [
+    {
+      mode: "disabled" as const,
+      label: t("composer.approval.request"),
+      description: t("composer.approval.requestDescription"),
+      Icon: Hand,
+    },
+    {
+      mode: "safe" as const,
+      label: t("composer.approval.approveForMe"),
+      description: t("composer.approval.approveForMeDescription"),
+      Icon: ShieldCheck,
+    },
+    {
+      mode: "allow-all" as const,
+      label: t("composer.approval.fullAccess"),
+      description: t("composer.approval.fullAccessDescription"),
+      Icon: ShieldAlert,
+    },
+  ];
   const [preferencesSubmenu, setPreferencesSubmenu] = React.useState<PreferencesSubmenu>();
   const [preferencesSubmenuPlacement, setPreferencesSubmenuPlacement] = React.useState<PreferencesSubmenuPlacement>("right");
   const [addMenuOpen, setAddMenuOpen] = React.useState(false);
@@ -295,7 +301,7 @@ export function ChatComposer({
   };
 
   const activeApprovalMode =
-    APPROVAL_MODE_OPTIONS.find((option) => option.mode === terminalPolicyMode) || APPROVAL_MODE_OPTIONS[1];
+    approvalModeOptions.find((option) => option.mode === terminalPolicyMode) || approvalModeOptions[1];
   const ActiveApprovalIcon = activeApprovalMode.Icon;
 
   const selectApprovalMode = React.useCallback(
@@ -303,17 +309,17 @@ export function ChatComposer({
       if (!onSetTerminalPolicy || mode === terminalPolicyMode || terminalPolicyPending) return;
       if (mode === "allow-all") {
         const accepted = await confirm({
-          title: "Tam erişim açılsın mı?",
+          title: t("composer.approval.enableFullAccessTitle"),
           message:
-            "Ajan onay sormadan komut çalıştırabilir ve workspace dışına yazabilir. Yalnızca güvendiğiniz ortamlarda kullanın.",
+            t("composer.approval.enableFullAccessMessage"),
           variant: "warning",
-          confirmLabel: "Tam erişim",
+          confirmLabel: t("composer.approval.fullAccess"),
         });
         if (!accepted) return;
       }
       await onSetTerminalPolicy(mode);
     },
-    [confirm, onSetTerminalPolicy, terminalPolicyMode, terminalPolicyPending],
+    [confirm, onSetTerminalPolicy, t, terminalPolicyMode, terminalPolicyPending],
   );
 
   const resetPreferencesSurface = React.useCallback(() => {
@@ -398,48 +404,13 @@ export function ChatComposer({
   const showApprovalHelp = React.useCallback(() => {
     closeApprovalMenu();
     void confirm({
-      title: "İşlem onayları nasıl çalışır?",
-      message: "Onay iste her riskli adımı size bırakır. Benim için onayla yalnızca güvenli olmadığı düşünülen işlemleri sorar. Tam erişim ise internet ve tüm dosyalar için onay istemeden çalışır.",
+      title: t("composer.approval.helpTitle"),
+      message: t("composer.approval.helpMessage"),
       variant: "info",
-      confirmLabel: "Anladım",
-      cancelLabel: "Kapat",
+      confirmLabel: t("composer.approval.understood"),
+      cancelLabel: t("composer.approval.close"),
     });
-  }, [closeApprovalMenu, confirm]);
-
-  const renderQuickActions = () => {
-    if (hasVisibleMessages || compact) return null;
-    const actions = [
-      { label: "Kodu Açıkla", command: "/explain", icon: Sparkles },
-      { label: "Hata Bul", command: "/debug", icon: Bug },
-      { label: "Test Yaz", command: "/test", icon: TestTube },
-      { label: "Dokümante Et", command: "/doc", icon: FileText },
-    ];
-    return (
-      <div className={styles.quickActionsContainer} aria-label="Hızlı başlangıçlar">
-        {actions.map((act) => {
-          const IconComponent = act.icon;
-          return (
-            <button
-              key={act.command}
-              type="button"
-              className={styles.quickActionPill}
-              title={act.label}
-              onClick={() => {
-                onPromptChange(act.command);
-                requestAnimationFrame(() => {
-                  promptRef.current?.focus();
-                  onSubmitCurrent();
-                });
-              }}
-            >
-              <IconComponent size={13.5} strokeWidth={1.75} className={styles.quickActionIcon} />
-              <span>{act.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    );
-  };
+  }, [closeApprovalMenu, confirm, t]);
 
   return <>
     {!compact && plan?.steps.some((step) => !step.completed && step.status !== "completed")
@@ -485,7 +456,7 @@ export function ChatComposer({
       {fileDragActive && (
         <div className={styles.fileDropOverlay} role="status" aria-live="polite">
           <FileUp size={20} strokeWidth={1.8} aria-hidden="true" />
-          <span><b>Dosyaları bağlama ekle</b><small>Görseller önizlenir; metin ve kod dosyaları bağlam olur</small></span>
+          <span><b>{t("composer.files.dropTitle")}</b><small>{t("composer.files.dropDescription")}</small></span>
         </div>
       )}
       {documentModeActive && (
@@ -525,15 +496,15 @@ export function ChatComposer({
       />
 
       {images.length > 0 && (
-        <div className={styles.attachments} aria-label="Eklenen görseller">
+        <div className={styles.attachments} aria-label={t("composer.files.attachments")}>
           {images.map((image, index) => (
             <div className={`${styles.attachment} ${image.annotation !== undefined || image.annotationTarget ? styles.annotationAttachment : ""}`} key={image.id}>
-              <button type="button" className={styles.attachmentPreview} onClick={() => onPreviewImage(image)} aria-label={`${image.name} önizleme`}>
+              <button type="button" className={styles.attachmentPreview} onClick={() => onPreviewImage(image)} aria-label={t("composer.files.preview", { name: image.name })}>
                 <img src={image.previewUrl} alt={image.name} />
                 {(image.annotation !== undefined || image.annotationTarget) && <span className={styles.attachmentPin}>{image.annotationCount || index + 1}</span>}
               </button>
-              {(image.annotation !== undefined || image.annotationTarget) && <span className={styles.attachmentAnnotation}>{image.annotationCount ? `${image.annotationCount} açıklama` : image.annotation || image.annotationTarget || "Seçim"}</span>}
-              <button type="button" className={styles.attachmentRemove} aria-label={`${image.name} görselini kaldır`} onClick={() => onRemoveImage(image.id)}>
+              {(image.annotation !== undefined || image.annotationTarget) && <span className={styles.attachmentAnnotation}>{image.annotationCount ? t("composer.files.annotationCount", { count: image.annotationCount }) : image.annotation || image.annotationTarget || t("composer.files.selection")}</span>}
+              <button type="button" className={styles.attachmentRemove} aria-label={t("composer.files.removeImage", { name: image.name })} onClick={() => onRemoveImage(image.id)}>
                 <X size={13} strokeWidth={2.2} aria-hidden="true" />
               </button>
             </div>
@@ -549,14 +520,14 @@ export function ChatComposer({
         {documentModeActive ? (
           <span className={styles.documentModeLabel}>
             <span className={styles.documentModeIcon} aria-hidden="true"><FileText size={12} strokeWidth={2} /></span>
-            <span>Documents</span>
+            <span>{t("composer.document.mode")}</span>
           </span>
         ) : null}
         {selectedDocumentSkill && selectedDocumentLabel ? (
           <button
             type="button"
             className={styles.documentTemplateChip}
-            title={`${selectedDocumentLabel} SKILL.md dosyasını aç`}
+            title={t("composer.document.openSkill", { name: selectedDocumentLabel })}
             onClick={() => onOpenDocumentSkill?.(selectedDocumentSkill)}
           >
             <Box size={13} strokeWidth={1.8} aria-hidden="true" />
@@ -588,8 +559,8 @@ export function ChatComposer({
               : event.target.value;
             onPromptChange(documentModeActive ? `${documentCommand}${nextVisiblePrompt}` : nextVisiblePrompt);
           }}
-          placeholder={githubLink ? "" : documentModeActive ? "Oluşturmak istediğin belgeyi anlat…" : hasVisibleMessages ? "Quake’e bir görev ver…" : "Ne oluşturmak veya değiştirmek istiyorsun?"}
-          aria-label="Quake'e mesaj"
+          placeholder={githubLink ? "" : documentModeActive ? t("composer.prompt.documentPlaceholder") : hasVisibleMessages ? t("composer.prompt.existingTaskPlaceholder") : t("composer.prompt.firstTaskPlaceholder")}
+          aria-label={t("composer.prompt.aria")}
           onKeyDown={(event) => {
             if (githubLink && event.key === "Backspace" && !githubLink.rest) {
               event.preventDefault();
@@ -632,40 +603,40 @@ export function ChatComposer({
           >
             <summary
               className={styles.iconButton}
-              aria-label="Ekle"
+              aria-label={t("composer.add.label")}
               aria-haspopup="menu"
               aria-expanded={addMenuOpen}
-              title="Dosya, proje, hedef veya plan ekle"
+              title={t("composer.add.title")}
             >
               <Plus size={18} strokeWidth={1.9} aria-hidden="true" />
             </summary>
             <div
               className={styles.addPopover}
               role="menu"
-              aria-label="Ekle"
+              aria-label={t("composer.add.label")}
               onKeyDown={(event) => handleMenuKeyDown(event, {
                 onEscape: () => closeDetailsElement(addMenuRef.current),
               })}
             >
-              <div className={styles.addPanelTitle}>Ekle</div>
+              <div className={styles.addPanelTitle}>{t("composer.add.label")}</div>
               <button className={styles.addAction} type="button" role="menuitem" onClick={(event) => { closeDetails(event); fileInputRef.current?.click(); }}>
                 <Paperclip size={15} strokeWidth={1.8} aria-hidden="true" />
-                <span className={styles.addActionText}><b>Dosyalar ve klasörler</b></span>
+                <span className={styles.addActionText}><b>{t("composer.add.filesAndFolders")}</b></span>
               </button>
               <button className={styles.addAction} type="button" role="menuitem" onClick={(event) => { closeDetails(event); onOpenProjects(); }}>
                 <Folder size={15} strokeWidth={1.7} aria-hidden="true" />
-                <span className={styles.addActionText}><b>Proje</b><small>Yeni görevler için proje seç</small></span>
+                <span className={styles.addActionText}><b>{t("composer.add.project")}</b><small>{t("composer.add.projectDescription")}</small></span>
               </button>
               <button className={styles.addAction} type="button" role="menuitemradio" aria-checked={goalActive} onClick={(event) => { closeDetails(event); onSetMode("goal"); }}>
                 <Target size={15} strokeWidth={1.7} aria-hidden="true" />
-                <span className={styles.addActionText}><b>Hedef</b><small>Üzerinde çalışmak için bir hedef belirle</small></span>
+                <span className={styles.addActionText}><b>{t("composer.add.goal")}</b><small>{t("composer.add.goalDescription")}</small></span>
               </button>
               <button className={styles.addAction} type="button" role="menuitemradio" aria-checked={planActive} onClick={(event) => { closeDetails(event); onSetMode("plan"); }}>
                 <Lightbulb size={15} strokeWidth={1.7} aria-hidden="true" />
-                <span className={styles.addActionText}><b>Plan modu</b><small>Plan modunu aç</small></span>
+                <span className={styles.addActionText}><b>{t("composer.add.planMode")}</b><small>{t("composer.add.planModeDescription")}</small></span>
               </button>
-              <div className={styles.addSection} role="group" aria-label="Eklentiler">
-                <div className={styles.addSectionTitle}>Eklentiler</div>
+              <div className={styles.addSection} role="group" aria-label={t("composer.add.extensions")}>
+                <div className={styles.addSectionTitle}>{t("composer.add.extensions")}</div>
                 {addMenuExtensions.map((extension) => (
                   <button
                     className={`${styles.addAction} ${styles.addExtensionAction}`}
@@ -679,11 +650,11 @@ export function ChatComposer({
                   </button>
                 ))}
               </div>
-              <div className={styles.addSection} role="group" aria-label="Dosyalar ve görevler">
+              <div className={styles.addSection} role="group" aria-label={t("composer.add.filesAndTasks")}>
                 <button className={styles.addPlainAction} type="button" role="menuitem" onClick={(event) => { closeDetails(event); onOpenFiles(); }}>
-                  Dosyalar ve görevler
+                  {t("composer.add.filesAndTasks")}
                 </button>
-                <div className={styles.addSearchHint} aria-hidden="true">Dosya veya görev aramak için yaz</div>
+                <div className={styles.addSearchHint} aria-hidden="true">{t("composer.add.searchHint")}</div>
               </div>
             </div>
           </details>
@@ -691,12 +662,12 @@ export function ChatComposer({
           {planActive ? (
             <span className={`${styles.modeChip} ${styles.modeChipActive}`} data-mode="plan">
               <ListTodo size={13} strokeWidth={2} aria-hidden="true" />
-              <span className={styles.modeChipLabel}>Plan</span>
+              <span className={styles.modeChipLabel}>{t("composer.modes.plan")}</span>
               <button
                 type="button"
                 className={styles.modeChipDismiss}
-                aria-label="Planı kapat"
-                title="Planı kapat"
+                aria-label={t("composer.modes.closePlan")}
+                title={t("composer.modes.closePlan")}
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
@@ -711,12 +682,12 @@ export function ChatComposer({
           {goalActive ? (
             <span className={`${styles.modeChip} ${styles.modeChipActive}`} data-mode="goal">
               <Target size={13} strokeWidth={2} aria-hidden="true" />
-              <span className={styles.modeChipLabel}>Hedef</span>
+              <span className={styles.modeChipLabel}>{t("composer.modes.goal")}</span>
               <button
                 type="button"
                 className={styles.modeChipDismiss}
-                aria-label="Hedefi kapat"
-                title="Hedefi kapat"
+                aria-label={t("composer.modes.closeGoal")}
+                title={t("composer.modes.closeGoal")}
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
@@ -742,8 +713,8 @@ export function ChatComposer({
             >
               <summary
                 className={styles.approvalTrigger}
-                aria-label={`Onay modu: ${activeApprovalMode.label}`}
-                title="Quake işlemleri nasıl onaylanmalı?"
+                aria-label={t("composer.approval.modeAria", { mode: activeApprovalMode.label })}
+                title={t("composer.approval.menuTitle")}
                 data-mode={terminalPolicyMode}
                 data-pending={terminalPolicyPending ? "true" : "false"}
               >
@@ -753,18 +724,18 @@ export function ChatComposer({
               <div
                 className={styles.approvalPopover}
                 role="menu"
-                aria-label="Onay modu"
+                aria-label={t("composer.approval.menuAria")}
                 onKeyDown={(event) => handleMenuKeyDown(event, {
                   onEscape: () => closeApprovalMenu(true),
                 })}
               >
                 <header className={styles.approvalHeader}>
-                  <span className={styles.approvalHeaderTitle}>Quake işlemleri nasıl onaylanmalı?</span>
+                  <span className={styles.approvalHeaderTitle}>{t("composer.approval.menuTitle")}</span>
                   <button type="button" className={styles.approvalLearnMore} onClick={showApprovalHelp}>
-                    Daha fazla bilgi
+                    {t("composer.approval.learnMore")}
                   </button>
                 </header>
-                {APPROVAL_MODE_OPTIONS.map((option) => {
+                {approvalModeOptions.map((option) => {
                   const selected = option.mode === terminalPolicyMode;
                   const Icon = option.Icon;
                   return (
@@ -801,7 +772,7 @@ export function ChatComposer({
           {isCompacting ? (
             <span className={styles.compactionStatus} role="status" aria-live="polite">
               <i aria-hidden="true" />
-              Bağlam sıkıştırılıyor
+              {t("composer.contextCompacting")}
             </span>
           ) : null}
           <ContextUsageIndicator usage={contextUsage} />
@@ -825,10 +796,13 @@ export function ChatComposer({
             }}
           >
             <summary
-              aria-label={`Model: ${currentModelLabel || "Model"}, çaba: ${currentEffortLabel}`}
-              title="Model ve çaba ayarları"
+              aria-label={t("composer.preferences.summaryAria", {
+                model: currentModelLabel || t("composer.preferences.model"),
+                effort: currentEffortLabel,
+              })}
+              title={t("composer.preferences.title")}
             >
-              <span className={styles.preferenceModel}>{currentModelLabel || "Model seç"}</span>
+              <span className={styles.preferenceModel}>{currentModelLabel || t("composer.preferences.selectModel")}</span>
               <span className={styles.preferenceEffort} data-level={currentThinking}>{currentEffortLabel}</span>
             </summary>
 
@@ -837,7 +811,7 @@ export function ChatComposer({
               className={styles.preferencesPopover}
               data-submenu={preferencesSubmenu}
               data-submenu-placement={preferencesSubmenuPlacement}
-              aria-label="Model ve çaba ayarları"
+              aria-label={t("composer.preferences.title")}
               onKeyDown={(event) => {
                 if (event.key === "Escape") {
                   event.preventDefault();
@@ -854,7 +828,7 @@ export function ChatComposer({
                     ref={advancedPreferencesMenuRef}
                     className={styles.advancedPreferencesPanel}
                     role="menu"
-                    aria-label="Gelişmiş ayarlar"
+                    aria-label={t("composer.preferences.advanced")}
                     onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: closePreferencesMenu })}
                   >
                     <button
@@ -875,8 +849,8 @@ export function ChatComposer({
                       }}
                       onClick={() => openPreferencesSubmenu("model")}
                     >
-                      <span>Model</span>
-                      <span className={styles.advancedValue}>{currentModelLabel || "Seçilmedi"}</span>
+                      <span>{t("composer.preferences.model")}</span>
+                      <span className={styles.advancedValue}>{currentModelLabel || t("composer.preferences.notSelected")}</span>
                       <ChevronRight size={14} strokeWidth={1.8} aria-hidden="true" />
                     </button>
                     <button
@@ -898,7 +872,7 @@ export function ChatComposer({
                       }}
                       onClick={() => currentModel?.reasoning && openPreferencesSubmenu("effort")}
                     >
-                      <span>Çaba</span>
+                      <span>{t("composer.preferences.effort")}</span>
                       <span className={styles.advancedValue}>{currentEffortLabel}</span>
                       {currentModel?.reasoning ? <ChevronRight size={14} strokeWidth={1.8} aria-hidden="true" /> : <span />}
                     </button>
@@ -914,7 +888,7 @@ export function ChatComposer({
                         closePreferencesMenu();
                       }}
                     >
-                      <span>Varsayılana sıfırla</span>
+                      <span>{t("composer.preferences.reset")}</span>
                       <RotateCcw size={14} strokeWidth={1.65} aria-hidden="true" />
                     </button>
               </div>
@@ -924,7 +898,9 @@ export function ChatComposer({
                       ref={modelSubmenuRef}
                       className={`${styles.preferencesSubmenu} ${styles.modelSubmenu}`}
                       role="menu"
-                      aria-label={pinnedModelCount > 0 ? `Model, ${pinnedModelCount} sabitlenen` : "Model"}
+                      aria-label={pinnedModelCount > 0
+                        ? t("composer.preferences.pinnedModelAria", { count: pinnedModelCount })
+                        : t("composer.preferences.model")}
                       onKeyDown={(event) => {
                         if (event.key === "ArrowLeft") {
                           event.preventDefault();
@@ -936,7 +912,7 @@ export function ChatComposer({
                       }}
                     >
                       <button type="button" className={styles.submenuHeading} onClick={() => closePreferencesSubmenu("model")}>
-                        <span>Model</span>
+                        <span>{t("composer.preferences.model")}</span>
                       </button>
                       <div className={styles.submenuList}>
                         {visibleModels.map((model) => {
@@ -959,7 +935,7 @@ export function ChatComposer({
                             </button>
                           );
                         })}
-                        {visibleModels.length === 0 ? <div className={styles.emptySubmenu}>Yapılandırılmış model yok.</div> : null}
+                        {visibleModels.length === 0 ? <div className={styles.emptySubmenu}>{t("composer.preferences.noConfiguredModel")}</div> : null}
                       </div>
                     </div>
                   ) : null}
@@ -969,7 +945,7 @@ export function ChatComposer({
                       ref={effortSubmenuRef}
                       className={`${styles.preferencesSubmenu} ${styles.effortSubmenu}`}
                       role="menu"
-                      aria-label="Çaba"
+                      aria-label={t("composer.preferences.effort")}
                       onKeyDown={(event) => {
                         if (event.key === "ArrowLeft") {
                           event.preventDefault();
@@ -981,7 +957,7 @@ export function ChatComposer({
                       }}
                     >
                       <button type="button" className={styles.submenuHeading} onClick={() => closePreferencesSubmenu("effort")}>
-                        <span>Çaba</span>
+                        <span>{t("composer.preferences.effort")}</span>
                       </button>
                       <div className={styles.submenuList}>
                         {availableThinkingOptions.map((option) => {
@@ -998,7 +974,7 @@ export function ChatComposer({
                                 closePreferencesMenu();
                               }}
                             >
-                              <span>{option.label}</span>
+                              <span>{translateThinkingLabel(option.value)}</span>
                               {selected ? <Check size={14} strokeWidth={1.8} aria-hidden="true" /> : null}
                             </button>
                           );
@@ -1010,18 +986,17 @@ export function ChatComposer({
           </details>
 
           {agentBusy ? (
-            <button type="button" className={`${styles.sendButton} ${styles.stopButton}`} aria-label="Yanıtı durdur" title="Yanıtı durdur" onClick={triggerPetStop}>
+            <button type="button" className={`${styles.sendButton} ${styles.stopButton}`} aria-label={t("composer.controls.stop")} title={t("composer.controls.stop")} onClick={triggerPetStop}>
               <Square size={13} fill="currentColor" strokeWidth={1.8} aria-hidden="true" />
             </button>
           ) : (
-            <button type="submit" className={styles.sendButton} aria-label={promptPending ? "Gönderiliyor" : "Gönder"} disabled={promptPending || !canSubmit}>
+            <button type="submit" className={styles.sendButton} aria-label={promptPending ? t("composer.controls.sending") : t("composer.controls.send")} disabled={promptPending || !canSubmit}>
               {promptPending ? <span className={styles.pendingDots}>…</span> : <ArrowUp size={18} strokeWidth={2.2} aria-hidden="true" />}
             </button>
           )}
         </div>
       </footer>
     </form>
-    {renderQuickActions()}
   </>;
 }
 
@@ -1042,6 +1017,7 @@ function ComposerAddMenuExtensionIcon({ kind }: { kind: ComposerAddMenuExtension
 }
 
 function ComposerPlanPill({ plan, onOpenPlan }: { plan: WebPlanState; onOpenPlan?: () => void }) {
+  const { t } = useI18n();
   const total = plan.steps.length;
   const completed = plan.steps.filter((step) => step.completed || step.status === "completed").length;
   const complete = total > 0 && completed === total;
@@ -1053,7 +1029,7 @@ function ComposerPlanPill({ plan, onOpenPlan }: { plan: WebPlanState; onOpenPlan
       : plan.steps.findIndex((step) => !step.completed),
   );
   const current = plan.steps[currentIndex];
-  const label = current?.fullText || current?.text || `${total} plan adımı`;
+  const label = current?.fullText || current?.text || t("composer.plan.steps", { count: total });
   const currentStep = Math.min(total, Math.max(1, currentIndex + 1));
   const progressStart = total > 0 ? completed / total : 0;
   const progressTarget = Math.min(0.96, (completed + 0.82) / total);
@@ -1062,15 +1038,15 @@ function ComposerPlanPill({ plan, onOpenPlan }: { plan: WebPlanState; onOpenPlan
     "--plan-progress-to": `${100 - (progressTarget * 100)}`,
   } as React.CSSProperties;
 
-  return <section className={styles.planPill} aria-label="Plan ilerlemesi">
+  return <section className={styles.planPill} aria-label={t("composer.plan.progress")}>
     <div className={styles.planPillDetail} role="status" aria-live="polite">
-      <ol className={styles.planPillStepList} aria-label="Plan adımları">
+      <ol className={styles.planPillStepList} aria-label={t("composer.plan.stepsAria")}>
         {plan.steps.map((step, index) => {
           const isCompleted = step.completed || step.status === "completed";
           const isActive = !isCompleted && (step.status === "active" || index === currentIndex);
           const isBlocked = step.status === "blocked";
           const status = isCompleted ? "completed" : isActive ? "active" : isBlocked ? "blocked" : "pending";
-          const text = step.fullText || step.text || `Adım ${step.step || index + 1}`;
+          const text = step.fullText || step.text || t("composer.plan.step", { count: step.step || index + 1 });
           return (
             <li className={styles.planPillStep} data-status={status} key={`${step.step}:${step.text}:${index}`}>
               <span className={styles.planPillStatusMark} data-status={status} aria-hidden="true">
@@ -1089,8 +1065,8 @@ function ComposerPlanPill({ plan, onOpenPlan }: { plan: WebPlanState; onOpenPlan
     <button
       type="button"
       className={styles.planPillTrigger}
-      aria-label={`${label}. Adım ${currentStep} / ${total}. Planı aç`}
-      title="Planı aç"
+      aria-label={t("composer.plan.openAria", { label, current: currentStep, total })}
+      title={t("composer.plan.open")}
       onClick={onOpenPlan}
     >
       <svg className={styles.planPillRing} viewBox="0 0 16 16" aria-hidden="true">
@@ -1105,7 +1081,7 @@ function ComposerPlanPill({ plan, onOpenPlan }: { plan: WebPlanState; onOpenPlan
           style={ringStyle}
         />
       </svg>
-      <span>Adım {currentStep} / {total}</span>
+      <span>{t("composer.plan.progressText", { current: currentStep, total })}</span>
     </button>
   </section>;
 }

@@ -18,10 +18,10 @@ import {
 } from "lucide-react";
 import { formatSessionTitle } from "../../lib/render";
 import {
-  leftSidebarSizeLabel,
   nextLeftSidebarSize,
   type LeftSidebarSize,
 } from "../../lib/layout-sizing";
+import { type Translate, useI18n } from "../../i18n";
 import { useContextMenu, type MenuItem } from "./ContextMenu";
 import styles from "./NavRail.module.css";
 
@@ -45,10 +45,8 @@ export type NavProject = {
   sessions: NavSession[];
 };
 
-export type NavPinned = {
-  id: string;
-  name: string;
-  modified?: number | string;
+/** A pinned task keeps the same session identity and actions as its normal rail row. */
+export type NavPinned = NavSession & {
   onOpen?: () => void;
 };
 
@@ -91,6 +89,8 @@ export function NavRail({
   onRenameSession,
   unreadSessionPaths,
   onRemoveProject,
+  onPeekEnter,
+  onPeekLeave,
 }: {
   leftOpen: boolean;
   onToggle: () => void;
@@ -127,9 +127,14 @@ export function NavRail({
   unreadSessionPaths?: Set<string>;
   /** Remove workspace/folder from the Projects list (not delete files on disk). */
   onRemoveProject?: (cwd: string) => void;
+  /** Keeps the temporary overlay rail open while the pointer is inside it. */
+  onPeekEnter?: () => void;
+  /** Schedules the temporary overlay rail to close after the pointer leaves. */
+  onPeekLeave?: () => void;
 }) {
   void _onOpenSessions;
   void onToggle;
+  const { t } = useI18n();
   const navMenu = useContextMenu();
   const [showAllSessions, setShowAllSessions] = useState(false);
   const [renamingSession, setRenamingSession] = useState<NavSession>();
@@ -149,11 +154,11 @@ export function NavRail({
     pinnedPaths,
     unreadSessionPaths,
     openMenu: (event, session) => openNavMenu(event, [
-      { id: "open", label: "Sohbeti aç", onSelect: () => onSwitchSession(session.path) },
-      { id: "rename", label: "Yeniden adlandır", onSelect: () => setRenamingSession(session) },
-      { id: "pin", label: pinnedPaths?.has(session.path) ? "Sabitlemeyi kaldır" : "Sohbeti sabitle", onSelect: () => onPinSession?.(session.path) },
+      { id: "open", label: t("navRail.openChat"), onSelect: () => onSwitchSession(session.path) },
+      { id: "rename", label: t("navRail.renameChat"), onSelect: () => setRenamingSession(session) },
+      { id: "pin", label: pinnedPaths?.has(session.path) ? t("navRail.unpinChat") : t("navRail.pinChat"), onSelect: () => onPinSession?.(session.path) },
       { type: "separator" },
-      { id: "archive", label: "Arşivle", onSelect: () => onArchiveSession?.(session.path) },
+      { id: "archive", label: t("navRail.archive"), onSelect: () => onArchiveSession?.(session.path) },
     ]),
     onPinSession,
     onArchiveSession,
@@ -166,14 +171,24 @@ export function NavRail({
     () => [...sessions].sort((a, b) => modifiedTs(b.modified) - modifiedTs(a.modified)),
     [sessions],
   );
+  const sortedPinned = useMemo(
+    () => [...(pinned || [])].sort((a, b) => modifiedTs(b.modified) - modifiedTs(a.modified)),
+    [pinned],
+  );
   const displayedSessions = showAllSessions ? sortedSessions : sortedSessions.slice(0, 10);
   const hasMoreSessions = sortedSessions.length > 10;
-  const sidebarSizeLabel = leftSidebarSizeLabel(sidebarSize);
-  const nextSidebarSizeLabel = leftSidebarSizeLabel(nextLeftSidebarSize(sidebarSize));
+  const sidebarSizeLabel = t(sidebarSize === "quarter" ? "navRail.sidebarQuarter" : "navRail.sidebarHalf");
+  const nextSidebarSizeLabel = t(nextLeftSidebarSize(sidebarSize) === "quarter" ? "navRail.sidebarQuarter" : "navRail.sidebarHalf");
   const sidebarSizeGlyph = sidebarSize === "quarter" ? "¼" : "½";
 
   return (
-    <aside className={`${styles.navrail} ${leftOpen ? "" : styles.collapsed}`} aria-hidden={!leftOpen} aria-label="Gezinme">
+    <aside
+      className={`${styles.navrail} ${leftOpen ? "" : styles.collapsed}`}
+      aria-hidden={!leftOpen}
+      aria-label={t("navRail.navigation")}
+      onPointerEnter={onPeekEnter}
+      onPointerLeave={onPeekLeave}
+    >
       <div className={styles.topBar}>
         <div className={styles.brandMark} aria-label="Quake Code">
           <b>Quake Code</b>
@@ -183,55 +198,80 @@ export function NavRail({
             type="button"
             className={styles.panelSizeButton}
             onClick={onCycleSidebarSize}
-            aria-label={`Sol panel genişliği: ${sidebarSizeLabel}. Sonraki: ${nextSidebarSizeLabel}`}
-            title={`Sol panel: ${sidebarSizeLabel} → ${nextSidebarSizeLabel}`}
+            aria-label={t("navRail.sidebarSize", { current: sidebarSizeLabel, next: nextSidebarSizeLabel })}
+            title={t("navRail.sidebarSizeTitle", { current: sidebarSizeLabel, next: nextSidebarSizeLabel })}
           >
             <span aria-hidden="true">{sidebarSizeGlyph}</span>
           </button>
-          <button type="button" className={styles.iconBtn} onClick={onSearch} aria-label="Sohbetlerde ara" title="Sohbetlerde ara">
+          <button type="button" className={styles.iconBtn} onClick={onSearch} aria-label={t("navRail.searchChats")} title={t("navRail.searchChats")}>
             <Search size={15} strokeWidth={1.8} aria-hidden="true" />
           </button>
         </div>
       </div>
 
       <div className={styles.primaryBlock}>
-        <button type="button" className={styles.newChat} onClick={onNewChat} onContextMenu={(event) => openNavMenu(event, [{ id: "new", label: "Yeni sohbet başlat", onSelect: onNewChat }, { id: "history", label: "Sohbet geçmişini aç", onSelect: onSearch }])} title="Yeni görev">
+        <button type="button" className={styles.newChat} onClick={onNewChat} onContextMenu={(event) => openNavMenu(event, [{ id: "new", label: t("navRail.startNewChat"), onSelect: onNewChat }, { id: "history", label: t("navRail.openChatHistory"), onSelect: onSearch }])} title={t("navRail.newTask")}>
           <SquarePen size={15} strokeWidth={1.8} aria-hidden="true" />
-          <span>Yeni görev</span>
+          <span>{t("navRail.newTask")}</span>
         </button>
 
-        <nav className={styles.actions} aria-label="Hızlı eylemler">
+        <nav className={styles.actions} aria-label={t("navRail.quickActions")}>
           <div className={styles.navItemRow}>
-            <button type="button" className={`${styles.navItem} ${activeView === "projects" ? styles.navItemActive : ""}`} onClick={onOpenProjects} onContextMenu={(event) => openNavMenu(event, [{ id: "open", label: "Projeleri aç", onSelect: onOpenProjects }, { id: "add", label: "Proje ekle", onSelect: onOpenWorkspace }])} title="Projeler">
+            <button type="button" className={`${styles.navItem} ${activeView === "projects" ? styles.navItemActive : ""}`} onClick={onOpenProjects} onContextMenu={(event) => openNavMenu(event, [{ id: "open", label: t("navRail.openProjects"), onSelect: onOpenProjects }, { id: "add", label: t("navRail.addProject"), onSelect: onOpenWorkspace }])} title={t("navRail.projects")}>
               <Folder size={15} strokeWidth={1.8} aria-hidden="true" />
-              <span>Projeler</span>
+              <span>{t("navRail.projects")}</span>
             </button>
             <button
               type="button"
               className={styles.navItemTrailing}
               onClick={onOpenWorkspace}
-              aria-label="Workspace seç"
-              title="Workspace seç"
+              aria-label={t("navRail.selectWorkspace")}
+              title={t("navRail.selectWorkspace")}
             >
               <Plus size={16} strokeWidth={1.8} aria-hidden="true" />
             </button>
           </div>
-          <button type="button" className={`${styles.navItem} ${activeView === "scheduled" ? styles.navItemActive : ""}`} onClick={onScheduled} onContextMenu={(event) => openNavMenu(event, [{ id: "open", label: "Zamanlananları aç", onSelect: onScheduled }, { id: "new", label: "Yeni sohbet", onSelect: onNewChat }])} title="Zamanlananlar">
+          <button type="button" className={`${styles.navItem} ${activeView === "scheduled" ? styles.navItemActive : ""}`} onClick={onScheduled} onContextMenu={(event) => openNavMenu(event, [{ id: "open", label: t("navRail.openScheduled"), onSelect: onScheduled }, { id: "new", label: t("common.titlebar.newChat"), onSelect: onNewChat }])} title={t("navRail.scheduled")}>
             <Clock size={15} strokeWidth={1.8} aria-hidden="true" />
-            <span>Zamanlananlar</span>
+            <span>{t("navRail.scheduled")}</span>
           </button>
-          <button type="button" className={`${styles.navItem} ${activeView === "extensions" ? styles.navItemActive : ""}`} onClick={onExtensions} onContextMenu={(event) => openNavMenu(event, [{ id: "open", label: "Eklentileri aç", onSelect: onExtensions }, { id: "settings", label: "Ayarları aç", onSelect: onSettings }])} title="Eklentiler">
+          <button type="button" className={`${styles.navItem} ${activeView === "extensions" ? styles.navItemActive : ""}`} onClick={onExtensions} onContextMenu={(event) => openNavMenu(event, [{ id: "open", label: t("navRail.openExtensions"), onSelect: onExtensions }, { id: "settings", label: t("navRail.openSettings"), onSelect: onSettings }])} title={t("navRail.extensions")}>
             <AtSign size={15} strokeWidth={1.8} aria-hidden="true" />
-            <span>Eklentiler</span>
+            <span>{t("navRail.extensions")}</span>
           </button>
         </nav>
       </div>
 
       <div className={styles.scroll}>
+        {sortedPinned.length > 0 && (
+          <div className={`${styles.section} ${styles.pinnedSection}`}>
+            <div className={`${styles.sectionHead} ${styles.pinnedSectionHead}`}>
+              {t("navRail.pinnedTasks")}
+            </div>
+            <div className={`${styles.threads} ${styles.threadsOpen}`}>
+              {sortedPinned.map((session) => (
+                <ThreadItem
+                  key={`pinned:${session.path}`}
+                  session={session}
+                  flat
+                  activeSessionId={activeSessionId}
+                  actions={threadActions}
+                  onSwitchSession={onSwitchSession}
+                  renaming={renamingSession?.path === session.path}
+                  onRenameCancel={() => setRenamingSession(undefined)}
+                  onRenameCommit={(nextName) => {
+                    onRenameSession?.(session, nextName);
+                    setRenamingSession(undefined);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
         <div className={styles.section}>
-          <div className={styles.sectionHead}>Görevler</div>
+          <div className={styles.sectionHead}>{t("navRail.tasks")}</div>
           <div className={`${styles.threads} ${styles.threadsOpen}`}>
-            {sessions.length === 0 && <div className={styles.empty}>Henüz görev yok</div>}
+            {sessions.length === 0 && <div className={styles.empty}>{t("navRail.noTasks")}</div>}
             {displayedSessions.map((session) => (
               <ThreadItem
                 key={session.path}
@@ -256,7 +296,7 @@ export function NavRail({
                 aria-expanded={showAllSessions}
               >
                 <ChevronDown className={showAllSessions ? styles.showMoreOpen : ""} size={13} strokeWidth={1.8} aria-hidden="true" />
-                <span>{showAllSessions ? "Daha az" : "Daha fazla"}</span>
+                <span>{showAllSessions ? t("navRail.showLess") : t("navRail.showMore")}</span>
                 {!showAllSessions && <span className={styles.showMoreCount}>{sortedSessions.length - 10}</span>}
               </button>
             )}
@@ -265,10 +305,10 @@ export function NavRail({
       </div>
 
       <div className={styles.bottom}>
-        <button type="button" className={styles.settingsRow} onClick={onSettings} title="Ayarlar">
+        <button type="button" className={styles.settingsRow} onClick={onSettings} title={t("navRail.settings")}>
           <Settings size={16} strokeWidth={1.9} aria-hidden="true" />
           <span className={styles.settingsText}>
-            <span className={styles.settingsLabel}>Ayarlar</span>
+            <span className={styles.settingsLabel}>{t("navRail.settings")}</span>
           </span>
         </button>
       </div>
@@ -326,6 +366,7 @@ function ThreadItem({
   onRenameCancel?: () => void;
   onRenameCommit?: (nextName: string) => void;
 }) {
+  const { t } = useI18n();
   const isActive = !!session.id && session.id === activeSessionId;
   const isWorking = isSessionAgentWorking(session, actions);
   const isPinned = actions.pinnedPaths?.has(session.path) ?? false;
@@ -378,7 +419,7 @@ function ThreadItem({
                 onRenameCancel?.();
               }
             }}
-            aria-label="Sohbet adı"
+            aria-label={t("navRail.chatName")}
           />
         </form>
       ) : (
@@ -388,19 +429,19 @@ function ThreadItem({
       )}
       {!renaming && <span className={styles.threadMeta}>
         {isWorking && (
-          <span className={styles.generatingDots} title="Ajan yanıt üretiyor" aria-label="Ajan yanıt üretiyor">
+          <span className={styles.generatingDots} title={t("navRail.agentGenerating")} aria-label={t("navRail.agentGenerating")}>
             <span />
             <span />
             <span />
           </span>
         )}
-        {!isWorking && isUnread && <span className={styles.unreadDot} title="Okunmamış yanıt" aria-label="Okunmamış yanıt" />}
+        {!isWorking && isUnread && <span className={styles.unreadDot} title={t("navRail.unreadReply")} aria-label={t("navRail.unreadReply")} />}
         <span className={styles.threadActions}>
           <button
             type="button"
             className={styles.threadAction}
-            aria-label={isPinned ? "Sabitlemeyi kaldır" : "Sohbeti sabitle"}
-            title={isPinned ? "Sabitlemeyi kaldır" : "Sohbeti sabitle"}
+            aria-label={isPinned ? t("navRail.unpinChat") : t("navRail.pinChat")}
+            title={isPinned ? t("navRail.unpinChat") : t("navRail.pinChat")}
             onClick={(e) => {
               e.stopPropagation();
               actions.onPinSession?.(session.path);
@@ -411,8 +452,8 @@ function ThreadItem({
           <button
             type="button"
             className={styles.threadAction}
-            aria-label="Arşivle"
-            title="Arşivle"
+            aria-label={t("navRail.archive")}
+            title={t("navRail.archive")}
             onClick={(e) => {
               e.stopPropagation();
               actions.onArchiveSession?.(session.path);
@@ -430,10 +471,10 @@ function ThreadItem({
         >
           <div className={styles.hoverCardHead}>
             <strong>{formatSessionTitle(session)}</strong>
-            <span>{relativeTime(session.modified)}</span>
+            <span>{relativeTime(session.modified, t)}</span>
           </div>
           <div className={styles.hoverCardMeta}>
-            <span><Folder size={14} strokeWidth={1.7} aria-hidden="true" />{session.cwd ? workspaceLabel(session.cwd) : "Çalışma alanı yok"}</span>
+            <span><Folder size={14} strokeWidth={1.7} aria-hidden="true" />{session.cwd ? workspaceLabel(session.cwd) : t("navRail.noWorkspace")}</span>
             <span><GitBranch size={14} strokeWidth={1.7} aria-hidden="true" />{session.branch || "master"}</span>
           </div>
         </div>,
@@ -470,21 +511,21 @@ function modifiedTs(modified?: number | string): number {
 }
 
 /** Kısa relative zaman: şimdi · 3g · 4g · 2h (Antigravity tarzı kompakt) */
-function relativeTime(modified?: number | string): string {
+function relativeTime(modified: number | string | undefined, t: Translate): string {
   if (!modified) return "";
   const ts = modifiedTs(modified);
   if (!ts) return "";
   const diff = Math.max(0, Date.now() - ts);
   const min = Math.floor(diff / 60000);
-  if (min < 1) return "şimdi";
-  if (min < 60) return `${min}dk`;
+  if (min < 1) return t("navRail.relative.now");
+  if (min < 60) return t("navRail.relative.minute", { count: min });
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}sa`;
+  if (hr < 24) return t("navRail.relative.hour", { count: hr });
   const day = Math.floor(hr / 24);
-  if (day < 7) return `${day}g`;
+  if (day < 7) return t("navRail.relative.day", { count: day });
   const week = Math.floor(day / 7);
-  if (week < 5) return `${week}h`;
-  return `${Math.floor(day / 30)}ay`;
+  if (week < 5) return t("navRail.relative.week", { count: week });
+  return t("navRail.relative.month", { count: Math.floor(day / 30) });
 }
 
 function SessionTreeItem({ node, depth, activeSessionId, actions, onSwitchSession }: { node: SessionNode; depth: number; activeSessionId?: string; actions: ThreadActions; onSwitchSession: (path: string) => void }) {
@@ -515,6 +556,7 @@ function ProjectGroup({
   onRemoveProject?: (cwd: string) => void;
   isActive: boolean;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(expandedDefault);
   const groupRef = useRef<HTMLDivElement>(null);
   const sorted = [...(project.sessions || [])].sort((a, b) => modifiedTs(b.modified) - modifiedTs(a.modified));
@@ -550,8 +592,8 @@ function ProjectGroup({
           <button
             type="button"
             className={styles.projectRemove}
-            aria-label={`${project.name} listeden kaldır`}
-            title="Listeden kaldır"
+            aria-label={t("navRail.removeProject", { name: project.name })}
+            title={t("navRail.removeFromList")}
             onClick={(e) => {
               e.stopPropagation();
               onRemoveProject(project.cwd);
@@ -564,7 +606,7 @@ function ProjectGroup({
       <div className={`${styles.threads} ${open ? styles.threadsOpen : ""}`}>
         {open &&
           (tree.length === 0 ? (
-            <div className={styles.empty}>Henüz sohbet yok</div>
+            <div className={styles.empty}>{t("navRail.noChats")}</div>
           ) : (
             tree.map((node) => (
               <SessionTreeItem key={node.path} node={node} depth={0} activeSessionId={activeSessionId} actions={actions} onSwitchSession={onSwitchSession} />

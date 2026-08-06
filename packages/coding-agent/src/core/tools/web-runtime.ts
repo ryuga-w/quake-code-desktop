@@ -129,7 +129,9 @@ class QuakeWebRuntime {
 	private async ensureContext(): Promise<any> {
 		if (!this.contextPromise) {
 			const { chromium } = await this.getPlaywright();
-			const userDataDir = join(homedir(), ".quake-code", "playwright-web-profile");
+			const userDataDir =
+				process.env.QUAKE_WEB_PROFILE_DIR?.trim() ||
+				join(homedir(), ".quake-code", `playwright-web-profile-${process.pid}`);
 			this.contextPromise = chromium.launchPersistentContext(userDataDir, {
 				headless: true,
 				channel: process.platform === "win32" ? "msedge" : undefined,

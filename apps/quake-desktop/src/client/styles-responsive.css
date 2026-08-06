@@ -73,6 +73,19 @@
       visibility 0s linear var(--duration-panel, 280ms);
   }
 
+  #app.left-collapsed.left-sidebar-peek-open:not(.browser-layout-focus) > :first-child {
+    display: flex !important;
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+    box-shadow: var(--shadow-overlay);
+    transition:
+      opacity 160ms var(--ease-panel, ease),
+      transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+      visibility 0s linear 0s;
+  }
+
   #app.browser-layout-focus > :first-child {
     display: none !important;
   }

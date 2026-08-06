@@ -5,6 +5,7 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import { SearchAddon } from "@xterm/addon-search";
 import { ChevronDown, Copy, Folder, Link2, Maximize2, MessageSquareText, PanelRight, Plus, Search, SquareTerminal, Trash2, X } from "lucide-react";
 import "@xterm/xterm/css/xterm.css";
+import { type Translate, useI18n } from "../../i18n";
 import { authToken } from "../../lib/api";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
 import { readStorageValue } from "../../lib/storage";
@@ -27,13 +28,9 @@ type TerminalHandle = {
 };
 type TerminalTab = { id: string; name: string; profile: TerminalProfile; metadata: TerminalMetadata };
 
-const PROFILE_LABELS: Record<TerminalProfile, string> = {
-  default: "Varsayılan shell",
-  powershell: "PowerShell",
-  cmd: "Command Prompt",
-  bash: "Bash",
-  zsh: "Zsh",
-};
+function profileLabel(profile: TerminalProfile, t: Translate): string {
+  return profile === "default" ? t("runtime.terminal.defaultShell") : profile === "powershell" ? "PowerShell" : profile === "cmd" ? "Command Prompt" : profile === "bash" ? "Bash" : "Zsh";
+}
 
 function themeRoot(): Element {
   return document.querySelector("#app") || document.documentElement;
@@ -71,6 +68,7 @@ function encodeProtocolToken(value: string): string {
 }
 
 export function XtermTerminal({ onAsk, onAddContext, panelControls }: { onAsk?: (text: string) => void; onAddContext?: (context: { label: string; text: string }) => void; panelControls?: React.ReactNode }) {
+  const { t } = useI18n();
   const [tabs, setTabs] = useState<TerminalTab[]>(() => [newTab(1, defaultTerminalProfile())]);
   const [activeId, setActiveId] = useState(() => "");
   const [splitId, setSplitId] = useState<string>();
@@ -114,7 +112,7 @@ export function XtermTerminal({ onAsk, onAddContext, panelControls }: { onAsk?: 
     if (splitId === id) setSplitId(undefined);
   }, [effectiveActiveId, splitId]);
   const activeHandle = active ? handles.current.get(active.id) : undefined;
-  const stateLabel = active?.metadata.state === "connected" ? "Bağlı" : active?.metadata.state === "connecting" ? "Bağlanıyor" : active?.metadata.state === "exited" ? "Süreç sonlandı" : active?.metadata.state === "error" ? "Hata" : "Bağlantı kesildi";
+  const stateLabel = active?.metadata.state === "connected" ? t("runtime.terminal.connected") : active?.metadata.state === "connecting" ? t("runtime.terminal.connecting") : active?.metadata.state === "exited" ? t("runtime.terminal.processEnded") : active?.metadata.state === "error" ? t("runtime.terminal.error") : t("runtime.terminal.disconnected");
 
   const closeProfileMenu = useCallback((restoreFocus = false) => {
     setProfileMenuOpen(false);
@@ -166,64 +164,67 @@ export function XtermTerminal({ onAsk, onAddContext, panelControls }: { onAsk?: 
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
   }, [closeProfileMenu, profileMenuOpen]);
 
-  return <section className={styles.workbench} aria-label="Terminal çalışma alanı">
+  return <section className={styles.workbench} aria-label={t("runtime.terminal.workbench")}>
     <div className={styles.toolbar}>
-      <div className={styles.tabs} role="tablist" aria-label="Terminal oturumları" onKeyDown={onTabListKeyDown}>
+      <div className={styles.tabs} role="tablist" aria-label={t("runtime.terminal.sessions")} onKeyDown={onTabListKeyDown}>
         {tabs.map((tab) => <div className={styles.tabShell} data-active={tab.id === effectiveActiveId ? "true" : undefined} key={tab.id}>
           <button id={`terminal-tab-${tab.id}`} type="button" role="tab" tabIndex={tab.id === effectiveActiveId ? 0 : -1} aria-selected={tab.id === effectiveActiveId} aria-controls={`terminal-surface-${tab.id}`} className={styles.tab} onClick={() => focus(tab.id)} onDoubleClick={() => setSplitId(splitId === tab.id ? undefined : tab.id)}>
             <span className={styles.tabLabel}>{tab.name}</span>
           </button>
-          <button type="button" className={styles.tabClose} aria-label={`${tab.name} terminalini kapat`} onClick={() => closeTab(tab.id)}><X size={12} aria-hidden="true" /></button>
+          <button type="button" className={styles.tabClose} aria-label={t("runtime.terminal.closeTab", { name: tab.name })} onClick={() => closeTab(tab.id)}><X size={12} aria-hidden="true" /></button>
         </div>)}
       </div>
-      <div className={styles.toolbarActions} role="toolbar" aria-label="Terminal araçları">
+      <div className={styles.toolbarActions} role="toolbar" aria-label={t("runtime.terminal.tools")}>
         <div className={styles.profileMenu}>
-          <button ref={profileTriggerRef} type="button" className={styles.iconButton} title="Yeni terminal" aria-label="Yeni terminal" aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((value) => !value)}><Plus size={15} /><ChevronDown size={11} /></button>
+          <button ref={profileTriggerRef} type="button" className={styles.iconButton} title={t("runtime.terminal.newTerminal")} aria-label={t("runtime.terminal.newTerminal")} aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((value) => !value)}><Plus size={15} /><ChevronDown size={11} /></button>
           {profileMenuOpen && <div ref={profileMenuRef} className={styles.profilePopover} role="menu" onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: () => closeProfileMenu(true) })}>
-            {(Object.keys(PROFILE_LABELS) as TerminalProfile[]).filter((profile) => /win/i.test(navigator.platform) ? profile !== "zsh" : profile !== "powershell" && profile !== "cmd").map((profile) => <button key={profile} type="button" role="menuitem" onClick={() => addTab(profile)}>{PROFILE_LABELS[profile]}</button>)}
+            {(["default", "powershell", "cmd", "bash", "zsh"] as TerminalProfile[]).filter((profile) => /win/i.test(navigator.platform) ? profile !== "zsh" : profile !== "powershell" && profile !== "cmd").map((profile) => <button key={profile} type="button" role="menuitem" onClick={() => addTab(profile)}>{profileLabel(profile, t)}</button>)}
           </div>}
         </div>
-        <button type="button" className={styles.iconButton} title="Terminali böl" aria-label="Terminali böl" onClick={() => addTab(active?.profile || "default", true)}><PanelRight size={15} /></button>
+        <button type="button" className={styles.iconButton} title={t("runtime.terminal.split")} aria-label={t("runtime.terminal.split")} onClick={() => addTab(active?.profile || "default", true)}><PanelRight size={15} /></button>
         <span className={styles.toolbarDivider} aria-hidden="true" />
-        <button type="button" className={styles.iconButton} title="Terminalde ara" aria-label="Terminalde ara" onClick={() => setSearchOpen((value) => !value)}><Search size={15} /></button>
-        <button type="button" className={`${styles.iconButton} ${styles.secondaryTool}`} title="Seçimi kopyala" aria-label="Terminal seçimini kopyala" onClick={() => void activeHandle?.copySelection()}><Copy size={15} /></button>
-        <button type="button" className={`${styles.iconButton} ${styles.secondaryTool}`} title="Terminali temizle" aria-label="Terminali temizle" onClick={() => activeHandle?.clear()}><Trash2 size={15} /></button>
+        <button type="button" className={styles.iconButton} title={t("runtime.terminal.search")} aria-label={t("runtime.terminal.search")} onClick={() => setSearchOpen((value) => !value)}><Search size={15} /></button>
+        <button type="button" className={`${styles.iconButton} ${styles.secondaryTool}`} title={t("runtime.terminal.copySelection")} aria-label={t("runtime.terminal.copySelection")} onClick={() => void activeHandle?.copySelection()}><Copy size={15} /></button>
+        <button type="button" className={`${styles.iconButton} ${styles.secondaryTool}`} title={t("runtime.terminal.clear")} aria-label={t("runtime.terminal.clear")} onClick={() => activeHandle?.clear()}><Trash2 size={15} /></button>
         {panelControls ? <><span className={styles.toolbarDivider} aria-hidden="true" />{panelControls}</> : null}
       </div>
     </div>
     {searchOpen && <div className={styles.searchbar} role="search">
       <Search size={14} aria-hidden="true" />
-      <input autoFocus value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); activeHandle?.findNext(event.target.value); }} placeholder="Terminalde ara" aria-label="Terminalde ara" />
-      <button type="button" onClick={() => activeHandle?.findPrevious(searchQuery)} aria-label="Önceki eşleşme">↑</button>
-      <button type="button" onClick={() => activeHandle?.findNext(searchQuery)} aria-label="Sonraki eşleşme">↓</button>
-      <button type="button" onClick={() => { setSearchOpen(false); activeHandle?.clearSearch(); activeHandle?.focus(); }} aria-label="Aramayı kapat"><X size={14} /></button>
+      <input autoFocus value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); activeHandle?.findNext(event.target.value); }} placeholder={t("runtime.terminal.search")} aria-label={t("runtime.terminal.search")} />
+      <button type="button" onClick={() => activeHandle?.findPrevious(searchQuery)} aria-label={t("runtime.terminal.previousMatch")}>↑</button>
+      <button type="button" onClick={() => activeHandle?.findNext(searchQuery)} aria-label={t("runtime.terminal.nextMatch")}>↓</button>
+      <button type="button" onClick={() => { setSearchOpen(false); activeHandle?.clearSearch(); activeHandle?.focus(); }} aria-label={t("runtime.terminal.closeSearch")}><X size={14} /></button>
     </div>}
     <div className={`${styles.terminals} ${splitId ? styles.split : ""}`}>
       {tabs.map((tab) => {
         const visible = tab.id === effectiveActiveId || tab.id === splitId;
         return <TerminalSurface key={tab.id} tab={tab} visible={visible} active={tab.id === effectiveActiveId} onActivate={() => focus(tab.id)} onMetadata={updateMetadata} onRegister={register} />;
       })}
-      {splitId && <button className={styles.unsplit} type="button" title="Bölmeyi kapat" aria-label="Terminal bölmesini kapat" onClick={() => setSplitId(undefined)}><Maximize2 size={14} /></button>}
+      {splitId && <button className={styles.unsplit} type="button" title={t("runtime.terminal.closeSplit")} aria-label={t("runtime.terminal.closeSplit")} onClick={() => setSplitId(undefined)}><Maximize2 size={14} /></button>}
     </div>
-    <footer className={styles.statusbar} aria-label="Terminal durumu">
+    <footer className={styles.statusbar} aria-label={t("runtime.terminal.status")}>
       <div className={styles.statusPrimary}>
         <span className={styles.statusState}><span className={`${styles.stateDot} ${active ? styles[active.metadata.state] : ""}`} aria-hidden="true" />{stateLabel}</span>
-        <span className={styles.statusItem}><SquareTerminal size={11} aria-hidden="true" />{active?.metadata.shell || PROFILE_LABELS[active?.profile || "default"]}</span>
-        <span className={`${styles.statusItem} ${styles.cwd}`} title={active?.metadata.cwd}><Folder size={11} aria-hidden="true" />{active?.metadata.cwd || "Çalışma alanı"}</span>
+        <span className={styles.statusItem}><SquareTerminal size={11} aria-hidden="true" />{active?.metadata.shell || profileLabel(active?.profile || "default", t)}</span>
+        <span className={`${styles.statusItem} ${styles.cwd}`} title={active?.metadata.cwd}><Folder size={11} aria-hidden="true" />{active?.metadata.cwd || t("runtime.terminal.workspace")}</span>
       </div>
       <div className={styles.contextActions}>
-        {splitId && <span className={styles.splitBadge}>2 BÖLME</span>}
-        {onAddContext && <button type="button" aria-label="Terminal çıktısını bağlama ekle" title="Bağlama ekle" onClick={() => active && onAddContext({ label: active.name, text: activeHandle?.snapshot(8000) || "" })}><Link2 size={12} aria-hidden="true" /><span className={styles.actionLabel}>Bağlama ekle</span></button>}
-        {onAsk && <button type="button" className={styles.primaryAction} aria-label="Terminal çıktısını Quake ile analiz et" title="Quake ile analiz et" onClick={() => onAsk(`Bu terminal çıktısını analiz et, hata varsa kök nedeni ve düzeltme planını yaz:\n\n${activeHandle?.snapshot(8000) || ""}`)}><MessageSquareText size={12} aria-hidden="true" /><span className={styles.actionLabel}>Quake ile analiz et</span></button>}
+        {splitId && <span className={styles.splitBadge}>{t("runtime.terminal.twoPanes")}</span>}
+        {onAddContext && <button type="button" aria-label={t("runtime.terminal.addOutputContext")} title={t("runtime.terminal.addContext")} onClick={() => active && onAddContext({ label: active.name, text: activeHandle?.snapshot(8000) || "" })}><Link2 size={12} aria-hidden="true" /><span className={styles.actionLabel}>{t("runtime.terminal.addContext")}</span></button>}
+        {onAsk && <button type="button" className={styles.primaryAction} aria-label={t("runtime.terminal.analyzeOutput")} title={t("runtime.terminal.analyze")} onClick={() => onAsk(`${t("runtime.terminal.analyzePrompt")}\n\n${activeHandle?.snapshot(8000) || ""}`)}><MessageSquareText size={12} aria-hidden="true" /><span className={styles.actionLabel}>{t("runtime.terminal.analyze")}</span></button>}
       </div>
     </footer>
   </section>;
 }
 
 function TerminalSurface({ tab, visible, active, onActivate, onMetadata, onRegister }: { tab: TerminalTab; visible: boolean; active: boolean; onActivate: () => void; onMetadata: (id: string, metadata: Partial<TerminalMetadata>) => void; onRegister: (id: string, handle?: TerminalHandle) => void }) {
+  const { t } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const metadataRef = useRef(onMetadata);
+  const tRef = useRef(t);
   metadataRef.current = onMetadata;
+  tRef.current = t;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -265,8 +266,8 @@ function TerminalSurface({ tab, visible, active, onActivate, onMetadata, onRegis
         else if (message.t === "ready") {
           metadataRef.current(tab.id, { state: "connected", cwd: message.cwd, shell: message.shell });
         }
-        else if (message.t === "x") { metadataRef.current(tab.id, { state: "exited" }); term.write(`\r\n\x1b[90m[süreç sonlandı: ${message.code}]\x1b[0m\r\n`); }
-        else if (message.t === "e") { metadataRef.current(tab.id, { state: "error" }); term.write(`\r\n\x1b[31m[${message.message || "terminal hatası"}]\x1b[0m\r\n`); }
+        else if (message.t === "x") { metadataRef.current(tab.id, { state: "exited" }); term.write(`\r\n\x1b[90m[${tRef.current("runtime.terminal.processEnded")}: ${message.code}]\x1b[0m\r\n`); }
+        else if (message.t === "e") { metadataRef.current(tab.id, { state: "error" }); term.write(`\r\n\x1b[31m[${message.message || tRef.current("runtime.terminal.error")}]\x1b[0m\r\n`); }
       };
       socket.onclose = () => {
         if (disposed || intentionallyKilled) return;

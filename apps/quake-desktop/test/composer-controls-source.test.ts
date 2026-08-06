@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const composer = readFileSync(join(process.cwd(), "src/client/src/components/composer/ChatComposer.tsx"), "utf8");
 const composerStyles = readFileSync(join(process.cwd(), "src/client/src/components/composer/ChatComposer.module.css"), "utf8");
 const appStyles = readFileSync(join(process.cwd(), "src/client/styles.css"), "utf8") + readFileSync(join(process.cwd(), "src/client/styles/themes.css"), "utf8");
+const i18n = readFileSync(join(process.cwd(), "src/client/src/i18n/index.tsx"), "utf8");
 
 describe("composer controls source contract", () => {
   it("keeps the composer surface fixed across hover and focus", () => {
@@ -26,7 +27,8 @@ describe("composer controls source contract", () => {
   });
 
   it("matches the wide reference approval menu", () => {
-    expect(composer).toContain("Daha fazla bilgi");
+    expect(composer).toContain('t("composer.approval.learnMore")');
+    expect(i18n).toContain('learnMore: "Daha fazla bilgi"');
     expect(composer).toContain("styles.approvalHeaderTitle");
     expect(composer).toContain("className={styles.approvalOption}");
     expect(composerStyles).toContain("width: 522px");
@@ -36,17 +38,19 @@ describe("composer controls source contract", () => {
   });
 
   it("matches the full-width reference add panel", () => {
-    expect(composer).toContain('aria-label="Ekle"');
-    expect(composer).toContain("className={styles.addPanelTitle}>Ekle");
-    expect(composer).toContain("<b>Dosyalar ve klasörler</b>");
-    expect(composer).toContain("<b>Proje</b><small>Yeni görevler için proje seç</small>");
-    expect(composer).toContain("<b>Hedef</b><small>Üzerinde çalışmak için bir hedef belirle</small>");
-    expect(composer).toContain("<b>Plan modu</b><small>Plan modunu aç</small>");
+    expect(composer).toContain("useI18n()");
+    expect(composer).toContain('aria-label={t("composer.add.label")}');
+    expect(composer).toContain('t("composer.add.filesAndFolders")');
+    expect(composer).toContain('t("composer.add.projectDescription")');
+    expect(composer).toContain('t("composer.add.goalDescription")');
+    expect(composer).toContain('t("composer.add.planModeDescription")');
+    expect(i18n).toContain('filesAndFolders: "Dosyalar ve klasörler"');
+    expect(i18n).toContain('filesAndFolders: "Files and folders"');
     expect(composer).toContain('apiGet<{ skills?: WebSkillInfo[] }>("/api/skills")');
     expect(composer).toContain("addMenuExtensions.map");
     expect(composer).toContain("ComposerAddMenuExtensionIcon");
-    expect(composer).toContain("Dosyalar ve görevler");
-    expect(composer).toContain("Dosya veya görev aramak için yaz");
+    expect(composer).toContain('t("composer.add.filesAndTasks")');
+    expect(composer).toContain('t("composer.add.searchHint")');
     expect(composer).toContain("className={styles.addPopover}");
     expect(composerStyles).toContain("bottom: calc(100% + 4px)");
     expect(composerStyles).toContain("width: 100%");
@@ -63,9 +67,9 @@ describe("composer controls source contract", () => {
 
   it("uses the responsive direct model and effort picker", () => {
     expect(composer).toContain('className={`${styles.preferencesMenu} composer-menu`}');
-    expect(composer).toContain("Model ve çaba ayarları");
-    expect(composer).toContain("Gelişmiş");
-    expect(composer).toContain("Varsayılana sıfırla");
+    expect(composer).toContain('t("composer.preferences.title")');
+    expect(composer).toContain('t("composer.preferences.advanced")');
+    expect(composer).toContain('t("composer.preferences.reset")');
     expect(composer).toContain('data-level={currentThinking}');
     expect(composer).toContain('setPreferencesSubmenu("model")');
     expect(composer).toContain('setPreferencesSubmenu("effort")');

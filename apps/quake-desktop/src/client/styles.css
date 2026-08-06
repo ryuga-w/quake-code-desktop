@@ -51,6 +51,37 @@ input,
 textarea,
 select { font-family: inherit; }
 
+/* Chromium/Windows renders the opened native select popup in a separate
+   surface. Explicit option colors keep that surface aligned with Quake's
+   active theme instead of falling back to a white system menu in dark mode. */
+[data-theme="dark"] select {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] select option,
+[data-theme="dark"] select optgroup {
+  background-color: var(--panel, #191a1b);
+  color: var(--text, #d7d8da);
+}
+
+[data-theme="dark"] select option:disabled {
+  color: var(--muted-2, #666a70);
+}
+
+[data-theme="light"] select {
+  color-scheme: light;
+}
+
+[data-theme="light"] select option,
+[data-theme="light"] select optgroup {
+  background-color: var(--panel, #ffffff);
+  color: var(--text, #2c2c2e);
+}
+
+[data-theme="light"] select option:disabled {
+  color: var(--muted-2, #8e8e93);
+}
+
 /* Toast stack kaldırıldı — bildirimler sağ alt StatusNotice ile verilir. */
 
 .modal-backdrop,
@@ -237,7 +268,7 @@ select { font-family: inherit; }
   /* 4-bolge grid: nav rayi | merkez | dock (ust satir) + tam-genislik alt panel.
      Dock = ucuncu grid kolonu (--dock-w; kapaliyken 0). Alt satir (--bottom-h;
      kapaliyken 0) tum kolonlari kaplar (grid-column 1/-1) -> Codex alt terminal. */
-  grid-template-columns: var(--nav-w, var(--left-sidebar-preview-width, var(--left-sidebar-width, 340px))) minmax(0, 1fr) var(--dock-w, 0px);
+  grid-template-columns: var(--nav-w, var(--left-sidebar-preview-width, var(--left-sidebar-width, 320px))) minmax(0, 1fr) var(--dock-w, 0px);
   grid-template-rows: minmax(0, 1fr) var(--bottom-h, 0px);
   flex: 1 1 auto;
   min-height: 0;
@@ -264,6 +295,57 @@ select { font-family: inherit; }
   overflow: hidden;
 }
 #app.left-collapsed { --nav-w: 0px; }
+
+/* Codex-style temporary navigation reveal. The grid remains collapsed, so the
+   chat never reflows; the rail slides over the main surface from the left. */
+.left-sidebar-hover-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: calc(var(--z-dock, 80) + 3);
+  width: 10px;
+  background: transparent;
+}
+
+#app.left-collapsed:not(.browser-layout-focus) > :first-child {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: calc(var(--z-dock, 80) + 2);
+  width: var(--left-sidebar-preview-width, var(--left-sidebar-width, 320px));
+  max-width: calc(100% - 44px);
+  border-right: 1px solid var(--stroke-strong, var(--border-strong));
+  box-shadow: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(calc(-100% - 16px));
+  transition:
+    opacity 160ms var(--ease-panel, ease),
+    transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+    visibility 0s linear var(--duration-panel, 280ms),
+    box-shadow 160ms ease;
+}
+
+#app.left-collapsed.left-sidebar-peek-open:not(.browser-layout-focus) > :first-child {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0);
+  box-shadow: 16px 0 34px rgba(0, 0, 0, 0.34);
+  transition:
+    opacity 160ms var(--ease-panel, ease),
+    transform var(--duration-panel, 280ms) var(--ease-panel, ease),
+    visibility 0s linear 0s,
+    box-shadow 160ms ease;
+}
+
+#app.browser-layout-focus .left-sidebar-hover-zone {
+  display: none;
+}
+
 #app.browser-layout-focus {
   --chat-column-max-width: 100%;
   --chat-column-gutter: 0px;
@@ -457,7 +539,7 @@ select { font-family: inherit; }
 #app.files-layout-focus {
   --chat-column-max-width: 100%;
   --chat-column-gutter: 14px;
-  grid-template-columns: var(--nav-w, var(--left-sidebar-preview-width, var(--left-sidebar-width, 340px))) minmax(330px, 370px) minmax(0, 1fr);
+  grid-template-columns: var(--nav-w, var(--left-sidebar-preview-width, var(--left-sidebar-width, 320px))) minmax(330px, 370px) minmax(0, 1fr);
 }
 #app.files-layout-focus .main { border-right: 1px solid var(--border); }
 #app.files-layout-focus .rightbar { border-left: 0; padding-left: 6px; }
@@ -1218,12 +1300,12 @@ a:focus-visible,
 @keyframes dockChildActivity { 50% { opacity: .45; transform: scale(.8); } }
 .dock-workspace-tab.active { border-color: var(--border); background: var(--surface-raised, var(--panel)); color: var(--heading); }
 .dock-workspace-tab > button:first-child { width: auto; min-width: 0; height: 29px; gap: 6px; padding: 0 7px 0 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
-.dock-workspace-tab > button:first-child > svg { flex: 0 0 auto; width: 14px; height: 14px; stroke-width: 1.7; }
+.dock-workspace-tab > button:first-child > svg { flex: 0 0 auto; width: 15px; height: 15px; stroke-width: 1.7; }
 .dock-workspace-tab > button:first-child span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dock-workspace-tab .dock-tab-close { width: 24px; height: 24px; margin-right: 2px; border-radius: 6px; font-size: 15px; opacity: .56; }
 .dock-workspace-tab:hover .dock-tab-close, .dock-workspace-tab.active .dock-tab-close { opacity: 1; }
 .dock-add-wrap { position: relative; flex: 0 0 auto; }
-.dock-header .dock-add-button { width: 29px; height: 29px; border-radius: 8px; font-size: 18px; font-weight: 350; }
+.dock-header .dock-add-button { width: 32px; height: 32px; border-radius: 8px; font-size: 19px; font-weight: 350; }
 .dock-header.dock-header-launcher {
   position: relative;
   flex: 0 0 40px;
@@ -1390,6 +1472,21 @@ a:focus-visible,
   color: var(--muted-2);
   font: 11.5px var(--font-sans);
   white-space: nowrap;
+}
+.dock-add-menu-browser {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(360px, calc(100vw - 16px));
+  gap: 3px;
+  padding: 4px;
+}
+.dock-add-menu-browser button {
+  grid-template-columns: 18px minmax(0, 1fr);
+  height: 34px;
+  gap: 6px;
+  padding: 0 7px;
+}
+.dock-add-menu-browser kbd {
+  display: none;
 }
 @keyframes dockAddMenuIn {
   from { opacity: 0; transform: translateY(-4px) scale(.985); }
@@ -2261,15 +2358,15 @@ a:focus-visible,
 .md-list-item { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 4px; margin: 4px 0; }
 .md-list-item > span:first-child { color: var(--accent); font-weight: 850; }
 .inline-code {
-  border: 1px solid var(--border) !important;
-  border-radius: 5px;
-  padding: 1px 5px;
-  background: var(--code-inline-bg, var(--panel-2)) !important;
-  color: var(--code-inline-fg, var(--heading)) !important;
+  border: 0 !important;
+  border-radius: 4px;
+  padding: 0.5px 4px;
+  background: var(--code-inline-bg, rgba(255, 255, 255, 0.06)) !important;
+  color: var(--code-inline-fg, var(--muted)) !important;
   box-shadow: none !important;
   font-family: var(--font-mono);
-  font-size: 0.9em;
-  font-weight: 500;
+  font-size: 0.85em;
+  font-weight: 450;
 }
 .file-link { display: inline; border: 0 !important; border-radius: 0; padding: 0; background: transparent !important; color: var(--accent-2) !important; box-shadow: none !important; font: inherit; font-family: var(--font-mono); font-weight: 500; }
 .file-link:hover { transform: none; text-decoration: underline; box-shadow: none; }
@@ -4652,7 +4749,7 @@ body,
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(var(--left-sidebar-preview-width, var(--left-sidebar-width, 340px)) - 5px);
+  left: calc(var(--left-sidebar-preview-width, var(--left-sidebar-width, 320px)) - 5px);
   width: 10px;
   z-index: 101;
   background: transparent;
@@ -5394,6 +5491,18 @@ body.panel-resize-active .right-resize-handle {
 .streamdown-scope [data-streamdown="code-block"] code {
   font: 13.5px/1.62 var(--font-mono);
   letter-spacing: -0.01em;
+}
+
+/* Inline code (single backtick) — Claude Code style soft gray chip */
+.streamdown-scope [data-streamdown="inline-code"] {
+  padding: 1px 6px !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: var(--code-inline-bg) !important;
+  color: var(--code-inline-fg) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.86em !important;
+  font-weight: 450 !important;
 }
 
 .streamdown-scope [data-streamdown="code-block-actions"] {

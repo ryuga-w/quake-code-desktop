@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronDown, FilePenLine, Globe, Layers, SquareTerminal } from "lucide-react";
+import { useI18n } from "../../i18n";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
 import { ComposerPet } from "../composer/ComposerPet";
 import { ToolCodeBlock } from "../tools/ToolCodeBlock";
@@ -71,6 +72,7 @@ export function ComposerApproval({
   mcp,
   onDecide,
 }: ComposerApprovalProps) {
+  const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const [decisionOutcome, setDecisionOutcome] = useState<"approved" | "denied">();
   const decisionPendingRef = useRef(false);
@@ -146,12 +148,12 @@ export function ComposerApproval({
   }, [menuOpen]);
 
   const title = isMcp
-    ? `MCP · ${mcp?.serverName || mcp?.serverId || "araç"}`
+    ? `MCP · ${mcp?.serverName || mcp?.serverId || t("runtime.approval.tool")}`
     : isFileChange
-      ? "Dosya değişikliği"
+      ? t("runtime.approval.fileChange")
       : isNetwork
-        ? "Ağ erişimi"
-        : "Terminal";
+        ? t("runtime.approval.networkAccess")
+        : t("runtime.approval.terminal");
   const kind = isMcp ? "mcp_tool" : isFileChange ? "file_change" : isNetwork ? "network" : "command";
 
   return (
@@ -159,7 +161,7 @@ export function ComposerApproval({
       ref={rootRef}
       className={styles.root}
       role="alertdialog"
-      aria-label={isMcp ? "MCP araç onayı" : isFileChange ? "Dosya değişikliği onayı" : isNetwork ? "Ağ onayı" : "Komut onayı"}
+      aria-label={isMcp ? t("runtime.approval.mcpAria") : isFileChange ? t("runtime.approval.fileAria") : isNetwork ? t("runtime.approval.networkAria") : t("runtime.approval.commandAria")}
       aria-modal="true"
       data-approval-kind={kind}
       data-kind={kind}
@@ -170,7 +172,7 @@ export function ComposerApproval({
       <ComposerPet prompt="" canSubmit={false} busy={false} approval approvalOutcome={decisionOutcome} />
       {decisionOutcome ? (
         <span className={styles.decisionStatus} role="status">
-          {decisionOutcome === "approved" ? "İzin verildi" : "İstek reddedildi"}
+          {decisionOutcome === "approved" ? t("runtime.approval.approved") : t("runtime.approval.denied")}
         </span>
       ) : null}
       <header className={styles.header}>
@@ -226,7 +228,7 @@ export function ComposerApproval({
 
       <footer className={styles.footer}>
         <button type="button" className={styles.decline} disabled={Boolean(decisionOutcome)} onClick={() => decide({ decision: "decline" })}>
-          Reddet
+          {t("runtime.approval.decline")}
         </button>
         <div className={styles.allowWrap}>
           <div className={styles.allowGroup}>
@@ -237,7 +239,7 @@ export function ComposerApproval({
               disabled={Boolean(decisionOutcome)}
               onClick={() => decide({ decision: "accept" })}
             >
-              Bir kez izin ver
+              {t("runtime.approval.allowOnce")}
             </button>
             <button
               ref={menuTriggerRef}
@@ -245,7 +247,7 @@ export function ComposerApproval({
               className={styles.allowMenuBtn}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              aria-label="Diğer izin seçenekleri"
+              aria-label={t("runtime.approval.otherOptions")}
               disabled={Boolean(decisionOutcome)}
               onClick={() => setMenuOpen((v) => !v)}
             >
@@ -257,7 +259,7 @@ export function ComposerApproval({
               ref={menuRef}
               className={styles.menu}
               role="menu"
-              aria-label="İzin seçenekleri"
+              aria-label={t("runtime.approval.options")}
               onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: closeMenuAndRestoreFocus })}
             >
               <button
@@ -269,8 +271,8 @@ export function ComposerApproval({
                   decide({ decision: "accept" });
                 }}
               >
-                <b>Bir kez izin ver</b>
-                <span>Sadece bu isteği şimdi çalıştır</span>
+                <b>{t("runtime.approval.allowOnce")}</b>
+                <span>{t("runtime.approval.onlyThisRequest")}</span>
               </button>
               <button
                 type="button"
@@ -281,13 +283,13 @@ export function ComposerApproval({
                   decide({ decision: "acceptForSession" });
                 }}
               >
-                <b>Oturum boyunca izin ver</b>
+                <b>{t("runtime.approval.allowSession")}</b>
                 <span>
                   {isMcp
-                    ? "Bu MCP aracını bu oturumda sorma"
+                    ? t("runtime.approval.mcpSession")
                     : isNetwork
-                      ? "Bu host ve aynı istek için oturumda sorma"
-                      : "Bu oturumda aynı komutu sorma"}
+                      ? t("runtime.approval.networkSession")
+                      : t("runtime.approval.commandSession")}
                 </span>
               </button>
               {isMcp ? (
@@ -300,8 +302,8 @@ export function ComposerApproval({
                     decide({ decision: "acceptAlways" });
                   }}
                 >
-                  <b>Her zaman izin ver</b>
-                  <span>Bu MCP aracını bir daha sorma (yeniden başlatmada da geçerli; Ayarlar → MCP bölümünden iptal)</span>
+                  <b>{t("runtime.approval.always")}</b>
+                  <span>{t("runtime.approval.mcpAlways")}</span>
                 </button>
               ) : (
                 <button
@@ -313,9 +315,9 @@ export function ComposerApproval({
                     decide({ decision: "acceptAlways" });
                   }}
                 >
-                  <b>Her zaman izin ver</b>
+                  <b>{t("runtime.approval.always")}</b>
                   <span>
-                    Bu isteği bir daha sorma (yeniden başlatmada da geçerli; Ayarlar → İzinler → Kalıcı izinler)
+                    {t("runtime.approval.alwaysDescription")}
                   </span>
                 </button>
               )}
@@ -334,8 +336,8 @@ export function ComposerApproval({
                       });
                     }}
                   >
-                    <b>{`“${prefixLabel}” ile başlayanlara izin ver`}</b>
-                    <span>Bu oturumda eşleşen komutları sorma</span>
+                    <b>{t("runtime.approval.allowPrefix", { prefix: prefixLabel })}</b>
+                    <span>{t("runtime.approval.prefixSession")}</span>
                   </button>
                   <button
                     type="button"
@@ -350,8 +352,8 @@ export function ComposerApproval({
                       });
                     }}
                   >
-                    <b>{`“${prefixLabel}” ile başlayanlara her zaman izin ver`}</b>
-                    <span>Yeniden başlatmada da geçerli; Ayarlar → İzinler → Kalıcı izinler</span>
+                    <b>{t("runtime.approval.allowPrefixAlways", { prefix: prefixLabel })}</b>
+                    <span>{t("runtime.approval.persistentDescription")}</span>
                   </button>
                 </>
               ) : null}
@@ -376,8 +378,8 @@ export function ComposerApproval({
                       });
                     }}
                   >
-                    <b>{`${hostLabel} host’una izin ver`}</b>
-                    <span>Bu oturumda bu host’a ağ erişimi</span>
+                    <b>{t("runtime.approval.allowHost", { host: hostLabel })}</b>
+                    <span>{t("runtime.approval.hostSession")}</span>
                   </button>
                   <button
                     type="button"
@@ -398,8 +400,8 @@ export function ComposerApproval({
                       });
                     }}
                   >
-                    <b>{`${hostLabel} host’una her zaman izin ver`}</b>
-                    <span>Yeniden başlatmada da geçerli; Ayarlar → İzinler → Kalıcı izinler</span>
+                    <b>{t("runtime.approval.allowHostAlways", { host: hostLabel })}</b>
+                    <span>{t("runtime.approval.persistentDescription")}</span>
                   </button>
                   <button
                     type="button"
@@ -420,8 +422,8 @@ export function ComposerApproval({
                       });
                     }}
                   >
-                    <b>{`${hostLabel} host’unu engelle`}</b>
-                    <span>Bu oturumda bu host’a erişimi reddet</span>
+                    <b>{t("runtime.approval.denyHost", { host: hostLabel })}</b>
+                    <span>{t("runtime.approval.denyHostDescription")}</span>
                   </button>
                 </>
               ) : null}
@@ -434,8 +436,8 @@ export function ComposerApproval({
                   decide({ decision: "cancel" });
                 }}
               >
-                <b>İptal et ve durdur</b>
-                <span>Onayı kapat, ajanı kes</span>
+                <b>{t("runtime.approval.cancelStop")}</b>
+                <span>{t("runtime.approval.cancelStopDescription")}</span>
               </button>
             </div>
           )}

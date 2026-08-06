@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Search, FileText, MessageSquare, X } from "lucide-react";
+import { useI18n } from "../../i18n";
 import { apiGet } from "../../lib/api";
 import styles from "./SearchOverlay.module.css";
 
@@ -34,6 +35,7 @@ export function SearchOverlay({
   onOpenFile: (path: string) => void;
   onSwitchSession: (path: string) => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<SearchResult>({ files: [], sessions: [] });
   const [loading, setLoading] = useState(false);
@@ -67,7 +69,7 @@ export function SearchOverlay({
         })
         .catch((err: any) => {
           if (cancelled) return;
-          setError(err?.message || "Arama başarısız oldu");
+          setError(err?.message || t("runtime.search.failed"));
           setResult({ files: [], sessions: [] });
         })
         .finally(() => {
@@ -78,7 +80,7 @@ export function SearchOverlay({
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [query]);
+  }, [query, t]);
 
   const hasQuery = query.trim().length >= MIN_QUERY;
   const total = result.files.length + result.sessions.length;
@@ -90,7 +92,7 @@ export function SearchOverlay({
         className={styles.overlay}
         role="dialog"
         aria-modal="true"
-        aria-label="Arama"
+        aria-label={t("runtime.search.dialog")}
         onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -107,29 +109,29 @@ export function SearchOverlay({
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Dosyalarda ve sohbetlerde ara…"
-            aria-label="Arama sorgusu"
+            placeholder={t("runtime.search.placeholder")}
+            aria-label={t("runtime.search.queryLabel")}
             spellCheck={false}
             autoComplete="off"
           />
           {loading && <span className={styles.spinner} aria-hidden="true" />}
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Aramayı kapat">
+          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label={t("runtime.search.close")}>
             <X size={16} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
         <div className={styles.results}>
-          {!hasQuery && <div className={styles.hint}>Aramak için yazmaya başla.</div>}
+          {!hasQuery && <div className={styles.hint}>{t("runtime.search.hint")}</div>}
 
           {error && <div className={styles.error}>{error}</div>}
 
-          {empty && <div className={styles.hint}>Eşleşme bulunamadı.</div>}
+          {empty && <div className={styles.hint}>{t("runtime.search.noMatches")}</div>}
 
           {hasQuery && !error && result.files.length > 0 && (
             <section className={styles.group}>
               <div className={styles.groupHead}>
                 <FileText size={13} strokeWidth={2} aria-hidden="true" />
-                <span>Dosyalar</span>
+                <span>{t("runtime.search.files")}</span>
                 <span className={styles.count}>{result.files.length}</span>
               </div>
               <ul className={styles.list}>
@@ -161,7 +163,7 @@ export function SearchOverlay({
             <section className={styles.group}>
               <div className={styles.groupHead}>
                 <MessageSquare size={13} strokeWidth={2} aria-hidden="true" />
-                <span>Sohbetler</span>
+                <span>{t("runtime.search.chats")}</span>
                 <span className={styles.count}>{result.sessions.length}</span>
               </div>
               <ul className={styles.list}>

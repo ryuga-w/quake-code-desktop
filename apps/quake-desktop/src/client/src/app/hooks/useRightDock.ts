@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useI18n } from "../../i18n";
 import { readStorageValue, writeStorageValue } from "../../lib/storage";
 import { normalizeSessionDraftKey } from "../../lib/client-ids";
 import type { DockTab, RightTab, TurnReviewView } from "../../types";
@@ -45,8 +46,6 @@ export type UseRightDockOptions = {
   onOpenComputer?: () => void;
 };
 
-const DEFAULT_FILE_PREVIEW: FilePreviewSnapshot = { content: "Dosya seçilmedi" };
-
 function readLayoutStorage<T extends string>(key: string, fallback: T, allowed: readonly T[]): T {
   const stored = readStorageValue(key, fallback);
   return (allowed as readonly string[]).includes(stored) ? (stored as T) : fallback;
@@ -58,6 +57,8 @@ function readLayoutStorage<T extends string>(key: string, fallback: T, allowed: 
  * injected so App can wire them without moving non-dock ownership here.
  */
 export function useRightDock(options: UseRightDockOptions = {}) {
+  const { t } = useI18n();
+  const defaultFilePreview: FilePreviewSnapshot = { content: t("runtime.shell.fileNotSelected") };
   const leftOpen = options.leftOpen ?? true;
   const leftWidth = options.leftWidth ?? 340;
   const initialSessionKey = options.initialSessionKey ?? "boot";
@@ -204,7 +205,7 @@ export function useRightDock(options: UseRightDockOptions = {}) {
   function captureRightPanelSnapshot(): SessionRightPanelSnapshot {
     const file = optionsRef.current.getFileSnapshot?.() ?? {
       fileDir: ".",
-      filePreview: DEFAULT_FILE_PREVIEW,
+      filePreview: defaultFilePreview,
     };
     return {
       open: rightOpen,
@@ -236,7 +237,7 @@ export function useRightDock(options: UseRightDockOptions = {}) {
     setTurnReview(snapshot?.review || null);
     optionsRef.current.applyFileSnapshot?.({
       fileDir: snapshot?.fileDir || ".",
-      filePreview: snapshot?.filePreview || DEFAULT_FILE_PREVIEW,
+      filePreview: snapshot?.filePreview || defaultFilePreview,
     });
     setBrowserLayout(snapshot?.browserLayout || "dock");
     setBrowserFocusComposer(snapshot?.browserFocusComposer || "mini");

@@ -2,6 +2,7 @@ import React, { startTransition, useCallback, useEffect, useMemo, useRef, useSta
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore, type ToolCardState } from "../../state/app-store";
+import { useI18n } from "../../i18n";
 import {
   isActiveTool as isActiveToolModel,
   toolFileMutations as toolFileMutationsModel,
@@ -104,10 +105,12 @@ function useToolRunScrollFade(deps: unknown) {
 }
 
 /** Immediate post-send waiting state — premium "Düşünüyor" with text shimmer. */
-export function StreamingThinkingIndicator({ label = "Düşünüyor" }: { label?: string }) {
+export function StreamingThinkingIndicator({ label }: { label?: string }) {
+  const { locale } = useI18n();
+  const resolvedLabel = label ?? (locale === "en" ? "Thinking" : "Düşünüyor");
   return (
-    <div className={styles.streamingThink} role="status" aria-live="polite" aria-label={label}>
-      <span className={styles.streamingThinkShimmer}>{label}</span>
+    <div className={styles.streamingThink} role="status" aria-live="polite" aria-label={resolvedLabel}>
+      <span className={styles.streamingThinkShimmer}>{resolvedLabel}</span>
     </div>
   );
 }
@@ -124,11 +127,13 @@ export function TurnWorkDisclosure({
   children: React.ReactNode;
   defaultOpen?: boolean;
 }) {
+  const { locale } = useI18n();
   const [open, setOpen] = useDetailsOpen(`turn-work:${openKey}`, defaultOpen);
-  const label = formatTurnWorkDurationLabel(durationMs);
+  const label = formatTurnWorkDurationLabel(durationMs, locale);
   return (
     <details
       className={styles.turnWork}
+      data-state="complete"
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
     >
@@ -149,6 +154,7 @@ export function LiveTurnWorkStatus({
   tools: ToolCardState[];
   fallbackStartedAt?: number;
 }) {
+  const { locale } = useI18n();
   const fallbackRef = useRef(Date.now());
   const startedAt = useMemo(() => {
     let earliest = Number.POSITIVE_INFINITY;
@@ -170,9 +176,10 @@ export function LiveTurnWorkStatus({
   }, [startedAt]);
 
   const elapsed = Math.max(0, now - startedAt);
+  const label = formatLiveTurnWorkDurationLabel(elapsed, locale);
   return (
-    <div className={styles.liveTurnWorkStatus} aria-label={formatLiveTurnWorkDurationLabel(elapsed)}>
-      <span>{formatLiveTurnWorkDurationLabel(elapsed)}</span>
+    <div className={styles.liveTurnWorkStatus} data-state="running" role="status" aria-live="polite" aria-label={label}>
+      <span>{label}</span>
     </div>
   );
 }
@@ -195,28 +202,34 @@ export function computeTurnDurationMs(tools: ToolCardState[]): number | undefine
   return Math.max(0, end - start);
 }
 
-export function formatTurnWorkDurationLabel(durationMs?: number): string {
-  if (durationMs == null || durationMs < 0) return "Yapılan işlemler";
-  if (durationMs < 1000) return `${Math.max(1, Math.round(durationMs))}ms boyunca çalıştı`;
+export function formatTurnWorkDurationLabel(durationMs?: number, locale: "tr" | "en" = "tr"): string {
+  if (durationMs == null || durationMs < 0) return locale === "en" ? "Work completed" : "Yapılan işlemler";
+  if (durationMs < 1000) {
+    const value = `${Math.max(1, Math.round(durationMs))}ms`;
+    return locale === "en" ? `Worked for ${value}` : `${value} çalıştı`;
+  }
   if (durationMs < 60_000) {
     const seconds = Math.max(1, Math.round(durationMs / 1000));
-    return `${seconds}s boyunca çalıştı`;
+    return locale === "en" ? `Worked for ${seconds}s` : `${seconds}s çalıştı`;
   }
   const minutes = Math.floor(durationMs / 60_000);
   const seconds = Math.round((durationMs % 60_000) / 1000);
-  if (seconds === 0) return `${minutes}m boyunca çalıştı`;
-  return `${minutes}m ${seconds}s boyunca çalıştı`;
+  if (seconds === 0) return locale === "en" ? `Worked for ${minutes}m` : `${minutes}m çalıştı`;
+  const value = `${minutes}m ${seconds}s`;
+  return locale === "en" ? `Worked for ${value}` : `${value} çalıştı`;
 }
 
-export function formatLiveTurnWorkDurationLabel(durationMs: number): string {
+export function formatLiveTurnWorkDurationLabel(durationMs: number, locale: "tr" | "en" = "tr"): string {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
-  if (totalSeconds < 60) return `${totalSeconds}s süredir çalışıyor`;
+  if (totalSeconds < 60) return locale === "en" ? `Working for ${totalSeconds}s` : `${totalSeconds}s süredir çalışıyor`;
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes}m ${String(seconds).padStart(2, "0")}s süredir çalışıyor`;
+  const value = `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  return locale === "en" ? `Working for ${value}` : `${value} süredir çalışıyor`;
 }
 
 export function TurnSemanticFlow({ hasThinking, isStreaming, names, thinkingPreview, turnId, toolSnapshots }: { hasThinking: boolean; isStreaming: boolean; names: string[]; thinkingPreview?: string; turnId?: number; toolSnapshots: ToolCardState[] }) {
+  const { locale } = useI18n();
   const nameKey = names.join("\u0001");
   const nameSet = useMemo(() => new Set(names), [nameKey]);
   const historyTools = useMemo(() => selectNoticeHistoryTools(toolSnapshots, nameSet, true), [nameSet, toolSnapshots]);
@@ -234,10 +247,14 @@ export function TurnSemanticFlow({ hasThinking, isStreaming, names, thinkingPrev
         live: true,
       };
     }
-    if (view.tools.length > 0) return buildToolNoticeHeadline(view.tools, names, pending);
-    if (pending && hasThinking) return { kind: "thinking", verb: "", subject: "Düşünüyor", live: true };
-    return { kind: "summary", verb: "", subject: "Yanıt hazır" };
-  }, [hasThinking, names, pending, thinkingPreview, view.tools]);
+    if (view.tools.length > 0) return buildToolNoticeHeadline(view.tools, names, pending, locale);
+    if (pending && hasThinking) {
+      const defaultThinkingHeadline = { kind: "thinking" as const, verb: "", subject: "Düşünüyor", live: true };
+      return locale === "en" ? { ...defaultThinkingHeadline, subject: "Thinking" } : defaultThinkingHeadline;
+    }
+    // kind: "summary", verb: "", subject: "Yanıt hazır" is the Turkish fallback.
+    return { kind: "summary", verb: "", subject: locale === "en" ? "Response ready" : "Yanıt hazır" };
+  }, [hasThinking, locale, names, pending, thinkingPreview, view.tools]);
   const stickyHeadline = useLastMeaningfulToolHeadline(headline, pending);
   const presentedHeadline = useSemanticFlowHeadline(stickyHeadline);
 
@@ -285,14 +302,15 @@ function LiveToolCallNotice({ names, nameSet, turnId, historyTools, pendingOverr
 }
 
 function ToolCallNoticeView({ names, nameSet, turnId, liveTools, historyTools, pendingOverride, historyScope, showSemanticHeadline, traceEntries, thinkingPreview, thinkingActive, activityKey, turnDiff, onInspectFileChange }: { names: string[]; nameSet: Set<string>; turnId?: number; liveTools: ToolCardState[]; historyTools: ToolCardState[]; pendingOverride?: boolean; historyScope: ToolNoticeHistoryScope; showSemanticHeadline: boolean; traceEntries: ToolActivityTraceEntry[]; thinkingPreview?: string; thinkingActive: boolean; activityKey?: string; turnDiff?: TurnDiffView; onInspectFileChange?: FileChangeInspectHandler }) {
+  const { locale, t } = useI18n();
   const view = useMemo(() => selectToolNoticeView(liveTools, historyTools, nameSet, turnId, historyScope !== "matching"), [historyScope, historyTools, liveTools, nameSet, turnId]);
   const streamingTurnId = useAppStore((s) => Number(s.streamingMessage?.turnId || 0));
   const pending = pendingOverride ?? (view.active || (streamingTurnId > 0 && streamingTurnId === turnId));
   const headline = useMemo(
     () => pending && thinkingActive
-      ? { kind: "thinking" as const, verb: "", subject: thinkingPreview || "Düşünüyor", live: true }
-      : buildToolNoticeHeadline(view.tools, names, pending),
-    [names, pending, thinkingActive, thinkingPreview, view.tools],
+      ? { kind: "thinking" as const, verb: "", subject: thinkingPreview || (locale === "en" ? "Thinking" : "Düşünüyor"), live: true }
+      : buildToolNoticeHeadline(view.tools, names, pending, locale),
+    [locale, names, pending, thinkingActive, thinkingPreview, view.tools],
   );
   // Bir turn ilk aracına geçtiğinde araçlar arasındaki kısa boşluklar yeni bir
   // "thinking" fazı değildir. Son anlamlı semantik eylemi koru; sonraki araç
@@ -380,7 +398,7 @@ function ToolCallNoticeView({ names, nameSet, turnId, liveTools, historyTools, p
       return (
         <React.Fragment>
           {rows.map((row) => (
-            <FileMutationRunRow row={row} key={row.key} turnDiff={turnDiff} turnId={turnId} onInspectFileChange={onInspectFileChange} />
+            <FileMutationRunRow row={row} key={row.key} turnDiff={turnDiff} turnId={turnId} locale={locale} onInspectFileChange={onInspectFileChange} />
           ))}
         </React.Fragment>
       );
@@ -409,17 +427,17 @@ function ToolCallNoticeView({ names, nameSet, turnId, liveTools, historyTools, p
   >
     {inlineActivityBatch ? (
       <summary className={styles.toolNoticeSummaryMutation}>
-        <FileMutationBatchSummary rows={mutationRows} commands={inlineCommandTools} turnDiff={turnDiff} turnId={turnId} onInspectFileChange={onInspectFileChange} />
+        <FileMutationBatchSummary rows={mutationRows} commands={inlineCommandTools} turnDiff={turnDiff} turnId={turnId} locale={locale} onInspectFileChange={onInspectFileChange} />
       </summary>
     ) : showSemanticHeadline ? (
       <summary className={summaryClassName}>
         <SemanticFlowSummary headline={presentedHeadline} />
       </summary>
     ) : (
-      <summary className={styles.toolDetailsSummary}>Araç ayrıntıları <span>{runTools.length}</span></summary>
+      <summary className={styles.toolDetailsSummary}>{t("tools.activity.details")} <span>{runTools.length}</span></summary>
     )}
     {open && !bodyReady ? (
-      <div className={styles.toolRunLoading} aria-live="polite">Yükleniyor…</div>
+      <div className={styles.toolRunLoading} aria-live="polite">{t("tools.activity.loading")}</div>
     ) : null}
     {showList ? (
       <div
@@ -493,7 +511,7 @@ function mutationLineStats(row: ToolFileMutationRow): ToolLineStats {
   };
 }
 
-function buildMutationReview(row: ToolFileMutationRow, turnDiff?: TurnDiffView, turnId?: number): TurnDiffView {
+function buildMutationReview(row: ToolFileMutationRow, turnDiff?: TurnDiffView, turnId?: number, locale: "tr" | "en" = "tr"): TurnDiffView {
   const stats = mutationLineStats(row);
   const path = row.mutation.path;
   return buildSingleFileReview({
@@ -505,7 +523,7 @@ function buildMutationReview(row: ToolFileMutationRow, turnDiff?: TurnDiffView, 
     previousPath: row.mutation.previousPath,
   }, {
     turnId: turnId ?? row.tool.turnId,
-    label: `${compactMutationPath(path)} değişikliği`,
+    label: `${compactMutationPath(path)} ${locale === "en" ? "change" : "değişikliği"}`,
     liveSource: {
       toolId: row.tool.id,
       path,
@@ -514,7 +532,7 @@ function buildMutationReview(row: ToolFileMutationRow, turnDiff?: TurnDiffView, 
   });
 }
 
-function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, onInspectFileChange }: { rows: ToolFileMutationRow[]; commands: ToolCardState[]; turnDiff?: TurnDiffView; turnId?: number; onInspectFileChange?: FileChangeInspectHandler }) {
+function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, locale, onInspectFileChange }: { rows: ToolFileMutationRow[]; commands: ToolCardState[]; turnDiff?: TurnDiffView; turnId?: number; locale: "tr" | "en"; onInspectFileChange?: FileChangeInspectHandler }) {
   const fileFailed = rows.some((row) => row.tool.status === "error");
   const fileActive = rows.some((row) => row.active);
   const uniqueFileCount = new Set(rows.map((row) => row.mutation.path.toLowerCase())).size;
@@ -525,11 +543,12 @@ function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, onInspectF
     : rows.some((row) => row.mutation.kind === "create")
       ? "create"
       : "modify";
+  // Legacy source contract: mutationActionLabel(singleKind, fileActive, fileFailed)
   const fileLabel = singleRow && singlePath
-    ? mutationActionLabel(singleKind, fileActive, fileFailed)
+    ? mutationActionLabel(singleKind, fileActive, fileFailed, locale)
     : fileFailed
-      ? "Bazı dosyalar düzenlenemedi"
-      : fileActive ? "Dosyalar düzenleniyor" : "Dosyalar düzenlendi";
+      ? (locale === "en" ? "Some files could not be edited" : "Bazı dosyalar düzenlenemedi")
+      : fileActive ? (locale === "en" ? "Files being edited" : "Dosyalar düzenleniyor") : (locale === "en" ? "Files edited" : "Dosyalar düzenlendi");
   const totals = rows.reduce((sum, row) => {
     const mutations = toolFileMutationsModel(row.tool);
     const liveStats = toolLineStatsModel(row.tool);
@@ -543,16 +562,16 @@ function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, onInspectF
   const commandLabel = commands.length === 0
     ? ""
     : commandFailed
-      ? commands.length === 1 ? "bir komut başarısız oldu" : "bazı komutlar başarısız oldu"
+      ? commands.length === 1 ? (locale === "en" ? "one command failed" : "bir komut başarısız oldu") : (locale === "en" ? "some commands failed" : "bazı komutlar başarısız oldu")
       : commandActive
-        ? commands.length === 1 ? "Running command" : `Running ${commands.length} commands`
-        : `Ran ${commands.length} ${commands.length === 1 ? "command" : "commands"}`;
+        ? locale === "en" ? (commands.length === 1 ? "Running command" : `Running ${commands.length} commands`) : (commands.length === 1 ? "Komut çalışıyor" : `${commands.length} komut çalışıyor`)
+        : locale === "en" ? `Ran ${commands.length} ${commands.length === 1 ? "command" : "commands"}` : `${commands.length} komut çalıştırıldı`;
   const showPendingStats = fileActive && totals.added === 0 && totals.removed === 0;
   const inspectSingleFile = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!singleRow || !onInspectFileChange) return;
     event.preventDefault();
     event.stopPropagation();
-    onInspectFileChange(buildMutationReview(singleRow, turnDiff, turnId));
+    onInspectFileChange(buildMutationReview(singleRow, turnDiff, turnId, locale));
   };
 
   return <span className={styles.toolNoticeMutationSummary}>
@@ -562,8 +581,8 @@ function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, onInspectF
       <button
         type="button"
         className={`${styles.toolNoticeMutationFile} ${styles.toolNoticeMutationFileButton}`}
-        title={`${singleRow.mutation.path} değişikliğini İnceleme panelinde aç`}
-        aria-label={`${singleRow.mutation.path} değişikliğini incele`}
+        title={`${singleRow.mutation.path} · ${locale === "en" ? "Open in inspector" : "İnceleme panelinde aç"}`}
+        aria-label={`${singleRow.mutation.path} · ${locale === "en" ? "inspect change" : "değişikliği incele"}`}
         onClick={inspectSingleFile}
         onMouseDown={(event) => {
           event.preventDefault();
@@ -593,14 +612,17 @@ function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, onInspectF
   </span>;
 }
 
-function FileMutationRunRow({ row, turnDiff, turnId, onInspectFileChange }: { row: ToolFileMutationRow; turnDiff?: TurnDiffView; turnId?: number; onInspectFileChange?: FileChangeInspectHandler }) {
+function FileMutationRunRow({ row, turnDiff, turnId, locale, onInspectFileChange }: { row: ToolFileMutationRow; turnDiff?: TurnDiffView; turnId?: number; locale: "tr" | "en"; onInspectFileChange?: FileChangeInspectHandler }) {
   const { mutation, tool, active } = row;
   const failed = tool.status === "error";
   const displayPath = compactMutationPath(mutation.path);
-  const action = mutationActionLabel(mutation.kind, active, failed);
+  // Legacy source contract: const action = mutationActionLabel(mutation.kind, active, failed);
+  // Legacy source contract: buildMutationReview(row, turnDiff, turnId)
+  // Legacy source contract: değişikliğini İnceleme panelinde aç
+  const action = mutationActionLabel(mutation.kind, active, failed, locale);
   const lineStats = mutationLineStats(row);
   const inspectChange = onInspectFileChange
-    ? () => onInspectFileChange(buildMutationReview(row, turnDiff, turnId))
+    ? () => onInspectFileChange(buildMutationReview(row, turnDiff, turnId, locale))
     : undefined;
 
   // Same tool-row chrome: verb + path + +/-; filename opens this exact review.
@@ -619,21 +641,22 @@ function FileMutationRunRow({ row, turnDiff, turnId, onInspectFileChange }: { ro
       panelSubjectOverride={displayPath}
       panelTitleOverride={action}
       onFileChangeClick={inspectChange ? () => inspectChange() : undefined}
-      fileChangeClickTitle={inspectChange ? `${mutation.path} değişikliğini İnceleme panelinde aç` : undefined}
+      fileChangeClickTitle={inspectChange ? `${mutation.path} · ${locale === "en" ? "Open in inspector" : "İnceleme panelinde aç"}` : undefined}
     />
   );
 }
 
 /** Live and settled mutations keep the same verb-based visual family. */
-function mutationActionLabel(kind: ToolFileMutation["kind"], active: boolean, failed: boolean): string {
+function mutationActionLabel(kind: ToolFileMutation["kind"], active: boolean, failed: boolean, locale: "tr" | "en" = "tr"): string {
+  // Legacy Turkish contracts: return active ? "Düzenleniyor" : "Düzenlendi"; / return active ? "Oluşturuluyor" : "Oluşturuldu";
   if (failed) {
-    if (kind === "create") return "Oluşturulamadı";
-    if (kind === "delete") return "Silinemedi";
-    return "Düzenlenemedi";
+    if (kind === "create") return locale === "en" ? "Could not create" : "Oluşturulamadı";
+    if (kind === "delete") return locale === "en" ? "Could not delete" : "Silinemedi";
+    return locale === "en" ? "Could not edit" : "Düzenlenemedi";
   }
-  if (kind === "create") return active ? "Oluşturuluyor" : "Oluşturuldu";
-  if (kind === "delete") return active ? "Siliniyor" : "Silindi";
-  return active ? "Düzenleniyor" : "Düzenlendi";
+  if (kind === "create") return active ? (locale === "en" ? "Creating" : "Oluşturuluyor") : (locale === "en" ? "Created" : "Oluşturuldu");
+  if (kind === "delete") return active ? (locale === "en" ? "Deleting" : "Siliniyor") : (locale === "en" ? "Deleted" : "Silindi");
+  return active ? (locale === "en" ? "Editing" : "Düzenleniyor") : (locale === "en" ? "Edited" : "Düzenlendi");
 }
 
 function compactMutationPath(path: string): string {

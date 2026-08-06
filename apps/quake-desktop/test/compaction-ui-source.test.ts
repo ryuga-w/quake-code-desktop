@@ -16,7 +16,7 @@ describe("desktop compaction visibility", () => {
     expect(app).toContain("isSessionCompacting: Boolean(state.state?.isCompacting)");
     expect(app).toContain("isCompacting={isSessionCompacting}");
     expect(shell).toContain("isCompacting={isCompacting}");
-    expect(composer).toContain("Bağlam sıkıştırılıyor");
+    expect(composer).toContain('t("composer.contextCompacting")');
     expect(composerStyles).toContain(".compactionStatus");
     expect(composerStyles).toContain("composerCompactionSpin");
   });

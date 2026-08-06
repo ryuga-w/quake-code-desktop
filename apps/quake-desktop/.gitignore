@@ -9,6 +9,15 @@ out/
 # Logs
 *.log
 
+# Local service credentials
+.env
+.env.*
+!.env.example
+
+# Local runtime and automation state
+/.quake-code/computer-use/
+/NUL
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -40,3 +49,8 @@ manwe_qa_menu.*
 
 # Screenshots
 *.png
+
+# Large packaged binaries are published as GitHub Release assets
+/release/*.exe
+/release/transfer/*.exe
+/release/win-unpacked/QuakeCode.exe

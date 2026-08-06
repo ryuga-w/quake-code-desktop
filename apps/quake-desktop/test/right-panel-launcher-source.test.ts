@@ -14,10 +14,10 @@ const globalStyles = readFileSync(join(root, "src/client/styles.css"), "utf8") +
 describe("Codex reference right-panel launcher", () => {
   it("uses the reference item order, labels, and shortcuts", () => {
     const panelItems = launcher.slice(launcher.indexOf("const PANEL_ITEMS"), launcher.indexOf("/**\n * Props:"));
-    const files = panelItems.indexOf('label: "Dosyalar"');
-    const subtask = panelItems.indexOf('label: "Yan görev"');
-    const browser = panelItems.indexOf('label: "Tarayıcı"');
-    const terminal = panelItems.indexOf('label: "Terminal"');
+    const files = panelItems.indexOf('labelKey: "quickLauncher.files"');
+    const subtask = panelItems.indexOf('labelKey: "quickLauncher.sidechat"');
+    const browser = panelItems.indexOf('labelKey: "quickLauncher.browser"');
+    const terminal = panelItems.indexOf('labelKey: "quickLauncher.terminal"');
 
     expect(files).toBeGreaterThan(-1);
     expect(files).toBeLessThan(subtask);
@@ -27,7 +27,7 @@ describe("Codex reference right-panel launcher", () => {
     expect(panelItems).toContain('shortcut: "Ctrl+Alt+S"');
     expect(panelItems).toContain('shortcut: "Ctrl+T"');
     expect(panelItems).not.toContain('label: "Mobil"');
-    expect(launcher).toContain('panel: "mobile", label: "Mobil"');
+    expect(launcher).toContain('panel: "mobile", labelKey: "quickLauncher.mobile"');
   });
 
   it("renders a narrow borderless list centered in the empty panel", () => {
@@ -49,9 +49,9 @@ describe("Codex reference right-panel launcher", () => {
   });
 
   it("opens the tab plus menu as the compact reference launcher", () => {
-    const files = rightTabs.indexOf('tab: "files", label: "Dosyalar"');
-    const subtask = rightTabs.indexOf('tab: "sidechat", label: "Yan görev"');
-    const browser = rightTabs.indexOf('tab: "browser", label: "Tarayıcı"');
+    const files = rightTabs.indexOf('tab: "files", labelKey: "rightPanel.tabs.files"');
+    const subtask = rightTabs.indexOf('tab: "sidechat", labelKey: "rightPanel.tabs.sidechat"');
+    const browser = rightTabs.indexOf('tab: "browser", labelKey: "rightPanel.tabs.browser"');
 
     expect(files).toBeGreaterThan(-1);
     expect(files).toBeLessThan(subtask);

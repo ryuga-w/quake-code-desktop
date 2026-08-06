@@ -20,6 +20,7 @@ import { apiGet, apiPost } from "../../lib/api";
 import { useModalFocusTrap } from "../../lib/modal-focus";
 import { readStorageValue, writeStorageValue } from "../../lib/storage";
 import { useAppStore } from "../../state/app-store";
+import { useI18n, type Translate } from "../../i18n";
 import { useConfirm } from "../common/ConfirmDialog";
 import { useContextMenu, type MenuItem } from "../chrome/ContextMenu";
 import { SkeletonLines } from "../common/Feedback";
@@ -80,6 +81,7 @@ type Props = {
 };
 
 export function FilesPanel(props: Props) {
+  const { t } = useI18n();
   const stateKey = `${props.workspaceKey || "workspace"}::${props.sessionKey}`;
   const restoredState = useMemo(() => filesStateBySession.get(stateKey), [stateKey]);
   const storeFiles = useAppStore((state) => state.files);
@@ -147,7 +149,7 @@ export function FilesPanel(props: Props) {
         const response = await apiGet<{ entries: unknown }>(`/api/files/search?q=${encodeURIComponent(value)}&${fileTreeOptions(showHidden, showGenerated)}&limit=240`);
         if (sequence === searchSeqRef.current) setSearchResults(normalizeEntries(response.entries));
       } catch (error) {
-        if (sequence === searchSeqRef.current) showToast(`Genel arama başarısız: ${errorMessage(error)}`, "error");
+        if (sequence === searchSeqRef.current) showToast(t("files.searchFailed", { error: errorMessage(error, t("files.unknownError")) }), "error");
       } finally {
         if (sequence === searchSeqRef.current) setSearching(false);
       }
@@ -198,7 +200,7 @@ export function FilesPanel(props: Props) {
       return entries;
     } catch (error) {
       if (childLoadSeqRef.current.get(directory) === sequence) {
-        const message = `Klasör okunamadı: ${errorMessage(error)}`;
+        const message = t("files.folderReadFailed", { error: errorMessage(error, t("files.unknownError")) });
         setTreeError(message);
         showToast(message, "error");
       }
@@ -277,19 +279,19 @@ export function FilesPanel(props: Props) {
   function menuItems(entry: WorkspaceEntry): MenuItem[] {
     const file = entry.type === "file";
     return [
-      { id: "open", label: file ? "Önizle" : expanded.has(entry.path) ? "Daralt" : "Genişlet", icon: file ? <ExternalLink size={14} /> : <FolderSearch size={14} />, onSelect: () => activateEntry(entry) },
-      ...(file ? [{ id: "editor", label: "Editörde aç", icon: <ExternalLink size={14} />, onSelect: () => props.onOpenMonaco(entry.path) } satisfies MenuItem] : []),
+      { id: "open", label: file ? t("files.preview") : expanded.has(entry.path) ? t("files.collapse") : t("files.expand"), icon: file ? <ExternalLink size={14} /> : <FolderSearch size={14} />, onSelect: () => activateEntry(entry) },
+      ...(file ? [{ id: "editor", label: t("files.openEditor"), icon: <ExternalLink size={14} />, onSelect: () => props.onOpenMonaco(entry.path) } satisfies MenuItem] : []),
       { type: "separator" },
-      { id: "context", label: "Sohbete bağlam ekle", icon: <Sparkles size={14} />, onSelect: () => props.onAddContext?.(entry.path, entry.type) },
+      { id: "context", label: t("files.addContext"), icon: <Sparkles size={14} />, onSelect: () => props.onAddContext?.(entry.path, entry.type) },
       ...(file ? [
-        { id: "ask", label: "Dosya hakkında sor", onSelect: () => props.onAskFile(entry.path) } satisfies MenuItem,
-        { id: "summary", label: "Özetle", onSelect: () => props.onSummarizeFile(entry.path) } satisfies MenuItem,
+        { id: "ask", label: t("files.askAboutFile"), onSelect: () => props.onAskFile(entry.path) } satisfies MenuItem,
+        { id: "summary", label: t("files.summarize"), onSelect: () => props.onSummarizeFile(entry.path) } satisfies MenuItem,
       ] : []),
-      { id: "copy", label: "Yolu kopyala", icon: <Copy size={14} />, onSelect: () => props.onCopyPath(entry.path) },
-      { id: "reveal", label: "Ağaçta göster", onSelect: () => { setQuery(""); void revealEntry(entry.path); props.onReveal(entry.path); } },
+      { id: "copy", label: t("files.copyPath"), icon: <Copy size={14} />, onSelect: () => props.onCopyPath(entry.path) },
+      { id: "reveal", label: t("files.revealInTree"), onSelect: () => { setQuery(""); void revealEntry(entry.path); props.onReveal(entry.path); } },
       { type: "separator" },
-      { id: "rename", label: "Yeniden adlandır", icon: <Pencil size={14} />, onSelect: () => openMutation("rename", parentDir(entry.path), entry) },
-      { id: "delete", label: "Sil", icon: <Trash2 size={14} />, danger: true, onSelect: () => void deleteEntry(entry) },
+      { id: "rename", label: t("files.rename"), icon: <Pencil size={14} />, onSelect: () => openMutation("rename", parentDir(entry.path), entry) },
+      { id: "delete", label: t("files.delete"), icon: <Trash2 size={14} />, danger: true, onSelect: () => void deleteEntry(entry) },
     ];
   }
 
@@ -312,7 +314,7 @@ export function FilesPanel(props: Props) {
   async function submitMutation() {
     if (!mutationDialog || mutating) return;
     const name = mutationValue.trim();
-    if (!isValidEntryName(name)) { setMutationError("Geçerli bir dosya veya klasör adı girin."); return; }
+    if (!isValidEntryName(name)) { setMutationError(t("files.invalidName")); return; }
     setMutating(true);
     setMutationError("");
     try {
@@ -322,7 +324,7 @@ export function FilesPanel(props: Props) {
         await refreshDirectory(mutationDialog.parent);
         setMutationDialog(undefined);
         props.onOpenMonaco(path);
-        showToast("Dosya oluşturuldu", "success");
+        showToast(t("files.fileCreated"), "success");
       } else if (mutationDialog.kind === "directory") {
         const path = joinWorkspacePath(mutationDialog.parent, name);
         await apiPost("/api/file/mkdir", { path });
@@ -330,7 +332,7 @@ export function FilesPanel(props: Props) {
         setExpanded((current) => new Set([...current, mutationDialog.parent]));
         setActivePath(path);
         setMutationDialog(undefined);
-        showToast("Klasör oluşturuldu", "success");
+        showToast(t("files.folderCreated"), "success");
       } else if (mutationDialog.entry) {
         const destination = joinWorkspacePath(mutationDialog.parent, name);
         await apiPost("/api/file/rename", { from: mutationDialog.entry.path, to: destination });
@@ -338,7 +340,7 @@ export function FilesPanel(props: Props) {
         await refreshDirectory(mutationDialog.parent);
         setActivePath(destination);
         setMutationDialog(undefined);
-        showToast("Yeniden adlandırıldı", "success");
+        showToast(t("files.renamed"), "success");
       }
     } catch (error) {
       setMutationError(errorMessage(error));
@@ -349,9 +351,9 @@ export function FilesPanel(props: Props) {
 
   async function deleteEntry(entry: WorkspaceEntry) {
     const accepted = await confirm({
-      title: `${entry.type === "directory" ? "Klasörü" : "Dosyayı"} sil`,
-      message: `${entry.path} kalıcı olarak silinecek${entry.type === "directory" ? " ve içindeki tüm dosyalar kaldırılacak" : ""}.`,
-      confirmLabel: "Sil",
+      title: entry.type === "directory" ? t("files.deleteFolderTitle") : t("files.deleteFileTitle"),
+      message: t("files.deleteMessage", { path: entry.path, suffix: entry.type === "directory" ? t("files.deleteFolderSuffix") : "" }),
+      confirmLabel: t("files.delete"),
       variant: "danger",
       requireText: entry.type === "directory" ? entry.name : undefined,
     });
@@ -361,9 +363,9 @@ export function FilesPanel(props: Props) {
       invalidateSubtree(entry.path);
       await refreshDirectory(parentDir(entry.path));
       setActivePath(parentDir(entry.path));
-      showToast("Silindi", "success");
+      showToast(t("files.deleted"), "success");
     } catch (error) {
-      showToast(`Silinemedi: ${errorMessage(error)}`, "error");
+      showToast(t("files.deleteFailed", { error: errorMessage(error, t("files.unknownError")) }), "error");
     }
   }
 
@@ -409,13 +411,13 @@ export function FilesPanel(props: Props) {
         onDoubleClick={() => isDirectory ? activateEntry(entry) : props.onOpenMonaco(entry.path)}
         onContextMenu={(event) => openContextMenu(event, entry)}
       >
-        <button type="button" className={styles.twist} disabled={!isDirectory} aria-label={isExpanded ? "Daralt" : "Genişlet"} onClick={(event) => { event.stopPropagation(); if (isDirectory) void toggleDirectory(entry.path); }}>
+        <button type="button" className={styles.twist} disabled={!isDirectory} aria-label={isExpanded ? t("files.collapse") : t("files.expand")} onClick={(event) => { event.stopPropagation(); if (isDirectory) void toggleDirectory(entry.path); }}>
           {isDirectory ? isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} /> : null}
         </button>
         <TreeEntryIcon entry={entry} expanded={isExpanded} />
         <span className={styles.name} title={entry.path}>{renderName(entry.name)}</span>
         {loadingDirs.has(entry.path) ? <span className={styles.loading}>…</span> : null}
-        <button type="button" className={styles.rowMenuButton} aria-label={`${entry.name} işlemleri`} onClick={(event) => openContextMenu(event, entry)}><MoreHorizontal size={15} /></button>
+        <button type="button" className={styles.rowMenuButton} aria-label={t("files.rowActions", { name: entry.name })} onClick={(event) => openContextMenu(event, entry)}><MoreHorizontal size={15} /></button>
         {isSearch && <span className={styles.path}>{entry.path}</span>}
       </div>
     );
@@ -428,29 +430,30 @@ export function FilesPanel(props: Props) {
   function explorerHeader() {
     return <div className={styles.header}>
       <label className={styles.searchWrap}>
+        {/* Legacy source contract: placeholder="Dosyaları filtrele…" */}
         {searching ? <RefreshCw className={styles.searchSpinner} size={14} /> : <Search size={14} />}
         <input
           className={styles.search}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Escape") setQuery(""); }}
-          placeholder="Dosyaları filtrele…"
-          aria-label="Dosyaları filtrele"
+          placeholder={t("files.searchPlaceholder")}
+          aria-label={t("files.searchLabel")}
         />
-        {query && <button type="button" className={styles.clearButton} aria-label="Aramayı temizle" onClick={() => setQuery("")}><X size={13} /></button>}
+        {query && <button type="button" className={styles.clearButton} aria-label={t("files.clearSearch")} onClick={() => setQuery("")}><X size={13} /></button>}
       </label>
       <details className={styles.optionsMenu}>
-        <summary className={styles.optionsTrigger} aria-label="Dosya ağacı seçenekleri" title="Dosya ağacı seçenekleri"><MoreHorizontal size={15} /></summary>
+        <summary className={styles.optionsTrigger} aria-label={t("files.options")} title={t("files.options")}><MoreHorizontal size={15} /></summary>
         <div className={styles.optionsPopover}>
-          <button type="button" onClick={(event) => { openMutation("file"); closeExplorerMenu(event); }}><FilePlus2 size={14} /><span>Yeni dosya</span></button>
-          <button type="button" onClick={(event) => { openMutation("directory"); closeExplorerMenu(event); }}><FolderPlus size={14} /><span>Yeni klasör</span></button>
+          <button type="button" onClick={(event) => { openMutation("file"); closeExplorerMenu(event); }}><FilePlus2 size={14} /><span>{t("files.newFile")}</span></button>
+          <button type="button" onClick={(event) => { openMutation("directory"); closeExplorerMenu(event); }}><FolderPlus size={14} /><span>{t("files.newFolder")}</span></button>
           <div className={styles.optionsSeparator} />
-          <button type="button" onClick={(event) => { void refreshDirectory(activeDirectory()); closeExplorerMenu(event); }}><RefreshCw size={14} /><span>Yenile</span></button>
-          <button type="button" onClick={(event) => { setExpanded(new Set(["."])); closeExplorerMenu(event); }}><ChevronsDownUp size={14} /><span>Tümünü daralt</span></button>
-          <button type="button" onClick={(event) => { void revealEntry(activePath); closeExplorerMenu(event); }}><FolderSearch size={14} /><span>Seçimi göster</span></button>
+          <button type="button" onClick={(event) => { void refreshDirectory(activeDirectory()); closeExplorerMenu(event); }}><RefreshCw size={14} /><span>{t("files.refresh")}</span></button>
+          <button type="button" onClick={(event) => { setExpanded(new Set(["."])); closeExplorerMenu(event); }}><ChevronsDownUp size={14} /><span>{t("files.collapseAll")}</span></button>
+          <button type="button" onClick={(event) => { void revealEntry(activePath); closeExplorerMenu(event); }}><FolderSearch size={14} /><span>{t("files.revealSelection")}</span></button>
           <div className={styles.optionsSeparator} />
-          <label><input type="checkbox" checked={showHidden} onChange={(event) => updateVisibility("hidden", event.target.checked)} /><span>Gizli dosyalar</span></label>
-          <label><input type="checkbox" checked={showGenerated} onChange={(event) => updateVisibility("generated", event.target.checked)} /><span>Üretilen dosyalar</span></label>
+          <label><input type="checkbox" checked={showHidden} onChange={(event) => updateVisibility("hidden", event.target.checked)} /><span>{t("files.hiddenFiles")}</span></label>
+          <label><input type="checkbox" checked={showGenerated} onChange={(event) => updateVisibility("generated", event.target.checked)} /><span>{t("files.generatedFiles")}</span></label>
         </div>
       </details>
     </div>;
@@ -464,23 +467,23 @@ export function FilesPanel(props: Props) {
     <div className={`${styles.panel} files-panel`}>
       {explorerHeader()}
 
-      <div id="files" ref={treeRef} className={styles.tree} role="tree" aria-label="Çalışma alanı dosya ağacı" aria-busy={searching} tabIndex={0} onKeyDown={handleTreeKeyDown}>
+      <div id="files" ref={treeRef} className={styles.tree} role="tree" aria-label={t("files.workspaceTree")} aria-busy={searching} tabIndex={0} onKeyDown={handleTreeKeyDown}>
         {searchQuery ? searchResults.map((entry) => renderEntry(entry, 0, true)) : treeSelection.rows.map((row) => renderEntry(row.entry, row.depth))}
-        {!searchQuery && hiddenCount > 0 && <button type="button" className={styles.loadMore} onClick={() => setTreeWindowSize((value) => value + FILE_TREE_WINDOW_STEP)}>Sonraki {Math.min(hiddenCount, FILE_TREE_WINDOW_STEP)} öğeyi göster <span>{hiddenCount} kaldı</span></button>}
-        {treeError && !searchQuery && <div className={styles.errorState}><span>{treeError}</span><button type="button" onClick={() => void loadChildren(".", true)}>Yeniden dene</button></div>}
-        {!treeError && !rootEntries.length && !searchQuery && <div className={styles.empty}>Bu klasörde gösterilecek dosya yok.</div>}
-        {searchQuery && !searching && !searchResults.length && <div className={styles.empty}>“{query.trim()}” için eşleşme bulunamadı.</div>}
+        {!searchQuery && hiddenCount > 0 && <button type="button" className={styles.loadMore} onClick={() => setTreeWindowSize((value) => value + FILE_TREE_WINDOW_STEP)}>{t("files.nextItems", { count: Math.min(hiddenCount, FILE_TREE_WINDOW_STEP) })} <span>{t("files.remaining", { count: hiddenCount })}</span></button>}
+        {treeError && !searchQuery && <div className={styles.errorState}><span>{treeError}</span><button type="button" onClick={() => void loadChildren(".", true)}>{t("files.retry")}</button></div>}
+        {!treeError && !rootEntries.length && !searchQuery && <div className={styles.empty}>{t("files.emptyFolder")}</div>}
+        {searchQuery && !searching && !searchResults.length && <div className={styles.empty}>{t("files.noMatch", { query: query.trim() })}</div>}
       </div>
       {contextMenu.menu}
       <ConfirmPortal />
       {mutationDialog && (
         <div className={styles.mutateBackdrop} role="presentation" onMouseDown={() => !mutating && setMutationDialog(undefined)}>
           <form ref={mutationDialogRef} className={styles.mutateDialog} role="dialog" aria-modal="true" aria-labelledby="file-mutation-title" tabIndex={-1} onSubmit={(event) => { event.preventDefault(); void submitMutation(); }} onMouseDown={(event) => event.stopPropagation()}>
-            <h3 id="file-mutation-title">{mutationTitle(mutationDialog.kind)}</h3>
-            <p>{mutationDialog.parent === "." ? "Çalışma alanı kökü" : mutationDialog.parent}</p>
-            <input ref={mutationInputRef} aria-label={mutationDialog.kind === "rename" ? "Yeni ad" : mutationDialog.kind === "directory" ? "Klasör adı" : "Dosya adı"} value={mutationValue} onChange={(event) => setMutationValue(event.target.value)} placeholder={mutationDialog.kind === "file" ? "örnek.ts" : mutationDialog.kind === "directory" ? "yeni-klasör" : "yeni-ad"} disabled={mutating} />
+            <h3 id="file-mutation-title">{mutationTitle(mutationDialog.kind, t)}</h3>
+            <p>{mutationDialog.parent === "." ? t("files.dialog.workspaceRoot") : mutationDialog.parent}</p>
+            <input ref={mutationInputRef} aria-label={mutationDialog.kind === "rename" ? t("files.dialog.newName") : mutationDialog.kind === "directory" ? t("files.dialog.folderName") : t("files.dialog.fileName")} value={mutationValue} onChange={(event) => setMutationValue(event.target.value)} placeholder={mutationDialog.kind === "file" ? t("files.dialog.filePlaceholder") : mutationDialog.kind === "directory" ? t("files.dialog.folderPlaceholder") : t("files.dialog.renamePlaceholder")} disabled={mutating} />
             <div className={styles.mutateError} role="alert">{mutationError}</div>
-            <div className={styles.mutateActions}><button type="button" onClick={() => setMutationDialog(undefined)} disabled={mutating}>İptal</button><button type="submit" disabled={mutating}>{mutating ? "İşleniyor…" : mutationDialog.kind === "rename" ? "Yeniden adlandır" : "Oluştur"}</button></div>
+            <div className={styles.mutateActions}><button type="button" onClick={() => setMutationDialog(undefined)} disabled={mutating}>{t("files.dialog.cancel")}</button><button type="submit" disabled={mutating}>{mutating ? t("files.dialog.processing") : mutationDialog.kind === "rename" ? t("files.dialog.rename") : t("files.dialog.create")}</button></div>
           </form>
         </div>
       )}
@@ -492,14 +495,14 @@ function fileTreeOptions(showHidden: boolean, showGenerated: boolean): string {
   return `hidden=${showHidden ? "1" : "0"}&generated=${showGenerated ? "1" : "0"}`;
 }
 
-function mutationTitle(kind: MutationDialogState["kind"]): string {
-  if (kind === "file") return "Yeni dosya";
-  if (kind === "directory") return "Yeni klasör";
-  return "Yeniden adlandır";
+function mutationTitle(kind: MutationDialogState["kind"], t: Translate): string {
+  if (kind === "file") return t("files.dialog.newFile");
+  if (kind === "directory") return t("files.dialog.newFolder");
+  return t("files.dialog.rename");
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Bilinmeyen hata";
+function errorMessage(error: unknown, fallback = "Unknown error"): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export default FilesPanel;

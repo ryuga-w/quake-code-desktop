@@ -444,12 +444,20 @@ export const streamAnthropic: StreamFunction<"anthropic-messages", AnthropicOpti
  * Check if a model supports adaptive thinking (Opus 4.6 and Sonnet 4.6)
  */
 function supportsAdaptiveThinking(modelId: string): boolean {
-	// Opus 4.6 and Sonnet 4.6 model IDs (with or without date suffix)
+	// Adaptive thinking: Opus/Sonnet 4.6 and 4.8, and the Claude 5 family
+	// (with or without date suffix). Newer models reject `thinking.type=enabled`.
 	return (
 		modelId.includes("opus-4-6") ||
 		modelId.includes("opus-4.6") ||
 		modelId.includes("sonnet-4-6") ||
-		modelId.includes("sonnet-4.6")
+		modelId.includes("sonnet-4.6") ||
+		modelId.includes("opus-4-8") ||
+		modelId.includes("opus-4.8") ||
+		modelId.includes("sonnet-4-8") ||
+		modelId.includes("sonnet-4.8") ||
+		modelId.includes("opus-5") ||
+		modelId.includes("sonnet-5") ||
+		modelId.includes("fable-5")
 	);
 }
 
@@ -468,7 +476,13 @@ function mapThinkingLevelToEffort(level: SimpleStreamOptions["reasoning"], model
 		case "high":
 			return "high";
 		case "xhigh":
-			return modelId.includes("opus-4-6") || modelId.includes("opus-4.6") ? "max" : "high";
+			return modelId.includes("opus-4-6") ||
+				modelId.includes("opus-4.6") ||
+				modelId.includes("opus-4-8") ||
+				modelId.includes("opus-4.8") ||
+				modelId.includes("opus-5")
+				? "max"
+				: "high";
 		default:
 			return "high";
 	}

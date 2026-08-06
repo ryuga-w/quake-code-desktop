@@ -2,7 +2,6 @@ import React from "react";
 import {
   Check,
   CirclePlus,
-  Copy,
   FolderCode,
   GitFork,
   ListFilter,
@@ -16,8 +15,8 @@ import { apiGet, apiPost } from "../../lib/api";
 import { formatComposerModelLabel } from "../../lib/format-utils";
 import { textFromMessage } from "../../lib/render";
 import { DockConversationComposer, type DockConversationModel } from "../composer/DockConversationComposer";
-import { MarkdownContent } from "../markdown/MarkdownContent";
 import { DockPanelTabPortal } from "../shell/DockPanelTabPortal";
+import { ConversationTimeline } from "../timeline/Timeline";
 import styles from "./SideConversationPanel.module.css";
 
 type ToastType = "info" | "success" | "warning" | "error";
@@ -70,15 +69,6 @@ function thinkingLabel(level: string): string {
   return "Orta";
 }
 
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function SideConversationPanel({
   parentSessionPath,
   workspaceName,
@@ -101,9 +91,6 @@ export function SideConversationPanel({
   const [preferencesPending, setPreferencesPending] = React.useState(false);
   const creationPromiseRef = React.useRef<Promise<WebSideConversationSnapshot | undefined> | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
-  const scrollRef = React.useRef<HTMLDivElement | null>(null);
-  const endRef = React.useRef<HTMLDivElement | null>(null);
-  const stickToBottomRef = React.useRef(true);
 
   const activeSnapshot = activeConversationId ? snapshots[activeConversationId] : undefined;
   const draftKey = activeConversationId || NEW_CONVERSATION_DRAFT;
@@ -126,9 +113,14 @@ export function SideConversationPanel({
       })),
     ];
   }, [activePendingMessages, persistedMessages]);
-  const streamingText = activeSnapshot?.streamingMessage
-    ? visibleMessageText(activeSnapshot.streamingMessage)
-    : "";
+  const timelineStreamingMessage = activeSnapshot?.streamingMessage
+    || (activeSnapshot?.isStreaming
+      ? {
+          role: "assistant",
+          content: [{ type: "thinking", thinking: "Düşünüyor" }],
+          timestamp: activeSnapshot.updatedAt,
+        }
+      : undefined);
 
   const updateConversationSummary = React.useCallback((snapshot: WebSideConversationSnapshot) => {
     setSnapshots((current) => ({ ...current, [snapshot.id]: snapshot }));
@@ -246,21 +238,9 @@ export function SideConversationPanel({
     };
   }, [activeConversationId, onToast, updateConversationSummary]);
 
-  React.useEffect(() => {
-    if (!stickToBottomRef.current) return;
-    endRef.current?.scrollIntoView({ block: "end" });
-  }, [activeConversationId, displayedMessages.length, streamingText]);
-
-  function handleScroll() {
-    const element = scrollRef.current;
-    if (!element) return;
-    stickToBottomRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
-  }
-
   function activateConversation(conversation: WebSideConversationSummary) {
     setOpenConversationIds((current) => current.includes(conversation.id) ? current : [...current, conversation.id]);
     setActiveConversationId(conversation.id);
-    stickToBottomRef.current = true;
     requestAnimationFrame(() => textareaRef.current?.focus());
   }
 
@@ -306,8 +286,6 @@ export function SideConversationPanel({
     setConversations((current) => current.map((entry) => entry.id === conversationId
       ? { ...entry, title: entry.messageCount ? entry.title : titleFromPrompt(message), isStreaming: true, updatedAt: Date.now() }
       : entry));
-    stickToBottomRef.current = true;
-
     try {
       await apiPost(conversationUrl(conversationId, "prompt"), { message });
     } catch (error: any) {
@@ -351,11 +329,6 @@ export function SideConversationPanel({
     } catch (error: any) {
       onToast(`Yan sohbet durdurulamadı: ${error?.message || "bilinmeyen hata"}`, "error");
     }
-  }
-
-  async function copyAssistantMessage(text: string) {
-    const copied = await copyText(text);
-    onToast(copied ? "Yanıt kopyalandı" : "Yanıt kopyalanamadı", copied ? "success" : "error");
   }
 
   const sideModelValue = activeSnapshot?.model
@@ -427,9 +400,8 @@ export function SideConversationPanel({
             <CirclePlus aria-hidden="true" /> Yeni yan görev
           </button>
         </div>
-        <div className={styles.scroll} ref={scrollRef} onScroll={handleScroll}>
-          <div className={styles.thread} aria-live="polite">
-            {!hasConversationContent && !initializing ? (
+        <div className={styles.timelineHost}>
+          {!hasConversationContent && !activeSnapshot?.isStreaming && !initializing ? (
               <div className={styles.emptyState}>
                 <span><CirclePlus aria-hidden="true" /></span>
                 <h2>Yan sohbet</h2>
@@ -444,43 +416,16 @@ export function SideConversationPanel({
                       : "Bu eski Yan görev ana konuşma geçmişi olmadan oluşturuldu"}
                 </small>
               </div>
-            ) : null}
-
-            {displayedMessages.map((message, index) => {
-              if (message?.role !== "user" && message?.role !== "assistant") return null;
-              const text = visibleMessageText(message);
-              if (!text) return null;
-              const key = String(message.id || message.messageId || `${message.role}-${message.timestamp || index}-${index}`);
-              if (message.role === "user") {
-                return <article className={styles.userMessage} key={key}><p>{text}</p></article>;
-              }
-              return (
-                <article className={styles.assistantMessage} key={key}>
-                  <div className={styles.assistantBody}>
-                    <MarkdownContent content={text} isStreaming={false} onOpenFile={onOpenFile} />
-                  </div>
-                  <div className={styles.messageActions}>
-                    <button type="button" aria-label="Yanıtı kopyala" title="Yanıtı kopyala" onClick={() => void copyAssistantMessage(text)}>
-                      <Copy aria-hidden="true" />
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-
-            {activeSnapshot?.isStreaming ? (
-              <article className={styles.assistantMessage} data-streaming="true">
-                {streamingText ? (
-                  <div className={styles.assistantBody}>
-                    <MarkdownContent content={streamingText} isStreaming animated adaptiveSignalTrail onOpenFile={onOpenFile} />
-                  </div>
-                ) : (
-                  <div className={styles.thinking} aria-label="Yan sohbet düşünüyor"><i /><i /><i /></div>
-                )}
-              </article>
-            ) : null}
-            <div ref={endRef} className={styles.endAnchor} />
-          </div>
+            ) : (
+              <ConversationTimeline
+                messages={displayedMessages}
+                streamingMessage={timelineStreamingMessage}
+                isStreaming={Boolean(activeSnapshot?.isStreaming)}
+                conversationKey={`sidechat:${activeConversationId || "new"}`}
+                onOpenFile={onOpenFile}
+                onToast={onToast}
+              />
+            )}
         </div>
 
         <div className={styles.composerFade} aria-hidden="true" />

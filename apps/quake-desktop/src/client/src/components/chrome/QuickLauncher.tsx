@@ -3,6 +3,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { Bot, CirclePlus, Folder, Globe, Smartphone, SquareTerminal, X, Zap } from "lucide-react";
+import { useI18n } from "../../i18n";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
 import styles from "./QuickLauncher.module.css";
 
@@ -34,25 +35,33 @@ export type QuickLauncherVariant = "popover" | "panel";
 
 interface LauncherItem {
   panel: QuickLauncherPanel;
-  label: string;
+  labelKey: QuickLauncherLabelKey;
   /** Klavye kisayolu rozeti; bos string ise rozet gosterilmez (orn. Terminal). */
   shortcut: string;
   icon: React.ReactNode;
 }
 
+type QuickLauncherLabelKey =
+  | "quickLauncher.terminal"
+  | "quickLauncher.browser"
+  | "quickLauncher.mobile"
+  | "quickLauncher.files"
+  | "quickLauncher.agents"
+  | "quickLauncher.sidechat";
+
 const POPOVER_ITEMS: LauncherItem[] = [
-  { panel: "terminal", label: "Terminal", shortcut: "", icon: <SquareTerminal size={18} strokeWidth={2} aria-hidden="true" /> },
-  { panel: "browser", label: "Tarayıcı", shortcut: "Ctrl+T", icon: <Globe size={18} strokeWidth={2} aria-hidden="true" /> },
-  { panel: "mobile", label: "Mobil", shortcut: "", icon: <Smartphone size={18} strokeWidth={2} aria-hidden="true" /> },
-  { panel: "files", label: "Dosyalar", shortcut: "Ctrl+P", icon: <Folder size={18} strokeWidth={2} aria-hidden="true" /> },
-  { panel: "agents", label: "Ajanlar", shortcut: "", icon: <Bot size={18} strokeWidth={2} aria-hidden="true" /> },
+  { panel: "terminal", labelKey: "quickLauncher.terminal", shortcut: "", icon: <SquareTerminal size={18} strokeWidth={2} aria-hidden="true" /> },
+  { panel: "browser", labelKey: "quickLauncher.browser", shortcut: "Ctrl+T", icon: <Globe size={18} strokeWidth={2} aria-hidden="true" /> },
+  { panel: "mobile", labelKey: "quickLauncher.mobile", shortcut: "", icon: <Smartphone size={18} strokeWidth={2} aria-hidden="true" /> },
+  { panel: "files", labelKey: "quickLauncher.files", shortcut: "Ctrl+P", icon: <Folder size={18} strokeWidth={2} aria-hidden="true" /> },
+  { panel: "agents", labelKey: "quickLauncher.agents", shortcut: "", icon: <Bot size={18} strokeWidth={2} aria-hidden="true" /> },
 ];
 
 const PANEL_ITEMS: LauncherItem[] = [
-  { panel: "files", label: "Dosyalar", shortcut: "Ctrl+P", icon: <Folder size={16} strokeWidth={1.65} aria-hidden="true" /> },
-  { panel: "sidechat", label: "Yan görev", shortcut: "Ctrl+Alt+S", icon: <CirclePlus size={16} strokeWidth={1.65} aria-hidden="true" /> },
-  { panel: "browser", label: "Tarayıcı", shortcut: "Ctrl+T", icon: <Globe size={16} strokeWidth={1.65} aria-hidden="true" /> },
-  { panel: "terminal", label: "Terminal", shortcut: "", icon: <SquareTerminal size={16} strokeWidth={1.65} aria-hidden="true" /> },
+  { panel: "files", labelKey: "quickLauncher.files", shortcut: "Ctrl+P", icon: <Folder size={16} strokeWidth={1.65} aria-hidden="true" /> },
+  { panel: "sidechat", labelKey: "quickLauncher.sidechat", shortcut: "Ctrl+Alt+S", icon: <CirclePlus size={16} strokeWidth={1.65} aria-hidden="true" /> },
+  { panel: "browser", labelKey: "quickLauncher.browser", shortcut: "Ctrl+T", icon: <Globe size={16} strokeWidth={1.65} aria-hidden="true" /> },
+  { panel: "terminal", labelKey: "quickLauncher.terminal", shortcut: "", icon: <SquareTerminal size={16} strokeWidth={1.65} aria-hidden="true" /> },
 ];
 
 /**
@@ -67,13 +76,15 @@ export function QuickLauncher({
   onOpen: (panel: QuickLauncherPanel) => void;
   variant?: QuickLauncherVariant;
 }) {
+  const { t } = useI18n();
+
   // --- "panel" varyanti: bos sag dock icinde dikey liste. ---
   if (variant === "panel") {
     return (
       <div
         className={styles.panel}
         role="menu"
-        aria-label="Panelleri aç"
+        aria-label={t("quickLauncher.openPanels")}
         onKeyDown={(event) => handleMenuKeyDown(event)}
       >
         <ul className={styles.panelList}>
@@ -86,7 +97,7 @@ export function QuickLauncher({
                 onClick={() => onOpen(item.panel)}
               >
                 <span className={styles.panelItemIcon}>{item.icon}</span>
-                <span className={styles.panelItemLabel}>{item.label}</span>
+                <span className={styles.panelItemLabel}>{t(item.labelKey)}</span>
                 {item.shortcut ? <kbd className={styles.kbd}>{item.shortcut}</kbd> : null}
               </button>
             </li>
@@ -156,8 +167,8 @@ export function QuickLauncher({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Hızlı başlatıcı"
-        title="Hızlı başlatıcı"
+        aria-label={t("quickLauncher.trigger")}
+        title={t("quickLauncher.trigger")}
       >
         {open ? <X size={18} strokeWidth={2} aria-hidden="true" /> : <Zap size={18} strokeWidth={2} aria-hidden="true" />}
       </button>
@@ -168,10 +179,10 @@ export function QuickLauncher({
             ref={popoverRef}
             className={styles.popover}
             role="menu"
-            aria-label="Hızlı başlatıcı panelleri"
+            aria-label={t("quickLauncher.panels")}
             onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: close })}
           >
-            <div className={styles.head}>Panelleri aç</div>
+            <div className={styles.head}>{t("quickLauncher.openPanels")}</div>
             {POPOVER_ITEMS.map((item) => (
               <button
                 key={item.panel}
@@ -182,7 +193,7 @@ export function QuickLauncher({
                 onClick={() => handleSelect(item.panel)}
               >
                 <span className={styles.itemIcon}>{item.icon}</span>
-                <span className={styles.itemLabel}>{item.label}</span>
+                <span className={styles.itemLabel}>{t(item.labelKey)}</span>
                 {item.shortcut ? <kbd className={styles.kbd}>{item.shortcut}</kbd> : null}
               </button>
             ))}

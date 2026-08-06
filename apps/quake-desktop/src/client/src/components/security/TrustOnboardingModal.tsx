@@ -5,6 +5,7 @@
  */
 import React, { useCallback, useEffect, useRef } from "react";
 import { FolderLock, GitBranch, Info, Network, Shield, ShieldAlert } from "lucide-react";
+import { useI18n } from "../../i18n";
 import styles from "./TrustOnboardingModal.module.css";
 
 export const TRUST_ONBOARDING_TITLE = "Güven ve erişim";
@@ -53,6 +54,7 @@ function getFocusable(root: HTMLElement): HTMLElement[] {
 }
 
 export function TrustOnboardingModal({ open, onDismiss, onOpenPermissions }: TrustOnboardingModalProps) {
+  const { t } = useI18n();
   const dialogRef = useRef<HTMLDivElement>(null);
 
   const handleDismiss = useCallback(() => {
@@ -113,28 +115,28 @@ export function TrustOnboardingModal({ open, onDismiss, onOpenPermissions }: Tru
   const items = [
     {
       icon: <FolderLock size={16} aria-hidden />,
-      title: TRUST_ONBOARDING_COPY.workspaceTitle,
-      body: TRUST_ONBOARDING_COPY.workspaceBody,
+      title: t("runtime.trust.workspaceTitle"),
+      body: t("runtime.trust.workspaceBody"),
     },
     {
       icon: <Shield size={16} aria-hidden />,
-      title: TRUST_ONBOARDING_COPY.accessTitle,
-      body: TRUST_ONBOARDING_COPY.accessBody,
+      title: t("runtime.trust.accessTitle"),
+      body: t("runtime.trust.accessBody"),
     },
     {
       icon: <GitBranch size={16} aria-hidden />,
-      title: TRUST_ONBOARDING_COPY.worktreeTitle,
-      body: TRUST_ONBOARDING_COPY.worktreeBody,
+      title: t("runtime.trust.worktreeTitle"),
+      body: t("runtime.trust.worktreeBody"),
     },
     {
       icon: <ShieldAlert size={16} aria-hidden />,
-      title: TRUST_ONBOARDING_COPY.osSandboxTitle,
-      body: TRUST_ONBOARDING_COPY.osSandboxBody,
+      title: t("runtime.trust.sandboxTitle"),
+      body: t("runtime.trust.sandboxBody"),
     },
     {
       icon: <Network size={16} aria-hidden />,
-      title: TRUST_ONBOARDING_COPY.proxyTitle,
-      body: TRUST_ONBOARDING_COPY.proxyBody,
+      title: t("runtime.trust.proxyTitle"),
+      body: t("runtime.trust.proxyBody"),
     },
   ] as const;
 
@@ -154,10 +156,10 @@ export function TrustOnboardingModal({ open, onDismiss, onOpenPermissions }: Tru
           <span className={styles.icon} aria-hidden="true">
             <Info size={22} />
           </span>
-          <h2 id="trust-onboarding-title">{TRUST_ONBOARDING_COPY.title}</h2>
+          <h2 id="trust-onboarding-title">{t("runtime.trust.title")}</h2>
         </div>
         <p id="trust-onboarding-intro" className={styles.intro}>
-          {TRUST_ONBOARDING_COPY.intro}
+          {t("runtime.trust.intro")}
         </p>
         <ul className={styles.list}>
           {items.map((item) => (
@@ -172,7 +174,7 @@ export function TrustOnboardingModal({ open, onDismiss, onOpenPermissions }: Tru
         </ul>
         <div className={styles.actions}>
           <button type="button" className={styles.secondary} onClick={handlePermissions}>
-            {TRUST_ONBOARDING_COPY.secondary}
+            {t("runtime.trust.secondary")}
           </button>
           <button
             type="button"
@@ -180,7 +182,7 @@ export function TrustOnboardingModal({ open, onDismiss, onOpenPermissions }: Tru
             data-trust-primary
             onClick={handleDismiss}
           >
-            {TRUST_ONBOARDING_COPY.primary}
+            {t("runtime.trust.primary")}
           </button>
         </div>
       </div>

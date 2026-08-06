@@ -5,13 +5,14 @@ import { normalizeSessionDraftKey } from "../lib/client-ids";
 import { copyTextWithToast } from "../lib/copy-toast";
 import { formatComposerModelLabel, thinkingLabel } from "../lib/format-utils";
 import { normalizeClientPath } from "../lib/path-utils";
+import { normalizeSessionMetadataPath } from "./conversation-navigation";
+import { useI18n } from "../i18n";
 import {
   getLeftSidebarSnapWidth,
   isLeftSidebarSize,
-  leftSidebarSizeLabel,
   nearestLeftSidebarSize,
   nextLeftSidebarSize,
-  LEFT_SIDEBAR_CLOSE_THRESHOLD,
+  LEFT_SIDEBAR_MIN_WIDTH,
   LEFT_SIDEBAR_SIZES,
   type LeftSidebarSize,
 } from "../lib/layout-sizing";
@@ -64,6 +65,7 @@ import { BottomPanel } from "../components/chrome/BottomPanel";
 import { ProjectPicker, CreateProjectModal } from "../components/chrome/ProjectPicker";
 import { LiveTimeline } from "../components/timeline/Timeline";
 import { WorkspaceChrome } from "../components/shell/WorkspaceChrome";
+import { ConversationHeader } from "../components/shell/ConversationHeader";
 import { RightPanelTabs } from "../components/shell/RightPanelTabs";
 import { PreviewPanel } from "../components/preview/PreviewPanel";
 import { ImagePreviewModal } from "../components/modals/ImagePreviewModal";
@@ -621,15 +623,18 @@ export function AppShell(props: AppShellProps) {
     onSettingsBlockImages,
     onSettingsShowImages,
   } = props;
+  const { t } = useI18n();
 
   const panelSessionKey = normalizeSessionDraftKey(sessionFile || sessionId || activeRightPanelKey || "boot");
-  const [browserTabMetadata, setBrowserTabMetadata] = React.useState({ title: "Tarayıcı", url: "" });
+  const [browserTabMetadata, setBrowserTabMetadata] = React.useState({ title: "", url: "" });
   const [subagentRequest, setSubagentRequest] = React.useState({ sessionKey: panelSessionKey, id: "", version: 0 });
   const appGridRef = React.useRef<HTMLDivElement>(null);
   const filesWorkbenchRef = React.useRef<HTMLDivElement>(null);
   const slashAutocompleteRef = React.useRef<SlashAutocompleteHandle>(null);
   const mentionMenuRef = React.useRef<ComposerMentionMenuHandle>(null);
+  const leftSidebarPeekCloseTimerRef = React.useRef<number | undefined>(undefined);
   const [appViewportWidth, setAppViewportWidth] = React.useState(viewportWidth);
+  const [leftSidebarPeekOpen, setLeftSidebarPeekOpen] = React.useState(false);
   const [leftSidebarSize, setLeftSidebarSize] = React.useState<LeftSidebarSize>(() => {
     const stored = readStorageValue("quake-web:leftSidebarSize");
     return isLeftSidebarSize(stored)
@@ -650,6 +655,27 @@ export function AppShell(props: AppShellProps) {
   const cycleLeftSidebarSize = React.useCallback(() => {
     setPersistedLeftSidebarSize(nextLeftSidebarSize(leftSidebarSize));
   }, [leftSidebarSize, setPersistedLeftSidebarSize]);
+  const cancelLeftSidebarPeekClose = React.useCallback(() => {
+    if (leftSidebarPeekCloseTimerRef.current === undefined) return;
+    window.clearTimeout(leftSidebarPeekCloseTimerRef.current);
+    leftSidebarPeekCloseTimerRef.current = undefined;
+  }, []);
+  const revealLeftSidebarPeek = React.useCallback(() => {
+    cancelLeftSidebarPeekClose();
+    if (!leftOpen) setLeftSidebarPeekOpen(true);
+  }, [cancelLeftSidebarPeekClose, leftOpen]);
+  const scheduleLeftSidebarPeekClose = React.useCallback(() => {
+    cancelLeftSidebarPeekClose();
+    if (leftOpen) return;
+    leftSidebarPeekCloseTimerRef.current = window.setTimeout(() => {
+      leftSidebarPeekCloseTimerRef.current = undefined;
+      setLeftSidebarPeekOpen(false);
+    }, 180);
+  }, [cancelLeftSidebarPeekClose, leftOpen]);
+  React.useEffect(() => {
+    if (leftOpen) setLeftSidebarPeekOpen(false);
+    return cancelLeftSidebarPeekClose;
+  }, [cancelLeftSidebarPeekClose, leftOpen]);
   const scheduleDialogRef = useModalFocusTrap<HTMLDivElement>(scheduleOpen);
   const closeScheduleDialog = React.useCallback(() => setScheduleOpen(false), [setScheduleOpen]);
   const handleScheduleDialogKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -666,6 +692,21 @@ export function AppShell(props: AppShellProps) {
     }));
     openRightPanel("subagents");
   }, [openRightPanel, panelSessionKey]);
+  const activeConversationSession = React.useMemo(() => {
+    const activePath = normalizeSessionMetadataPath(sessionFile || "");
+    return visibleSessions.find((session) => {
+      if (sessionId && String(session?.id || "") === String(sessionId)) return true;
+      return activePath && normalizeSessionMetadataPath(String(session?.path || "")) === activePath;
+    }) || {
+      id: sessionId,
+      path: sessionFile,
+      name: workspaceName ? `${workspaceName} sohbeti` : "Sohbet",
+      firstMessage: "Sohbet",
+    };
+  }, [sessionFile, sessionId, visibleSessions, workspaceName]);
+  const activeConversationPinned = pinnedPaths.has(
+    normalizeSessionMetadataPath(String(activeConversationSession?.path || "")),
+  );
 
   const toggleFilesTree = React.useCallback(() => {
     setFilesTreeOpen((current) => {
@@ -676,12 +717,12 @@ export function AppShell(props: AppShellProps) {
   }, []);
 
   const closeFilePreview = React.useCallback(() => {
-    setFilePreview({ content: "Dosya seçilmedi" });
+    setFilePreview({ content: t("runtime.shell.fileNotSelected") });
     if (typeof window !== "undefined" && window.innerWidth <= 640) {
       setFilesTreeOpen(true);
       writeStorageValue("quake-web:filesTreeOpen", "1");
     }
-  }, [setFilePreview]);
+  }, [setFilePreview, t]);
 
   const openArtifactTemplateSkill = React.useCallback(async (skillName: string) => {
     try {
@@ -691,9 +732,9 @@ export function AppShell(props: AppShellProps) {
       setFilePreview({ path: skill.path, content: skill.content });
       openRightPanel("files");
     } catch (error: any) {
-      showToast(`Şablon skilli açılamadı: ${error?.message || "bilinmeyen hata"}`, "error");
+      showToast(t("runtime.shell.templateOpenFailed", { error: error?.message || t("runtime.app.unknownError") }), "error");
     }
-  }, [openRightPanel, setFilePreview, showToast]);
+  }, [openRightPanel, setFilePreview, showToast, t]);
 
   React.useEffect(() => {
     if (!filePreview.path || typeof window === "undefined" || window.innerWidth > 640) return;
@@ -789,8 +830,7 @@ export function AppShell(props: AppShellProps) {
     const startX = event.clientX;
     const startWidth = leftSidebarWidth;
     let nextWidth = startWidth;
-    let nextSize = leftSidebarSize;
-    let collapseReady = false;
+    let nextSize: LeftSidebarSize = "quarter";
     let frame: number | undefined;
 
     handle.setPointerCapture(event.pointerId);
@@ -798,21 +838,22 @@ export function AppShell(props: AppShellProps) {
 
     const applyWidth = () => {
       frame = undefined;
-      const previewWidth = collapseReady
-        ? 0
-        : Math.min(getLeftSidebarSnapWidth("half", appViewportWidth), Math.max(0, nextWidth));
+      const previewWidth = Math.min(
+        getLeftSidebarSnapWidth("half", appViewportWidth),
+        Math.max(LEFT_SIDEBAR_MIN_WIDTH, nextWidth),
+      );
       const value = `${Math.round(previewWidth)}px`;
       shell?.style.setProperty("--left-sidebar-preview-width", value);
     };
     const onMove = (moveEvent: PointerEvent) => {
       nextWidth = startWidth + moveEvent.clientX - startX;
-      collapseReady = nextWidth <= LEFT_SIDEBAR_CLOSE_THRESHOLD;
-      nextSize = nearestLeftSidebarSize(nextWidth, appViewportWidth);
-      document.body.classList.toggle("left-sidebar-collapse-ready", collapseReady);
+      // Resizing is bounded to the compact reference width; dragging cannot
+      // promote the rail into a half/full-screen panel.
+      nextSize = "quarter";
       if (frame === undefined) frame = window.requestAnimationFrame(applyWidth);
     };
     const cleanup = () => {
-      document.body.classList.remove("panel-resize-active", "panel-resize-horizontal", "left-sidebar-collapse-ready");
+      document.body.classList.remove("panel-resize-active", "panel-resize-horizontal");
       shell?.style.removeProperty("--left-sidebar-preview-width");
       app?.style.removeProperty("--left-sidebar-width");
       handle.removeEventListener("pointermove", onMove);
@@ -821,11 +862,6 @@ export function AppShell(props: AppShellProps) {
     };
     const onUp = () => {
       if (frame !== undefined) window.cancelAnimationFrame(frame);
-      if (collapseReady) {
-        cleanup();
-        toggleLeftPanel();
-        return;
-      }
       cleanup();
       setPersistedLeftSidebarSize(nextSize);
     };
@@ -850,7 +886,7 @@ export function AppShell(props: AppShellProps) {
     if (event.key === "ArrowLeft") nextSize = LEFT_SIDEBAR_SIZES[Math.max(0, currentIndex - 1)];
     else if (event.key === "ArrowRight") nextSize = LEFT_SIDEBAR_SIZES[Math.min(LEFT_SIDEBAR_SIZES.length - 1, currentIndex + 1)];
     else if (event.key === "Home") nextSize = "quarter";
-    else if (event.key === "End") nextSize = "half";
+    else if (event.key === "End") nextSize = "quarter";
     if (!nextSize) return;
     event.preventDefault();
     setPersistedLeftSidebarSize(nextSize);
@@ -942,9 +978,9 @@ export function AppShell(props: AppShellProps) {
         onOpenSubagent={openSubagentWorkspace}
       />
     )}
-    <div ref={appGridRef} id="app" data-density={density} data-theme={theme} data-browser-layout={rightOpen && rightTab === "browser" ? browserLayout : undefined} data-browser-focus-composer={rightOpen && ((rightTab === "browser" && browserLayout === "focus") || (rightTab === "files" && filesLayout === "focus")) ? browserFocusComposer : undefined} data-files-layout={rightOpen && rightTab === "files" ? filesLayout : undefined} className={`${centerView === "chat" ? "chat-workspace" : ""} ${leftOpen ? "" : "left-collapsed"} ${rightOpen ? "" : "right-collapsed"} ${rightOpen && rightTab === "plan" ? "plan-panel-open" : ""} ${rightOpen && rightTab === "subagents" ? "subagents-layout-split" : ""} ${rightOpen && rightTab === "browser" ? `browser-layout-${browserLayout}` : ""} ${rightOpen && rightTab === "files" ? (filesLayout === "focus" ? "browser-layout-focus files-focus-workspace" : `files-layout-${filesLayout}`) : ""}`} style={{ "--dock-w": rightOpen ? `${rightWidth}px` : "0px", "--bottom-h": bottomOpen ? `${bottomHeight}px` : "0px", "--browser-composer-inset": `${browserFocusBottomInset}px` } as React.CSSProperties}> 
+    <div ref={appGridRef} id="app" data-density={density} data-theme={theme} data-browser-layout={rightOpen && rightTab === "browser" ? browserLayout : undefined} data-browser-focus-composer={rightOpen && ((rightTab === "browser" && browserLayout === "focus") || (rightTab === "files" && filesLayout === "focus")) ? browserFocusComposer : undefined} data-files-layout={rightOpen && rightTab === "files" ? filesLayout : undefined} className={`${centerView === "chat" ? "chat-workspace" : ""} ${leftOpen ? "" : "left-collapsed"} ${!leftOpen && leftSidebarPeekOpen ? "left-sidebar-peek-open" : ""} ${rightOpen ? "" : "right-collapsed"} ${rightOpen && rightTab === "plan" ? "plan-panel-open" : ""} ${rightOpen && rightTab === "subagents" ? "subagents-layout-split" : ""} ${rightOpen && rightTab === "browser" ? `browser-layout-${browserLayout}` : ""} ${rightOpen && rightTab === "files" ? (filesLayout === "focus" ? "browser-layout-focus files-focus-workspace" : `files-layout-${filesLayout}`) : ""}`} style={{ "--dock-w": rightOpen ? `${rightWidth}px` : "0px", "--bottom-h": bottomOpen ? `${bottomHeight}px` : "0px", "--browser-composer-inset": `${browserFocusBottomInset}px` } as React.CSSProperties}>
       <NavRail
-        leftOpen={leftOpen}
+        leftOpen={leftOpen || leftSidebarPeekOpen}
         onToggle={toggleLeftPanel}
         sidebarSize={leftSidebarSize}
         onCycleSidebarSize={cycleLeftSidebarSize}
@@ -974,7 +1010,17 @@ export function AppShell(props: AppShellProps) {
         onRenameSession={renameNavSession}
         unreadSessionPaths={unreadSessionPaths}
         onRemoveProject={removeWorkspaceFromNav}
+        onPeekEnter={revealLeftSidebarPeek}
+        onPeekLeave={scheduleLeftSidebarPeekClose}
       />
+      {!leftOpen && (
+        <div
+          className="left-sidebar-hover-zone"
+          aria-hidden="true"
+          onPointerEnter={revealLeftSidebarPeek}
+          onPointerLeave={scheduleLeftSidebarPeekClose}
+        />
+      )}
       {leftOpen && (
         <div
           className="left-resize-handle"
@@ -986,16 +1032,30 @@ export function AppShell(props: AppShellProps) {
           aria-valuemin={getLeftSidebarSnapWidth("quarter", appViewportWidth)}
           aria-valuemax={getLeftSidebarSnapWidth("half", appViewportWidth)}
           aria-valuenow={Math.round(leftSidebarWidth)}
-          aria-valuetext={`${leftSidebarSizeLabel(leftSidebarSize)} genişlik`}
-          aria-label="Sol panel boyutu; sürükleyerek çeyrek veya yarım genişliğe getir; sola sürükleyerek kapat"
-          title="Sola sürükleyerek kapat · bırakınca çeyrek veya yarım genişliğe oturur · çift tıklayarak sonraki boyuta geç"
+          aria-valuetext={t("navRail.resizeHandleValue", { size: t(leftSidebarSize === "quarter" ? "navRail.sidebarQuarter" : "navRail.sidebarHalf") })}
+          aria-label={t("navRail.resizeHandleLabel")}
+          title={t("navRail.resizeHandleTitle")}
           tabIndex={0}
         />
       )}
       <main ref={browserFocusMainRef} className={`main ${centerView === "chat" ? (hasVisibleMessages ? "chat-active" : "empty-chat") : "page-view"}`}>
+        {hasVisibleMessages && centerView === "chat" && mainView.mode === "chat" && (
+          <ConversationHeader
+            session={activeConversationSession}
+            pinned={activeConversationPinned}
+            onPin={() => {
+              if (activeConversationSession?.path) togglePinSession(activeConversationSession.path);
+            }}
+            onRename={(nextName) => renameNavSession(activeConversationSession, nextName)}
+            onArchive={() => {
+              if (activeConversationSession?.path) archiveSession(activeConversationSession.path);
+            }}
+            onOpenSideTask={() => openRightPanel("sidechat")}
+          />
+        )}
         {hasVisibleMessages && centerView === "chat" && <SecurityBanner onOpenSettings={() => openSettingsPage()} />}
         {centerView === "projects" ? (
-          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>Yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>{t("tools.activity.loading")}</div>}>
             <WorkspaceDashboard
               projects={projectPickerItems}
               sessions={visibleSessions as any}
@@ -1009,7 +1069,7 @@ export function AppShell(props: AppShellProps) {
             />
           </React.Suspense>
         ) : centerView === "history" ? (
-          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>Yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>{t("tools.activity.loading")}</div>}>
             <ConversationHistoryPage
               sessions={visibleSessions as any}
               activeSessionId={sessionId}
@@ -1018,15 +1078,23 @@ export function AppShell(props: AppShellProps) {
             />
           </React.Suspense>
         ) : centerView === "scheduled" ? (
-          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>Yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>{t("tools.activity.loading")}</div>}>
             <SchedulePage
-              onCreateWithChat={() => { void handleNewChatWithProjectMenu(); }}
+              onCreateWithChat={async () => {
+                await handleNewChatWithProjectMenu();
+                setPromptDraft(t("schedule.chatPrompt"));
+                requestAnimationFrame(() => {
+                  const textarea = promptRef.current;
+                  textarea?.focus();
+                  if (textarea) textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+                });
+              }}
             />
           </React.Suspense>
         ) : centerView === "extensions" ? (
-          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>Yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading" style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40}}>{t("tools.activity.loading")}</div>}>
             <ExtensionsPage
-              onTryInChat={(name) => { setCenterView("chat"); setPromptDraft(`/desktop ${name} görevi`); promptRef.current?.focus(); }}
+              onTryInChat={(name) => { setCenterView("chat"); setPromptDraft(t("runtime.shell.extensionTaskPrompt", { name })); promptRef.current?.focus(); }}
               onInstall={() => undefined}
               onOpenSettings={() => openSettingsPage("customizations")}
             />
@@ -1076,22 +1144,22 @@ export function AppShell(props: AppShellProps) {
                 clarificationId: args.clarificationId,
                 answers: args.answers,
               },
-              "Plan netleştirme tamamlanamadı",
+              t("runtime.shell.planClarificationFailed"),
             )
           }
           onSkip={(args) =>
             runAwaitedUiCommand(
               { type: "plan_clarification_skip", requestId: args.requestId, clarificationId: args.clarificationId },
-              "Plan netleştirme atlanamadı",
+              t("runtime.shell.planClarificationSkipFailed"),
             )
           }
         />
         <div className={`composer-shell ${hasVisibleMessages ? "" : "is-empty"}`}>
         <GoalPanel
           goal={sessionGoal}
-          onPause={() => void runUiCommand({ type: "goal_pause" }, "Goal duraklatılamadı")}
-          onResume={() => void runUiCommand({ type: "goal_resume" }, "Goal sürdürülemedi")}
-          onCancel={() => void runUiCommand({ type: "goal_cancel" }, "Goal iptal edilemedi")}
+          onPause={() => void runUiCommand({ type: "goal_pause" }, t("runtime.shell.goalPauseFailed"))}
+          onResume={() => void runUiCommand({ type: "goal_resume" }, t("runtime.shell.goalResumeFailed"))}
+          onCancel={() => void runUiCommand({ type: "goal_cancel" }, t("runtime.shell.goalCancelFailed"))}
           onEdit={(objective) => {
             setGoalModePref(true);
             setConversationMode("execute");
@@ -1142,7 +1210,7 @@ export function AppShell(props: AppShellProps) {
                   action: result.action,
                   content: result.content,
                 },
-                "MCP bilgi yanıtı gönderilemedi",
+                t("runtime.shell.mcpResponseFailed"),
               );
             }}
           />
@@ -1173,7 +1241,7 @@ export function AppShell(props: AppShellProps) {
                   networkPolicyAmendment: payload.networkPolicyAmendment,
                   scope: payload.scope,
                 },
-                "Onay yanıtı gönderilemedi",
+                t("runtime.shell.approvalResponseFailed"),
               );
             }}
           />
@@ -1253,11 +1321,11 @@ export function AppShell(props: AppShellProps) {
             setGoalModePref(false);
             const status = sessionGoal?.status;
             if (status && !["completed", "failed", "cancelled"].includes(status)) {
-              void runUiCommand({ type: "goal_cancel" }, "Goal iptal edilemedi");
+              void runUiCommand({ type: "goal_cancel" }, t("runtime.shell.goalCancelFailed"));
             }
             void switchComposerMode("execute");
           }}
-          onSetThinking={(level) => runUiCommand({ type: "set_thinking_level", level }, "Çaba seviyesi değiştirilemedi")}
+          onSetThinking={(level) => runUiCommand({ type: "set_thinking_level", level }, t("runtime.shell.thinkingChangeFailed"))}
           onSelectModel={selectModel}
           onResetPreferences={resetComposerPreferences}
           onAbort={() => void abortAgent()}
@@ -1265,7 +1333,7 @@ export function AppShell(props: AppShellProps) {
           onEditQueued={editQueuedUserMessage}
           onRemoveQueued={removeQueuedUserMessage}
           onClearQueue={clearQueuedUserMessages}
-          onCopyQueued={(text) => copyTextWithToast(text, "Mesaj kopyalandı")}
+          onCopyQueued={(text) => copyTextWithToast(text, t("runtime.shell.messageCopied"))}
           formatModelLabel={formatComposerModelLabel}
           formatThinkingLabel={thinkingLabel}
           compact={rightOpen && ((rightTab === "browser" && browserLayout === "focus") || (rightTab === "files" && filesLayout === "focus")) && browserFocusComposer === "mini"}
@@ -1275,26 +1343,26 @@ export function AppShell(props: AppShellProps) {
         </>}
         </>}
       </main>
-      {rightOpen && <div className="right-resize-handle" onPointerDown={handleRightDragStart} onKeyDown={handleRightResizeKey} role="separator" aria-orientation="vertical" aria-valuemin={320} aria-valuemax={Math.max(320, window.innerWidth - 360)} aria-valuenow={Math.round(rightWidth)} aria-label="Sağ paneli yeniden boyutlandır (ok tuşları)" tabIndex={0} />}
+      {rightOpen && <div className="right-resize-handle" onPointerDown={handleRightDragStart} onKeyDown={handleRightResizeKey} role="separator" aria-orientation="vertical" aria-valuemin={320} aria-valuemax={Math.max(320, window.innerWidth - 360)} aria-valuenow={Math.round(rightWidth)} aria-label={t("runtime.shell.resizeRightPanel")} tabIndex={0} />}
       <aside className="rightbar" data-active-panel={rightTab} aria-hidden={!rightOpen}>
-        <RightPanelTabs active={rightTab} tabs={dockTabs} addOpen={dockAddOpen} launcherExpanded={rightPanelExpanded} browserLayout={browserLayout} browserFocusComposer={browserFocusComposer} browserTitle={browserTabMetadata.title} browserUrl={browserTabMetadata.url} filesTitle={filePreview.path ? filePreview.path.replace(/\\/g, "/").split("/").filter(Boolean).at(-1) : "Dosya aç"} filesLayout={filesLayout} filesTreeOpen={filesTreeOpen} onClose={closeRightPanel} onCloseTab={closeDockTab} onToggleAdd={() => setDockAddOpen((value) => !value)} onToggleLauncherExpand={toggleRightPanelExpanded} onToggleFilesTree={toggleFilesTree} onChange={(tab) => { setDockAddOpen(false); handleOpenPanel(tab); }} onBrowserLayout={applyBrowserLayout} onBrowserFocusComposer={setBrowserFocusComposerMode} onFilesLayout={applyFilesLayout} />
+        <RightPanelTabs active={rightTab} tabs={dockTabs} addOpen={dockAddOpen} launcherExpanded={rightPanelExpanded} browserLayout={browserLayout} browserFocusComposer={browserFocusComposer} browserTitle={browserTabMetadata.title || t("runtime.shell.browser")} browserUrl={browserTabMetadata.url} filesTitle={filePreview.path ? filePreview.path.replace(/\\/g, "/").split("/").filter(Boolean).at(-1) : t("rightPanel.openFile")} filesLayout={filesLayout} filesTreeOpen={filesTreeOpen} onClose={closeRightPanel} onCloseTab={closeDockTab} onToggleAdd={() => setDockAddOpen((value) => !value)} onToggleLauncherExpand={toggleRightPanelExpanded} onToggleFilesTree={toggleFilesTree} onChange={(tab) => { setDockAddOpen(false); handleOpenPanel(tab); }} onBrowserLayout={applyBrowserLayout} onBrowserFocusComposer={setBrowserFocusComposerMode} onFilesLayout={applyFilesLayout} />
         {rightTab === "launcher" && <QuickLauncher variant="panel" onOpen={(panel) => handleOpenPanel(panel)} />}
-        {rightTab === "files" && <div ref={filesWorkbenchRef} className={`files-workbench ${filePreview.path ? "has-preview" : ""} ${filesTreeOpen ? "files-tree-open" : "files-tree-closed"}`} style={{ "--files-tree-width": `${filesTreeWidth}px` } as React.CSSProperties}><div className="files-workbench-preview"><PreviewPanel filePreview={filePreview} onOpenFile={openFile} onClose={closeFilePreview} onOpen={() => setMainView({ mode: "editor", title: filePreview.path || "Dosya önizleme", path: filePreview.path, content: filePreview.content })} /></div>{filesTreeOpen && <div className="files-tree-resize-handle" role="separator" aria-orientation="vertical" aria-label="Dosya ağacı genişliğini ayarla" aria-valuemin={FILES_TREE_MIN_WIDTH} aria-valuemax={FILES_TREE_MAX_WIDTH} aria-valuenow={Math.round(filesTreeWidth)} tabIndex={0} onPointerDown={handleFilesTreeResizeStart} onKeyDown={handleFilesTreeResizeKey} />}<div className="files-workbench-tree"><React.Suspense fallback={<div className="panel-loading">Yükleniyor…</div>}><FilesPanel key={`${normalizeClientPath(currentWorkspace || "workspace")}::${panelSessionKey}`} workspaceKey={normalizeClientPath(currentWorkspace || "workspace")} sessionKey={panelSessionKey} loading={loading.files} currentFileDir={currentFileDir} onOpenDir={refreshFiles} onOpenFile={openFile} onOpenMonaco={openFileInMonaco} onReveal={revealInFileTree} onAskFile={(path) => { setPromptDraft(`Bu dosyayı incele ve önemli noktaları açıkla: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onSummarizeFile={(path) => { setPromptDraft(`Bu dosyayı kısa ve teknik şekilde özetle: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onCopyPath={(path) => copyTextWithToast(path, "Yol kopyalandı")} onAddContext={(path, type) => {
+        {rightTab === "files" && <div ref={filesWorkbenchRef} className={`files-workbench ${filePreview.path ? "has-preview" : ""} ${filesTreeOpen ? "files-tree-open" : "files-tree-closed"}`} style={{ "--files-tree-width": `${filesTreeWidth}px` } as React.CSSProperties}><div className="files-workbench-preview"><PreviewPanel filePreview={filePreview} onOpenFile={openFile} onClose={closeFilePreview} onOpen={() => setMainView({ mode: "editor", title: filePreview.path || t("files.preview"), path: filePreview.path, content: filePreview.content })} /></div>{filesTreeOpen && <div className="files-tree-resize-handle" role="separator" aria-orientation="vertical" aria-label={t("rightPanel.resizeFileTree")} aria-valuemin={FILES_TREE_MIN_WIDTH} aria-valuemax={FILES_TREE_MAX_WIDTH} aria-valuenow={Math.round(filesTreeWidth)} tabIndex={0} onPointerDown={handleFilesTreeResizeStart} onKeyDown={handleFilesTreeResizeKey} />}<div className="files-workbench-tree"><React.Suspense fallback={<div className="panel-loading">{t("tools.activity.loading")}</div>}><FilesPanel key={`${normalizeClientPath(currentWorkspace || "workspace")}::${panelSessionKey}`} workspaceKey={normalizeClientPath(currentWorkspace || "workspace")} sessionKey={panelSessionKey} loading={loading.files} currentFileDir={currentFileDir} onOpenDir={refreshFiles} onOpenFile={openFile} onOpenMonaco={openFileInMonaco} onReveal={revealInFileTree} onAskFile={(path) => { setPromptDraft(`${t("files.askAboutFile")}: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onSummarizeFile={(path) => { setPromptDraft(`${t("files.summarize")}: ${path}`); requestAnimationFrame(() => promptRef.current?.focus()); }} onCopyPath={(path) => copyTextWithToast(path, t("runtime.shell.pathCopied"))} onAddContext={(path, type) => {
           if (type === "directory") {
-            addContextChip({ type: "file", label: path, text: `Klasör bağlamı: ${path}` });
-            showToast("Klasör bağlama eklendi", "success");
+            addContextChip({ type: "file", label: path, text: t("runtime.shell.folderContext", { path }) });
+            showToast(t("runtime.shell.folderContextAdded"), "success");
             return;
           }
           void apiGet<any>(`/api/file?path=${encodeURIComponent(path)}`).then((file) => {
             addContextChip({ type: "file", label: path, text: String(file.content || "").slice(0, 12000) });
-            showToast("Dosya bağlama eklendi", "success");
-          }).catch((error) => showToast(`Dosya bağlama eklenemedi: ${error.message}`, "error"));
+            showToast(t("runtime.shell.fileContextAdded"), "success");
+          }).catch((error) => showToast(t("runtime.shell.fileContextFailed", { error: error.message }), "error"));
         }} /></React.Suspense></div></div>}
-        {rightTab === "preview" && <PreviewPanel filePreview={filePreview} onClose={() => { setFilePreview({ content: "Dosya seçilmedi" }); setRightPanelTab("files"); }} onOpen={() => setMainView({ mode: "editor", title: filePreview.path || "Dosya önizleme", path: filePreview.path, content: filePreview.content })} />}
-        {rightTab === "mobile" && <React.Suspense fallback={<div className="panel-loading">Mobile Studio yükleniyor…</div>}><MobileStudioPanel key={panelSessionKey} sessionKey={panelSessionKey} /></React.Suspense>}
+        {rightTab === "preview" && <PreviewPanel filePreview={filePreview} onClose={() => { setFilePreview({ content: t("runtime.shell.fileNotSelected") }); setRightPanelTab("files"); }} onOpen={() => setMainView({ mode: "editor", title: filePreview.path || t("files.preview"), path: filePreview.path, content: filePreview.content })} />}
+        {rightTab === "mobile" && <React.Suspense fallback={<div className="panel-loading">{t("runtime.shell.mobileLoading")}</div>}><MobileStudioPanel key={panelSessionKey} sessionKey={panelSessionKey} /></React.Suspense>}
         {rightTab === "plan" && !sessionSurfacePending && sessionPlan && <PlanArtifactPanel plan={sessionPlan} onClose={() => closeDockTab("plan")} onOpenFile={(path) => { openRightPanel("files"); void openFile(path); }} />}
         {rightTab === "sidechat" && (
-          <React.Suspense fallback={<div className="panel-loading">Yan sohbet yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading">{t("runtime.shell.sideChatLoading")}</div>}>
             <SideConversationPanel
               key={panelSessionKey}
               parentSessionPath={sessionFile}
@@ -1309,31 +1377,31 @@ export function AppShell(props: AppShellProps) {
             />
           </React.Suspense>
         )}
-        {rightTab === "subagents" && <React.Suspense fallback={<div className="panel-loading">Subagent çalışma alanı yükleniyor…</div>}><SubagentWorkspace key={panelSessionKey} sessionId={sessionId} requestedAgentId={subagentRequest.sessionKey === panelSessionKey ? subagentRequest.id : undefined} requestVersion={subagentRequest.version} onOpenFiles={() => openRightPanel("files")} onOpenFile={(path) => { openRightPanel("files"); void openFile(path); }} onOpenAgents={() => openRightPanel("agents")} onToast={showToast} /></React.Suspense>}
+        {rightTab === "subagents" && <React.Suspense fallback={<div className="panel-loading">{t("runtime.shell.subagentsLoading")}</div>}><SubagentWorkspace key={panelSessionKey} sessionId={sessionId} requestedAgentId={subagentRequest.sessionKey === panelSessionKey ? subagentRequest.id : undefined} requestVersion={subagentRequest.version} onOpenFiles={() => openRightPanel("files")} onOpenFile={(path) => { openRightPanel("files"); void openFile(path); }} onOpenAgents={() => openRightPanel("agents")} onToast={showToast} /></React.Suspense>}
         {rightTab === "agents" && <AgentsPanel />}
         {rightTab === "review" && turnReview && <TurnReviewPanel review={turnReview} onOpenFile={(path) => { openRightPanel("files"); void openFile(path); }} onToast={showToast} />}
-        {rightTab === "browser" && <React.Suspense fallback={<div className="panel-loading">Yükleniyor…</div>}><BrowserPanel key={panelSessionKey} sessionKey={panelSessionKey} chromeMenuOpen={dockAddOpen} onMetadataChange={setBrowserTabMetadata} onAnnotationBundle={(bundle) => {
+         {rightTab === "browser" && <React.Suspense fallback={<div className="panel-loading">{t("tools.activity.loading")}</div>}><BrowserPanel key={panelSessionKey} sessionKey={panelSessionKey} onMetadataChange={setBrowserTabMetadata} onAnnotationBundle={(bundle) => {
           const bundleId = `browser-annotations:${bundle.url}`;
           setComposerImagesDraft((current) => [
             ...current.filter((image) => image.annotationBundleId !== bundleId),
             { ...bundle.image, id: bundleId, annotationBundleId: bundleId, annotationCount: bundle.annotations.length },
           ].slice(-6));
-          showToast(`${bundle.annotations.length} açıklama composer'a eklendi`, "success");
+          showToast(t("runtime.shell.annotationsAdded", { count: bundle.annotations.length }), "success");
           requestAnimationFrame(() => promptRef.current?.focus());
         }} /></React.Suspense>}
-        {extensionModal &&<div className="panel"><div className="panel-title">Eklenti arayüzü</div><ExtensionRenderer type={extensionModal.method || "confirm"} props={extensionModal} requestId={extensionModal.id} /></div>}
+        {extensionModal &&<div className="panel"><div className="panel-title">{t("runtime.shell.extensionUi")}</div><ExtensionRenderer type={extensionModal.method || "confirm"} props={extensionModal} requestId={extensionModal.id} /></div>}
       </aside>
       <div className="bottom-dock">
         <BottomPanel open={bottomOpen} onClose={() => setBottomOpen(false)} height={bottomHeight} onHeightChange={(h) => { setBottomHeight(h); writeStorageValue("quake-web:bottomHeight", String(Math.round(h))); }}>
-          {(panelControls) => <React.Suspense fallback={<div className="panel-loading">Terminal yükleniyor…</div>}><XtermTerminal panelControls={panelControls} onAsk={(text) => { setPromptDraft(text); requestAnimationFrame(() => promptRef.current?.focus()); }} onAddContext={(context) => { addContextChip({ type: "terminal", label: context.label, text: context.text }); showToast("Terminal çıktısı bağlama eklendi", "success"); }} /></React.Suspense>}
+          {(panelControls) => <React.Suspense fallback={<div className="panel-loading">{t("runtime.shell.terminalLoading")}</div>}><XtermTerminal panelControls={panelControls} onAsk={(text) => { setPromptDraft(text); requestAnimationFrame(() => promptRef.current?.focus()); }} onAddContext={(context) => { addContextChip({ type: "terminal", label: context.label, text: context.text }); showToast(t("runtime.shell.terminalContextAdded"), "success"); }} /></React.Suspense>}
         </BottomPanel>
       </div>
     </div>
     {scheduleOpen && <div ref={scheduleDialogRef} role="dialog" aria-modal="true" aria-labelledby="schedule-dialog-title" tabIndex={-1} onKeyDown={handleScheduleDialogKeyDown} style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <h2 id="schedule-dialog-title" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>Zamanlananlar</h2>
+      <h2 id="schedule-dialog-title" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>{t("schedule.view")}</h2>
       <div role="presentation" onClick={closeScheduleDialog} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
       <div style={{ position: "relative", width: "min(720px, 100%)", height: "min(80vh, 720px)", background: "var(--panel)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <React.Suspense fallback={<div className="panel-loading">Yükleniyor…</div>}><SchedulePanel onClose={closeScheduleDialog} /></React.Suspense>
+        <React.Suspense fallback={<div className="panel-loading">{t("tools.activity.loading")}</div>}><SchedulePanel onClose={closeScheduleDialog} /></React.Suspense>
       </div>
     </div>}
     {settingsModalOpen && (
@@ -1342,10 +1410,10 @@ export function AppShell(props: AppShellProps) {
           className="settings-dialog"
           role="dialog"
           aria-modal="true"
-          aria-label="Ayarlar"
+          aria-label={t("settings.title")}
           onMouseDown={(event) => event.stopPropagation()}
         >
-          <React.Suspense fallback={<div className="panel-loading" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 40, width: "100%" }}>Yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 40, width: "100%" }}>{t("tools.activity.loading")}</div>}>
             <SettingsPage
               layout="modal"
               density={density}

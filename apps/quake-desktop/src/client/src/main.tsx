@@ -6,6 +6,7 @@ import { installChunkLoadRecovery } from "./lib/chunk-load-recovery";
 import { applyStoredAppearanceRuntimeAttributes } from "./lib/appearance-runtime";
 import { configureLocalMonaco } from "./lib/monaco";
 import { App } from "./app/App";
+import { I18nProvider } from "./i18n";
 import "../tailwind.css";
 import "../styles.css";
 import "../foundation.css";
@@ -19,9 +20,11 @@ applyStoredAppearanceRuntimeAttributes();
 configureLocalMonaco();
 
 createRoot(document.getElementById("root")!).render(
-  <AppErrorBoundary>
-    <React.Suspense fallback={<SplashScreen />}>
-      <App />
-    </React.Suspense>
-  </AppErrorBoundary>,
+  <I18nProvider>
+    <AppErrorBoundary>
+      <React.Suspense fallback={<SplashScreen />}>
+        <App />
+      </React.Suspense>
+    </AppErrorBoundary>
+  </I18nProvider>,
 );

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Search, Filter, MessageSquare } from "lucide-react";
+import { localeForIntl, type Translate, useI18n } from "../../i18n";
 import { formatSessionTitle } from "../../lib/render";
 import styles from "./ConversationHistoryPage.module.css";
 
@@ -24,27 +25,33 @@ function modifiedTs(modified?: number | string): number {
   return Number.isFinite(ts) ? ts : 0;
 }
 
-function relativeTime(modified?: number | string): string {
+function relativeTime(modified: number | string | undefined, t: Translate): string {
   if (!modified) return "";
   const ts = modifiedTs(modified);
   if (!ts) return "";
   const diff = Math.max(0, Date.now() - ts);
   const min = Math.floor(diff / 60000);
-  if (min < 1) return "şimdi";
-  if (min < 60) return `${min}dk`;
+  if (min < 1) return t("history.relative.now");
+  if (min < 60) return t("history.relative.minute", { count: min });
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}sa`;
+  if (hr < 24) return t("history.relative.hour", { count: hr });
   const day = Math.floor(hr / 24);
-  if (day < 7) return `${day}g`;
+  if (day < 7) return t("history.relative.day", { count: day });
   const week = Math.floor(day / 7);
-  if (week < 5) return `${week}h`;
-  return `${Math.floor(day / 30)}ay`;
+  if (week < 5) return t("history.relative.week", { count: week });
+  return t("history.relative.month", { count: Math.floor(day / 30) });
 }
 
-function projectLabel(cwd: string | undefined, workspaceName: string): string {
-  if (!cwd || !String(cwd).trim()) return "Proje dışı";
+function formattedDate(modified: number | string | undefined, locale: string): string {
+  const ts = modifiedTs(modified);
+  if (!ts) return "";
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(ts));
+}
+
+function projectLabel(cwd: string | undefined, workspaceName: string, t: Translate): string {
+  if (!cwd || !String(cwd).trim()) return t("history.outsideProject");
   const name = String(cwd).split(/[\\/]/).filter(Boolean).pop() || workspaceName;
-  return name || "Proje dışı";
+  return name || t("history.outsideProject");
 }
 
 /**
@@ -62,6 +69,10 @@ export function ConversationHistoryPage({
   workspaceName: string;
   onOpenSession: (path: string) => void;
 }) {
+  const { locale, t } = useI18n();
+  const intlLocale = localeForIntl(locale);
+  const outsideProject = t("history.outsideProject");
+  const numberFormatter = useMemo(() => new Intl.NumberFormat(intlLocale), [intlLocale]);
   const [query, setQuery] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<ProjectFilter>("all");
@@ -72,14 +83,14 @@ export function ConversationHistoryPage({
     for (const s of sessions) {
       const cwd = String(s.cwd || "").trim();
       if (!cwd) continue;
-      const label = projectLabel(cwd, workspaceName);
+      const label = projectLabel(cwd, workspaceName, t);
       map.set(cwd, label);
     }
-    return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1], "tr"));
-  }, [sessions, workspaceName]);
+    return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1], intlLocale));
+  }, [sessions, workspaceName, t, intlLocale]);
 
   const rows = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase("tr");
+    const q = query.trim().toLocaleLowerCase(intlLocale);
     return [...sessions]
       .sort((a, b) => modifiedTs(b.modified) - modifiedTs(a.modified))
       .filter((s) => {
@@ -87,12 +98,12 @@ export function ConversationHistoryPage({
         if (projectFilter === "outside" && cwd) return false;
         if (projectFilter !== "all" && projectFilter !== "outside" && cwd !== projectFilter) return false;
         if (!q) return true;
-        const title = formatSessionTitle(s).toLocaleLowerCase("tr");
-        const proj = projectLabel(s.cwd, workspaceName).toLocaleLowerCase("tr");
-        const first = String(s.firstMessage || "").toLocaleLowerCase("tr");
+        const title = formatSessionTitle(s).toLocaleLowerCase(intlLocale);
+        const proj = projectLabel(s.cwd, workspaceName, t).toLocaleLowerCase(intlLocale);
+        const first = String(s.firstMessage || "").toLocaleLowerCase(intlLocale);
         return title.includes(q) || proj.includes(q) || first.includes(q);
       });
-  }, [sessions, query, projectFilter, workspaceName]);
+  }, [sessions, query, projectFilter, workspaceName, t, intlLocale]);
 
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -107,7 +118,7 @@ export function ConversationHistoryPage({
   return (
     <div className={styles.page}>
       <div className={styles.inner}>
-        <h1 className={styles.title}>Sohbet geçmişi</h1>
+        <h1 className={styles.title}>{t("history.title")}</h1>
 
         <div className={styles.toolbar}>
           <label className={styles.search}>
@@ -116,8 +127,8 @@ export function ConversationHistoryPage({
               type="search"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-              placeholder="Sohbetlerde ara…"
-              aria-label="Sohbetlerde ara"
+              placeholder={t("history.searchPlaceholder")}
+              aria-label={t("history.searchLabel")}
             />
           </label>
           <div className={styles.filterWrap}>
@@ -128,15 +139,15 @@ export function ConversationHistoryPage({
               aria-expanded={filterOpen}
             >
               <Filter size={14} strokeWidth={2} aria-hidden="true" />
-              <span>Filtre</span>
+              <span>{t("history.filter")}</span>
             </button>
             {filterOpen && (
               <div className={styles.filterMenu} role="menu">
                 <button type="button" role="menuitem" className={projectFilter === "all" ? styles.menuActive : ""} onClick={() => selectProjectFilter("all")}>
-                  Tümü
+                  {t("history.all")}
                 </button>
                 <button type="button" role="menuitem" className={projectFilter === "outside" ? styles.menuActive : ""} onClick={() => selectProjectFilter("outside")}>
-                  Proje dışı
+                  {outsideProject}
                 </button>
                 {projects.map(([cwd, label]) => (
                   <button
@@ -158,13 +169,14 @@ export function ConversationHistoryPage({
           {rows.length === 0 ? (
             <div className={styles.empty}>
               <MessageSquare size={22} strokeWidth={1.6} aria-hidden="true" />
-              <p>{query.trim() || projectFilter !== "all" ? "Eşleşen sohbet yok" : "Henüz sohbet yok"}</p>
+              <p>{query.trim() || projectFilter !== "all" ? t("history.noMatches") : t("history.noConversations")}</p>
             </div>
           ) : (
             paginatedRows.map((s) => {
               const active = !!s.id && s.id === activeSessionId;
               const title = formatSessionTitle(s);
-              const proj = projectLabel(s.cwd, workspaceName);
+              const proj = projectLabel(s.cwd, workspaceName, t);
+              const modifiedDate = formattedDate(s.modified, intlLocale);
               return (
                 <button
                   key={s.path}
@@ -178,8 +190,8 @@ export function ConversationHistoryPage({
                     <span className={styles.rowSub}>{proj}</span>
                   </span>
                   <span className={styles.rowMeta}>
-                    <span className={styles.rowTime}>{relativeTime(s.modified)}</span>
-                    {active && <span className={styles.dot} aria-label="Aktif" />}
+                    <span className={styles.rowTime} title={modifiedDate || undefined}>{relativeTime(s.modified, t)}</span>
+                    {active && <span className={styles.dot} aria-label={t("history.active")} />}
                   </span>
                 </button>
               );
@@ -188,29 +200,32 @@ export function ConversationHistoryPage({
         </div>
 
         {rows.length > PAGE_SIZE && (
-          <nav className={styles.pagination} aria-label="Sohbet geçmişi sayfaları">
+          <nav className={styles.pagination} aria-label={t("history.pagination.label")}>
             <button
               type="button"
               className={styles.pageButton}
               onClick={() => setPage(currentPage - 1)}
               disabled={currentPage === 1}
-              aria-label="Önceki sayfa"
+              aria-label={t("history.pagination.previousPage")}
             >
               <ChevronLeft size={15} aria-hidden="true" />
-              <span>Önceki</span>
+              <span>{t("history.pagination.previous")}</span>
             </button>
             <span className={styles.pageStatus} aria-live="polite">
-              {currentPage} / {pageCount}
-              <small>{rows.length} sohbet</small>
+              {t("history.pagination.status", {
+                current: numberFormatter.format(currentPage),
+                total: numberFormatter.format(pageCount),
+              })}
+              <small>{t("history.pagination.sessionCount", { count: numberFormatter.format(rows.length) })}</small>
             </span>
             <button
               type="button"
               className={styles.pageButton}
               onClick={() => setPage(currentPage + 1)}
               disabled={currentPage === pageCount}
-              aria-label="Sonraki sayfa"
+              aria-label={t("history.pagination.nextPage")}
             >
-              <span>Sonraki</span>
+              <span>{t("history.pagination.next")}</span>
               <ChevronRight size={15} aria-hidden="true" />
             </button>
           </nav>

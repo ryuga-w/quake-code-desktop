@@ -145,18 +145,19 @@ export function useConversationNavigation(options: ConversationNavigationOptions
   }, [currentWorkspace, hiddenWorkspaces, noProject, recentWorkspacesTick, sessionProjects, workspaceRoots]);
 
   const navPinned = useMemo(() => {
-    const byPath = new Map(sessions.map((session) => [normalizeSessionMetadataPath(String(session?.path || "")), session]));
-    return Array.from(pinnedPaths).map((path) => {
+    const byPath = new Map(visibleSessions.map((session) => [normalizeSessionMetadataPath(String(session?.path || "")), session]));
+    return Array.from(pinnedPaths).flatMap((path) => {
       const session: any = byPath.get(path);
-      if (!session) return null;
-      return {
-        id: path,
+      if (!session) return [];
+      return [{
+        ...session,
+        path: String(session.path || path),
+        id: String(session.id || path),
         name: formatSessionTitle(session),
-        modified: session.modified,
         onOpen: () => { void onOpenSession(path); },
-      };
-    }).filter(Boolean) as Array<{ id: string; name: string; modified?: number | string; onOpen: () => void }>;
-  }, [onOpenSession, pinnedPaths, sessions]);
+      }];
+    });
+  }, [onOpenSession, pinnedPaths, visibleSessions]);
 
   const paletteRecentSessions = useMemo(() => sessions
     .slice()

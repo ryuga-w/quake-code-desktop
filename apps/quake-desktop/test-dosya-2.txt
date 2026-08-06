@@ -1,0 +1,3 @@
+Test Dosyasi 2
+==============
+Iki dosya birden yazildi.

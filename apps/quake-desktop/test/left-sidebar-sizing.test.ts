@@ -11,18 +11,18 @@ import {
 describe("left sidebar snap sizes", () => {
   it("resolves quarter and half widths from the app viewport", () => {
     expect(getLeftSidebarSnapWidth("quarter", 1440)).toBe(360);
-    expect(getLeftSidebarSnapWidth("half", 1440)).toBe(720);
-    expect(getLeftSidebarMaximumWidth(1440)).toBe(720);
+    expect(getLeftSidebarSnapWidth("half", 1440)).toBe(360);
+    expect(getLeftSidebarMaximumWidth(1440)).toBe(360);
   });
 
   it("chooses the nearest stop after a drag", () => {
     expect(nearestLeftSidebarSize(345, 1440)).toBe("quarter");
-    expect(nearestLeftSidebarSize(680, 1440)).toBe("half");
-    expect(nearestLeftSidebarSize(1200, 1440)).toBe("half");
+    expect(nearestLeftSidebarSize(680, 1440)).toBe("quarter");
+    expect(nearestLeftSidebarSize(1200, 1440)).toBe("quarter");
   });
 
   it("cycles through every named size", () => {
-    expect(nextLeftSidebarSize("quarter")).toBe("half");
+    expect(nextLeftSidebarSize("quarter")).toBe("quarter");
     expect(nextLeftSidebarSize("half")).toBe("quarter");
     expect(leftSidebarSizeLabel("half")).toBe("Yarım");
     expect(isLeftSidebarSize("half")).toBe(true);

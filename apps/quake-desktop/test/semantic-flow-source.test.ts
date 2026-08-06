@@ -52,6 +52,11 @@ describe("Semantic Flow source contract", () => {
     expect(markdownRuntime).toContain("SEMANTIC_FLOW_ENTER_MS = 480");
     expect(markdownRuntime).toContain("SEMANTIC_FLOW_LIVE_LEAVE_MS = 110");
     expect(markdownRuntime).toContain("SEMANTIC_FLOW_LIVE_ENTER_MS = 220");
+    expect(markdownRuntime).toContain("function TypewriterThought");
+    expect(markdownRuntime).toContain("commonPrefixLength");
+    expect(markdownRuntime).toContain("window.requestAnimationFrame(writeFrame)");
+    expect(markdownRuntime).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
+    expect(markdownRuntime).toContain("Math.min(520, Math.max(120, remaining * 6))");
     expect(markdownRuntime).toContain("displayedRef.current = next");
     expect(markdownRuntime).toContain("return lastMeaningfulRef.current || headline");
     expect(markdownRuntime).toContain('kind: "summary", verb: "", subject: batch');
@@ -70,6 +75,20 @@ describe("Semantic Flow source contract", () => {
     expect(markdownStyles).toContain("animation: twinSignalShimmer 2.7s linear infinite");
     expect(markdownStyles).toMatch(/@keyframes twinSignalShimmer \{\s*from \{ background-position: 135% 0; \}\s*to \{ background-position: -35% 0; \}/);
     expect(markdownStyles).not.toContain("premiumThinkShimmer");
+  });
+
+  it("lets the live thought headline use the full tool header width", () => {
+    expect(markdownStyles).toMatch(/\.turnSemanticFlow \{[\s\S]*?width: 100%;[\s\S]*?max-width: 100%;/);
+    expect(markdownStyles).toMatch(/\.toolNotice \{[\s\S]*?width: 100%;[\s\S]*?max-width: 100%;/);
+    expect(markdownStyles).toMatch(/\.toolTitleRow \{[\s\S]*?width: 100%;[\s\S]*?min-width: 0;/);
+    expect(markdownStyles).toMatch(/\.toolSemanticHeadline \{[\s\S]*?flex: 1 1 auto;[\s\S]*?width: 100%;/);
+    expect(markdownStyles).toMatch(/\.toolSemanticLiveThought \{[\s\S]*?width: 100%;[\s\S]*?max-width: 100%;/);
+    expect(markdownStyles).toMatch(/\.toolSemanticLiveThought \.toolSemanticSubject \{[\s\S]*?flex: 1 1 auto;[\s\S]*?max-width: none;/);
+    expect(markdownStyles).toContain(".toolSemanticTypewriterVisual");
+    expect(markdownStyles).toContain(".toolSemanticTypewriterCopy");
+    expect(markdownStyles).toContain(".toolSemanticTypewriterCaret");
+    expect(markdownStyles).toContain("@keyframes toolSemanticCaretBlink");
+    expect(markdownStyles).not.toContain("max-width: min(500px, 58vw)");
   });
 
   it("renders only the Quake logo in both splash layers", () => {

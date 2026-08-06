@@ -49,24 +49,41 @@
 
 .iconBtn {
   display: inline-grid;
+  flex: 0 0 auto;
   place-items: center;
+  box-sizing: border-box;
   width: 26px;
+  min-width: 0;
   height: 26px;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-browser-muted, var(--muted));
+  line-height: 0;
+  box-shadow: none;
+  transform: none;
   cursor: pointer;
 }
 
 .iconBtn:hover:not(:disabled) {
+  border-color: transparent;
   background: var(--surface-browser-hover, var(--panel-2));
   color: var(--text-browser, var(--heading));
+  box-shadow: none;
+  transform: none;
 }
 
 .iconBtn:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+.iconBtn svg {
+  display: block;
+  flex: 0 0 auto;
+  pointer-events: none;
 }
 
 .spin {

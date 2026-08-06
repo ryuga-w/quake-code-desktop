@@ -40,7 +40,7 @@ describe("reference browser panel chrome", () => {
   it("shows live page identity in the browser tab", () => {
     expect(electronMain).toContain('title: browserView?.webContents.getTitle() || ""');
     expect(browserPanel).toContain("onMetadataChange?.({");
-    expect(shell).toContain("browserTitle={browserTabMetadata.title}");
+    expect(shell).toContain('browserTitle={browserTabMetadata.title || t("runtime.shell.browser")}');
     expect(shell).toContain("onMetadataChange={setBrowserTabMetadata}");
     expect(rightTabs).toContain("getBrowserFavicon");
     expect(rightTabs).toContain('className="dock-tab-favicon"');
@@ -67,10 +67,14 @@ describe("reference browser panel chrome", () => {
     expect(foundation).toContain("--surface-browser-note: #fbe7ff");
   });
 
-  it("moves the native page aside while the plus menu is open", () => {
-    expect(shell).toContain("chromeMenuOpen={dockAddOpen}");
-    expect(browserPanel).toContain("if (!current || chromeMenuOpen)");
-    expect(browserPanel).toContain("browser.hide()");
+  it("keeps the native page fixed by fitting a compact menu inside browser chrome", () => {
+    expect(rightTabs).toContain('active === "browser" ? "dock-add-menu-browser" : ""');
+    expect(styles).toContain(".dock-add-menu-browser");
+    expect(styles).toContain("grid-template-columns: repeat(3, minmax(0, 1fr))");
+    expect(styles).toContain("height: 34px");
+    expect(styles).not.toContain(".dock-header-browser.dock-header-add-open");
+    expect(browserPanel).not.toContain("chromeMenuOpen");
+    expect(shell).not.toContain("chromeMenuOpen={dockAddOpen}");
   });
 
   it("uses Quake's resolved theme for native browser color preference", () => {

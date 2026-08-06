@@ -9,6 +9,7 @@ import {
   summarizeToolBatch,
 } from "../../lib/tool-activity";
 import type { ToolCardState } from "../../state/app-store";
+import type { ToolActivityLocale } from "../../lib/tool-activity";
 import styles from "./MarkdownMessage.module.css";
 
 export function SemanticFlowSummary({ headline }: { headline: ToolNoticeHeadline }) {
@@ -57,6 +58,78 @@ export function useLastMeaningfulToolHeadline(headline: ToolNoticeHeadline, pend
 
 function headlineSignature(headline: ToolNoticeHeadline): string {
   return `${headline.kind}\u0001${headline.verb}\u0001${headline.subject}\u0001${headline.meta || ""}\u0001${headline.live ? "live" : ""}`;
+}
+
+function commonPrefixLength(left: string, right: string): number {
+  const limit = Math.min(left.length, right.length);
+  let index = 0;
+  while (index < limit && left[index] === right[index]) index += 1;
+  return index;
+}
+
+function TypewriterThought({ text, shimmer }: { text: string; shimmer: boolean }) {
+  const [visibleText, setVisibleText] = useState("");
+  const visibleRef = useRef("");
+  const frameRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (frameRef.current !== undefined) window.cancelAnimationFrame(frameRef.current);
+
+    const reducedMotion = typeof window.matchMedia === "function"
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion || !text) {
+      visibleRef.current = text;
+      setVisibleText(text);
+      frameRef.current = undefined;
+      return undefined;
+    }
+
+    const prefixLength = commonPrefixLength(visibleRef.current, text);
+    const prefix = text.slice(0, prefixLength);
+    visibleRef.current = prefix;
+    setVisibleText(prefix);
+
+    const remaining = text.length - prefixLength;
+    if (remaining <= 0) {
+      frameRef.current = undefined;
+      return undefined;
+    }
+
+    const duration = Math.min(520, Math.max(120, remaining * 6));
+    const startedAt = performance.now();
+    const writeFrame = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const nextLength = prefixLength + Math.max(1, Math.floor(remaining * progress));
+      const nextText = text.slice(0, nextLength);
+      if (nextText !== visibleRef.current) {
+        visibleRef.current = nextText;
+        setVisibleText(nextText);
+      }
+      if (progress < 1) {
+        frameRef.current = window.requestAnimationFrame(writeFrame);
+      } else {
+        frameRef.current = undefined;
+      }
+    };
+
+    frameRef.current = window.requestAnimationFrame(writeFrame);
+    return () => {
+      if (frameRef.current !== undefined) window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = undefined;
+    };
+  }, [text]);
+
+  const typing = visibleText.length < text.length;
+  return (
+    <span className={styles.toolSemanticSubject} aria-label={text}>
+      <span className={styles.toolSemanticTypewriterVisual} aria-hidden="true">
+        <span className={`${styles.toolSemanticTypewriterCopy} ${shimmer ? styles.toolSemanticThoughtShimmer : ""}`}>
+          {visibleText}
+        </span>
+        {typing && <i className={styles.toolSemanticTypewriterCaret} />}
+      </span>
+    </span>
+  );
 }
 
 /**
@@ -179,25 +252,84 @@ function SemanticHeadlineTransition({ headline }: { headline: ToolNoticeHeadline
 
   return <span className={`${styles.toolSemanticHeadline} ${liveThought ? styles.toolSemanticLiveThought : ""} ${styles.toolSemanticUnified} ${phaseClassName}`}>
     {displayed.verb && <span className={styles.toolSemanticVerb}>{displayed.verb}</span>}
-    {subject && <span className={`${styles.toolSemanticSubject} ${shimmerSubject ? styles.toolSemanticThoughtShimmer : ""}`}>{subject}</span>}
+    {subject && (liveThought
+      ? <TypewriterThought text={subject} shimmer={shimmerSubject} />
+      : <span className={styles.toolSemanticSubject}>{subject}</span>)}
     {displayed.meta && <span className={styles.toolSemanticMeta}>{displayed.meta}</span>}
   </span>;
 }
 
-export function buildToolNoticeHeadline(tools: ToolCardState[], names: string[], pending: boolean): ToolNoticeHeadline {
+export function buildToolNoticeHeadline(tools: ToolCardState[], names: string[], pending: boolean, locale: ToolActivityLocale = "tr"): ToolNoticeHeadline {
+  const text = locale === "en"
+    ? {
+        creating: "Creating",
+        agent: "agent",
+        creatingLower: "creating",
+        thinking: "Thinking",
+        webSearching: "Searching the web",
+        processing: "Processing",
+        reading: "Reading",
+        searching: "Searching",
+        editing: "Editing",
+        runningCommands: "Running commands",
+        browsing: "Browsing",
+        active: "active",
+        file: "file",
+        files: "files",
+        search: "search",
+        searches: "searches",
+        create: "creation",
+        edit: "edit",
+        delete: "deletion",
+        command: "command",
+        browser: "browser",
+        tool: "tool",
+        tools: "tools",
+        error: "Tool error",
+        ready: "Response ready",
+      }
+    : {
+        creating: "Oluşturuluyor",
+        agent: "ajan",
+        creatingLower: "oluşturuluyor",
+        thinking: "Düşünüyor",
+        webSearching: "Web aranıyor",
+        processing: "İşleniyor",
+        reading: "Okunuyor",
+        searching: "Aranıyor",
+        editing: "Düzenleniyor",
+        runningCommands: "Komutlar çalışıyor",
+        browsing: "Geziniyor",
+        active: "aktif",
+        file: "dosya",
+        files: "dosya",
+        search: "arama",
+        searches: "arama",
+        create: "oluşturma",
+        edit: "düzenleme",
+        delete: "silme",
+        command: "komut",
+        browser: "tarayıcı",
+        tool: "araç",
+        tools: "araç",
+        error: "Araç hatası",
+        ready: "Yanıt hazır",
+      };
   const activeTools = pending ? tools.filter(isActiveTool) : [];
   if (activeTools.length > 0 && activeTools.every((tool) => isSubagentTool(tool.toolName))) {
     return {
       kind: "thinking",
-      verb: activeTools.length === 1 ? "Oluşturuluyor" : `${activeTools.length} ajan`,
-      subject: activeTools.length === 1 ? "bir ajan" : "oluşturuluyor",
-      meta: activeTools.length > 1 ? `${activeTools.length} aktif` : undefined,
+      verb: activeTools.length === 1 ? text.creating : `${activeTools.length} ${text.agent}`,
+      subject: activeTools.length === 1 ? (locale === "en" ? `an ${text.agent}` : "bir ajan") : text.creatingLower,
+      meta: activeTools.length > 1 ? `${activeTools.length} ${text.active}` : undefined,
     };
   }
-  if (activeTools.length > 1) return buildConcurrentToolHeadline(activeTools);
+  // buildConcurrentToolHeadline(activeTools) remains the default Turkish contract;
+  // the locale argument keeps the same headline bilingual in the live UI.
+  if (activeTools.length > 1) return buildConcurrentToolHeadline(activeTools, locale);
   const activeTool = activeTools[0];
   if (activeTool) {
-    const activity = getToolActivity(activeTool);
+    const activity = getToolActivity(activeTool, locale);
     const stats = activity.lineStats;
     const delta = [stats.added > 0 ? `+${stats.added}` : "", stats.removed > 0 ? `−${stats.removed}` : ""].filter(Boolean).join(" ");
     if (activity.mutationKind) {
@@ -208,18 +340,18 @@ export function buildToolNoticeHeadline(tools: ToolCardState[], names: string[],
         meta: delta || undefined,
       };
     }
-    if (isCommandTool(activeTool.toolName)) return { kind: "command", verb: activity.actionLabel, subject: toolNoticeCommandLabel(activity) };
+    if (isCommandTool(activeTool.toolName)) return { kind: "command", verb: activity.actionLabel, subject: toolNoticeCommandLabel(activity, locale) };
     if (isReadTool(activeTool.toolName)) return { kind: "read", verb: activity.actionLabel, subject: toolNoticeMutationSubject(activity) };
-    if (isWebSearchActivityTool(activeTool.toolName)) return { kind: "search", verb: "Web aranıyor", subject: activity.subject };
+    if (isWebSearchActivityTool(activeTool.toolName)) return { kind: "search", verb: text.webSearching, subject: activity.subject };
     if (isSearchActivityTool(activeTool.toolName)) return { kind: "search", verb: activity.actionLabel, subject: activity.subject };
     if (isBrowserTool(activeTool.toolName)) return { kind: "browser", verb: activity.actionLabel, subject: activity.subject };
     return { kind: "thinking", verb: activity.actionLabel, subject: activity.subject };
   }
-  if (pending) return { kind: "thinking", verb: "", subject: "Düşünüyor", live: true };
+  if (pending) return { kind: "thinking", verb: "", subject: text.thinking, live: true };
   const hasError = tools.some((tool) => tool.status === "error");
-  const batch = summarizeToolBatch(tools, names);
+  const batch = summarizeToolBatch(tools, names, locale);
   return hasError
-    ? { kind: "error", verb: "", subject: batch || "Araç hatası" }
+    ? { kind: "error", verb: "", subject: batch || text.error }
     : { kind: "summary", verb: "", subject: batch };
 }
 
@@ -234,10 +366,13 @@ type ConcurrentToolCounts = {
   other: number;
 };
 
-function buildConcurrentToolHeadline(activeTools: ToolCardState[]): ToolNoticeHeadline {
+function buildConcurrentToolHeadline(activeTools: ToolCardState[], locale: ToolActivityLocale = "tr"): ToolNoticeHeadline {
+  const text = locale === "en"
+    ? { processing: "Processing", reading: "Reading", searching: "Searching", editing: "Editing", runningCommands: "Running commands", browsing: "Browsing", inspecting: "Inspecting", active: "active", file: "files", search: "searches", create: "creations", edit: "edits", delete: "deletions", command: "commands", browser: "browser actions", tool: "tools" }
+    : { processing: "İşleniyor", reading: "Okunuyor", searching: "Aranıyor", editing: "Düzenleniyor", runningCommands: "Komutlar çalışıyor", browsing: "Geziniyor", inspecting: "İnceleniyor", active: "aktif", file: "dosya", search: "arama", create: "oluşturma", edit: "düzenleme", delete: "silme", command: "komut", browser: "tarayıcı", tool: "araç" };
   const counts: ConcurrentToolCounts = { reads: 0, searches: 0, creates: 0, edits: 0, deletes: 0, commands: 0, browsers: 0, other: 0 };
   for (const tool of activeTools) {
-    const activity = getToolActivity(tool);
+    const activity = getToolActivity(tool, locale);
     if (activity.mutationKind === "create") counts.creates += 1;
     else if (activity.mutationKind === "modify") counts.edits += 1;
     else if (activity.mutationKind === "delete") counts.deletes += 1;
@@ -251,13 +386,13 @@ function buildConcurrentToolHeadline(activeTools: ToolCardState[]): ToolNoticeHe
   const categories = [counts.reads, counts.searches, counts.creates + counts.edits + counts.deletes, counts.commands, counts.browsers, counts.other].filter((count) => count > 0).length;
   const mutations = counts.creates + counts.edits + counts.deletes;
   let kind: ToolNoticeHeadline["kind"] = "thinking";
-  let verb = "İşleniyor";
-  if (categories === 1 && counts.reads) { kind = "read"; verb = "Reading"; }
-  else if (categories === 1 && counts.searches) { kind = "search"; verb = "Aranıyor"; }
-  else if (categories === 1 && mutations) { kind = "edit"; verb = "Düzenleniyor"; }
-  else if (categories === 1 && counts.commands) { kind = "command"; verb = "Running commands"; }
-  else if (categories === 1 && counts.browsers) { kind = "browser"; verb = "Geziniyor"; }
-  else if (counts.reads && counts.searches && categories === 2) { kind = "search"; verb = "İnceleniyor"; }
+  let verb = text.processing;
+  if (categories === 1 && counts.reads) { kind = "read"; verb = text.reading; }
+  else if (categories === 1 && counts.searches) { kind = "search"; verb = text.searching; }
+  else if (categories === 1 && mutations) { kind = "edit"; verb = text.editing; }
+  else if (categories === 1 && counts.commands) { kind = "command"; verb = text.runningCommands; }
+  else if (categories === 1 && counts.browsers) { kind = "browser"; verb = text.browsing; }
+  else if (counts.reads && counts.searches && categories === 2) { kind = "search"; verb = text.inspecting; }
   else if (mutations) kind = "edit";
   else if (counts.commands) kind = "command";
   else if (counts.browsers) kind = "browser";
@@ -265,21 +400,22 @@ function buildConcurrentToolHeadline(activeTools: ToolCardState[]): ToolNoticeHe
   else if (counts.reads) kind = "read";
 
   const parts = [
-    counts.reads ? `${counts.reads} dosya` : "",
-    counts.searches ? `${counts.searches} arama` : "",
-    counts.creates ? `${counts.creates} oluşturma` : "",
-    counts.edits ? `${counts.edits} düzenleme` : "",
-    counts.deletes ? `${counts.deletes} silme` : "",
-    counts.commands ? `${counts.commands} komut` : "",
-    counts.browsers ? `${counts.browsers} tarayıcı` : "",
-    counts.other ? `${counts.other} araç` : "",
+    counts.reads ? `${counts.reads} ${text.file}` : "",
+    counts.searches ? `${counts.searches} ${text.search}` : "",
+    counts.creates ? `${counts.creates} ${text.create}` : "",
+    counts.edits ? `${counts.edits} ${text.edit}` : "",
+    counts.deletes ? `${counts.deletes} ${text.delete}` : "",
+    counts.commands ? `${counts.commands} ${text.command}` : "",
+    counts.browsers ? `${counts.browsers} ${text.browser}` : "",
+    counts.other ? `${counts.other} ${text.tool}` : "",
   ].filter(Boolean);
 
   return {
     kind,
     verb,
     subject: parts.join(" · "),
-    meta: `${activeTools.length} aktif`,
+    // meta: `${activeTools.length} aktif` is the Turkish default contract.
+    meta: locale === "en" ? `${activeTools.length} active` : `${activeTools.length} aktif`,
   };
 }
 
@@ -309,8 +445,8 @@ function isSearchActivityTool(name: string): boolean {
   return ["grep", "find", "ls", "list_dir", "ls_dir", "grep_search"].includes(normalized) || normalized.includes("search") || normalized.includes("glob");
 }
 
-function toolNoticeCommandLabel(activity: ReturnType<typeof getToolActivity>): string {
+function toolNoticeCommandLabel(activity: ReturnType<typeof getToolActivity>, locale: ToolActivityLocale = "tr"): string {
   const candidate = [activity.subject, activity.argsSummary, activity.panelSubject, activity.displayName].find((value) => typeof value === "string" && value.trim());
-  if (!candidate) return "Komut çalışıyor";
+  if (!candidate) return locale === "en" ? "Running command" : "Komut çalışıyor";
   return String(candidate).replace(/^\$\s*/, "");
 }

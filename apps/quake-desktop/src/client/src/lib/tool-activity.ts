@@ -2,6 +2,7 @@ import { TOOL_SCAN_TEXT_LIMIT } from "../constants";
 import type { ToolCardState } from "../state/app-store";
 
 export type ToolMutationKind = "create" | "modify" | "delete" | undefined;
+export type ToolActivityLocale = "tr" | "en";
 
 export type ToolLineStats = {
   added: number;
@@ -64,12 +65,12 @@ const TOOL_PREVIEW_ARG_WIDTH = 142;
 const TOOL_BODY_MAX_LINES = 80;
 const TOOL_BODY_LINE_WIDTH = 2_400;
 
-const toolActivityCache = new WeakMap<ToolCardState, ToolActivity>();
+const toolActivityCache = new WeakMap<ToolCardState, Map<ToolActivityLocale, ToolActivity>>();
 const toolMutationKindCache = new WeakMap<ToolCardState, ToolMutationKind>();
 const toolLineStatsCache = new WeakMap<ToolCardState, ToolLineStats>();
 const toolFileMutationsCache = new WeakMap<ToolCardState, ToolFileMutation[]>();
-const toolExecutionPreviewCache = new WeakMap<ToolCardState, string>();
-const toolPreviewTextCache = new WeakMap<ToolCardState, string>();
+const toolExecutionPreviewCache = new WeakMap<ToolCardState, Map<ToolActivityLocale, string>>();
+const toolPreviewTextCache = new WeakMap<ToolCardState, Map<ToolActivityLocale, string>>();
 const toolPreviewLanguageCache = new WeakMap<ToolCardState, { preview: string; language: string }>();
 
 /**
@@ -77,29 +78,31 @@ const toolPreviewLanguageCache = new WeakMap<ToolCardState, { preview: string; l
  * Does NOT build multi-thousand-line execution previews (those freeze when many
  * tools mount). Call `toolExecutionPreview(tool)` only when a row is expanded.
  */
-export function getToolActivity(tool: ToolCardState): ToolActivity {
-  const cached = toolActivityCache.get(tool);
+export function getToolActivity(tool: ToolCardState, locale: ToolActivityLocale = "tr"): ToolActivity {
+  const cachedByLocale = toolActivityCache.get(tool);
+  const cached = cachedByLocale?.get(locale);
   if (cached) return cached;
 
   const mutationKind = toolMutationKind(tool);
   // Skip eager full-body preview. language inferred later when body is opened.
   const activity: ToolActivity = {
     active: isActiveTool(tool),
-    displayName: toolDisplayName(tool.toolName),
-    argsSummary: summarizeToolArgs(tool.toolName, tool.args),
-    previewText: toolPreviewText(tool),
+    displayName: toolDisplayName(tool.toolName, locale),
+    argsSummary: summarizeToolArgs(tool.toolName, tool.args, {}, locale),
+    previewText: toolPreviewText(tool, locale),
     executionPreview: "",
     previewLanguage: "typescript",
-    actionLabel: toolRunActionLabel(tool),
-    subject: toolRunSubject(tool),
-    panelSubject: toolPanelSubject(tool),
-    panelTitle: toolPanelTitle(tool),
-    resultLabel: toolResultLabel(tool),
+    actionLabel: toolRunActionLabel(tool, locale),
+    subject: toolRunSubject(tool, locale),
+    panelSubject: toolPanelSubject(tool, locale),
+    panelTitle: toolPanelTitle(tool, locale),
+    resultLabel: toolResultLabel(tool, locale),
     lineStats: toolLineStats(tool),
     mutationKind,
     sortTime: toolSortTime(tool),
   };
-  toolActivityCache.set(tool, activity);
+  if (cachedByLocale) cachedByLocale.set(locale, activity);
+  else toolActivityCache.set(tool, new Map([[locale, activity]]));
   return activity;
 }
 
@@ -109,12 +112,12 @@ export function isSubagentTool(name: string): boolean {
 }
 
 /** Full body + language — only for expanded tool cards. */
-export function getToolExecutionBody(tool: ToolCardState): { preview: string; language: string } {
-  const preview = toolExecutionPreview(tool);
-  return { preview, language: inferToolPreviewLanguage(tool, preview) };
+export function getToolExecutionBody(tool: ToolCardState, locale: ToolActivityLocale = "tr"): { preview: string; language: string } {
+  const preview = toolExecutionPreview(tool, locale);
+  return { preview, language: inferToolPreviewLanguage(tool, preview, locale) };
 }
 
-export function toolDisplayName(name: string): string {
+export function toolDisplayName(name: string, locale: ToolActivityLocale = "tr"): string {
   const map: Record<string, string> = {
     read: "Dosya okuma",
     read_file: "Dosya okuma",
@@ -137,48 +140,120 @@ export function toolDisplayName(name: string): string {
     spawn_agent: "Subagent",
     agent: "Subagent",
     spawn_agents_on_csv: "Subagent grubu",
+    create_scheduled_task: "Zamanlanmış görev oluşturma",
+    schedule_task: "Zamanlanmış görev oluşturma",
+    file_search: "Dosya arama",
+    list_directory: "Klasör listeleme",
   };
+  if (locale === "en") {
+    const englishMap: Record<string, string> = {
+      read: "File read",
+      read_file: "File read",
+      view_file: "File read",
+      bash: "Terminal command",
+      run_command: "Terminal command",
+      edit: "File edit",
+      replace_file_content: "File edit",
+      multi_replace_file_content: "File edit",
+      write: "File creation",
+      write_to_file: "File creation",
+      write_file: "File creation",
+      create_file: "File creation",
+      grep: "Text search",
+      grep_search: "Text search",
+      find: "File search",
+      ls: "Directory listing",
+      list_dir: "Directory listing",
+      apply_patch: "Apply changes",
+      spawn_agent: "Subagent",
+      agent: "Subagent",
+      spawn_agents_on_csv: "Subagent group",
+      create_scheduled_task: "Scheduled task creation",
+      schedule_task: "Scheduled task creation",
+      file_search: "File search",
+      list_directory: "Directory listing",
+    };
+    if (isBrowserTool(name)) return "Browser action";
+    return englishMap[name] || name;
+  }
   if (isBrowserTool(name)) return "Tarayıcı işlemi";
   return map[name] || name;
 }
 
-export function summarizeToolArgs(name: string, args: unknown, options: SummarizeToolArgsOptions = {}): string | undefined {
+export function summarizeToolArgs(name: string, args: unknown, options: SummarizeToolArgsOptions = {}, locale: ToolActivityLocale = "tr"): string | undefined {
   if (!args || typeof args !== "object") return undefined;
   const value = args as Record<string, any>;
   const path = toolArgPath(value);
   const writeVerb = options.writeVerb === "create" ? "Oluşturuluyor" : "Yazılıyor";
   if (isSubagentTool(name)) {
     const prompt = value.message ?? value.prompt ?? value.description;
-    return prompt ? `Girdi: ${truncateOneLine(String(prompt), 118)}` : undefined;
+    return prompt ? `${locale === "en" ? "Input" : "Girdi"}: ${truncateOneLine(String(prompt), 118)}` : undefined;
   }
   if (isCommandTool(name)) {
     const cmd = value.command ?? value.CommandLine;
     return cmd ? `$ ${String(cmd).slice(0, 140)}` : undefined;
   }
-  if (isReadTool(name)) return path ? `Reading ${shortPath(path)}` : undefined;
-  if (isWriteTool(name)) return path ? `${writeVerb} ${shortPath(path)}` : undefined;
-  if (isEditTool(name)) return path ? `Düzenleniyor ${shortPath(path)}` : undefined;
-  if (isBrowserTool(name)) return value.url ? String(value.url).slice(0, 140) : value.target ? `Hedef: ${String(value.target).slice(0, 80)}` : undefined;
+  if (isSearchTool(name)) {
+    const query = value.query ?? value.pattern ?? value.glob;
+    if (typeof query === "string" && query.trim()) {
+      return `${locale === "en" ? "Searching" : "Aranıyor"} “${truncateOneLine(query, 118)}”`;
+    }
+  }
+  if (isReadTool(name)) return path ? `${locale === "en" ? "Reading" : "Okunuyor"} ${shortPath(path)}` : undefined;
+  if (isWriteTool(name)) return path ? `${locale === "en" ? (options.writeVerb === "create" ? "Creating" : "Writing") : writeVerb} ${shortPath(path)}` : undefined;
+  if (isEditTool(name)) return path ? `${locale === "en" ? "Editing" : "Düzenleniyor"} ${shortPath(path)}` : undefined;
+  if (isBrowserTool(name)) return value.url ? String(value.url).slice(0, 140) : value.target ? `${locale === "en" ? "Target" : "Hedef"}: ${String(value.target).slice(0, 80)}` : undefined;
   if (path) return shortPath(path);
   const first = Object.entries(value).find(([, entry]) => typeof entry === "string" || typeof entry === "number");
   return first ? `${first[0]}: ${String(first[1]).slice(0, 120)}` : undefined;
 }
 
-export function summarizeToolBatch(tools: ToolCardState[], fallbackNames: string[]): string {
+export function summarizeToolBatch(tools: ToolCardState[], fallbackNames: string[], locale: ToolActivityLocale = "tr"): string {
+  const text = locale === "en"
+    ? {
+        agent: "agent",
+        creating: "creating",
+        created: "created",
+        fileCreated: "file created",
+        fileEdited: "file edited",
+        fileDeleted: "file removed",
+        fileRead: "file read",
+        searchDone: "search performed",
+        browser: "browser action",
+        operation: "operation",
+        operationsRun: "operations run",
+        command: "command",
+        commands: "commands",
+      }
+    : {
+        agent: "ajan",
+        creating: "oluşturuluyor",
+        created: "oluşturuldu",
+        fileCreated: "dosya oluşturuldu",
+        fileEdited: "dosya düzenlendi",
+        fileDeleted: "dosya kaldırıldı",
+        fileRead: "dosya okundu",
+        searchDone: "arama yapıldı",
+        browser: "tarayıcı işlemi",
+        operation: "işlem",
+        operationsRun: "işlem çalıştırıldı",
+        command: "komut",
+        commands: "komutlar",
+      };
   if (tools.length > 0 && tools.every((tool) => isSubagentTool(tool.toolName))) {
     const active = tools.some(isActiveTool);
-    return `${tools.length} ${tools.length === 1 ? "ajan" : "ajan"} ${active ? "oluşturuluyor" : "oluşturuldu"}`;
+    return `${tools.length} ${text.agent} ${active ? text.creating : text.created}`;
   }
   const summary = collectToolBatchSummary(tools, fallbackNames);
   const total = Math.max(1, summary.total || fallbackNames.length || 1);
   const categories: Array<{ count: number; label: string }> = [];
-  if (summary.commands) categories.push({ count: summary.commands, label: summary.commands === 1 ? "command" : "commands" });
-  if (summary.creates) categories.push({ count: summary.creates, label: summary.creates === 1 ? "dosya oluşturuldu" : "dosya oluşturuldu" });
-  if (summary.edits) categories.push({ count: summary.edits, label: summary.edits === 1 ? "dosya düzenlendi" : "dosya düzenlendi" });
-  if (summary.deletes) categories.push({ count: summary.deletes, label: summary.deletes === 1 ? "dosya kaldırıldı" : "dosya kaldırıldı" });
-  if (summary.reads) categories.push({ count: summary.reads, label: summary.reads === 1 ? "dosya okundu" : "dosya okundu" });
-  if (summary.searches) categories.push({ count: summary.searches, label: summary.searches === 1 ? "arama yapıldı" : "arama yapıldı" });
-  if (summary.browsers) categories.push({ count: summary.browsers, label: summary.browsers === 1 ? "tarayıcı işlemi" : "tarayıcı işlemi" });
+  if (summary.commands) categories.push({ count: summary.commands, label: summary.commands === 1 ? text.command : text.commands });
+  if (summary.creates) categories.push({ count: summary.creates, label: text.fileCreated });
+  if (summary.edits) categories.push({ count: summary.edits, label: text.fileEdited });
+  if (summary.deletes) categories.push({ count: summary.deletes, label: text.fileDeleted });
+  if (summary.reads) categories.push({ count: summary.reads, label: text.fileRead });
+  if (summary.searches) categories.push({ count: summary.searches, label: text.searchDone });
+  if (summary.browsers) categories.push({ count: summary.browsers, label: text.browser });
 
   const known = summary.creates + summary.edits + summary.deletes + summary.commands + summary.reads + summary.searches + summary.browsers;
   const other = Math.max(0, total - known);
@@ -186,22 +261,22 @@ export function summarizeToolBatch(tools: ToolCardState[], fallbackNames: string
   // One category owns the whole batch → single clean line ("10 komut çalıştırıldı").
   if (categories.length === 1 && other === 0) {
     const only = categories[0];
-    if (summary.commands) return `Ran ${only.count} ${only.label}`;
+    if (summary.commands) return locale === "en" ? `Ran ${only.count} ${only.label}` : `${only.count} ${only.label} çalıştırıldı`;
     return `${only.count} ${only.label}`;
   }
 
   // Unclassified tools only (e.g. update_plan) → neutral count, not "X araç kullanıldı".
   if (categories.length === 0) {
-    return total === 1 ? "1 işlem çalıştırıldı" : `${total} işlem çalıştırıldı`;
+    return total === 1 ? `1 ${text.operationsRun}` : `${total} ${text.operationsRun}`;
   }
 
   // Mixed kinds: prefer one total when many steps, else short category list.
   if (other > 0 || categories.length >= 3 || total >= 8) {
-    return `${total} işlem çalıştırıldı`;
+    return `${total} ${text.operationsRun}`;
   }
 
   const parts = categories.map((item) => `${item.count} ${item.label}`);
-  if (other) parts.push(`${other} işlem`);
+  if (other) parts.push(`${other} ${text.operation}`);
   return parts.join(" · ");
 }
 
@@ -395,30 +470,72 @@ function countDiffLinesSimple(text: string): { added: number; removed: number } 
   return { added, removed };
 }
 
-export function toolRunActionLabel(tool: ToolCardState): string {
-  if (isSubagentTool(tool.toolName)) return pastStatus(tool, "Oluşturuluyor", "Oluşturuldu");
+export function toolRunActionLabel(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string {
+  const labels = locale === "en"
+    ? {
+        creating: "Creating",
+        created: "Created",
+        runningCommand: "Running command",
+        commandFailed: "Command failed",
+        ran: "Ran",
+        reading: "Reading",
+        readFailed: "Read failed",
+        read: "Read",
+        deleting: "Deleting",
+        deleted: "Deleted",
+        editing: "Editing",
+        edited: "Edited",
+        searching: "Searching",
+        searched: "Searched",
+        browser: "Browser",
+        working: "Working",
+        worked: "Completed",
+        failed: "Failed",
+      }
+    : {
+        creating: "Oluşturuluyor",
+        created: "Oluşturuldu",
+        runningCommand: "Komut çalışıyor",
+        commandFailed: "Komut başarısız",
+        ran: "Çalıştırıldı",
+        reading: "Okunuyor",
+        readFailed: "Okuma başarısız",
+        read: "Okundu",
+        deleting: "Kaldırılıyor",
+        deleted: "Kaldırıldı",
+        editing: "Düzenleniyor",
+        edited: "Düzenlendi",
+        searching: "Aranıyor",
+        searched: "Arandı",
+        browser: "Tarayıcı",
+        working: "Çalışıyor",
+        worked: "Çalıştırıldı",
+        failed: "Başarısız",
+      };
+
+  if (isSubagentTool(tool.toolName)) return pastStatus(tool, labels.creating, labels.created, labels.failed);
   if (isCommandTool(tool.toolName)) {
-    if (isActiveTool(tool)) return "Running command";
-    if (tool.status === "error") return "Command failed";
-    return "Ran";
+    if (isActiveTool(tool)) return labels.runningCommand;
+    if (tool.status === "error") return labels.commandFailed;
+    return labels.ran;
   }
   if (isReadTool(tool.toolName)) {
-    if (isActiveTool(tool)) return "Reading";
-    if (tool.status === "error") return "Read failed";
-    return "Read";
+    if (isActiveTool(tool)) return labels.reading;
+    if (tool.status === "error") return labels.readFailed;
+    return labels.read;
   }
 
   const kind = toolMutationKind(tool);
-  if (kind === "create") return pastStatus(tool, "Oluşturuluyor", "Oluşturuldu");
-  if (kind === "delete") return pastStatus(tool, "Kaldırılıyor", "Kaldırıldı");
-  if (kind === "modify") return pastStatus(tool, "Düzenleniyor", "Düzenlendi");
-  if (isSearchTool(tool.toolName)) return pastStatus(tool, "Aranıyor", "Arandı");
-  if (isBrowserTool(tool.toolName)) return pastStatus(tool, "Tarayıcı", "Tarayıcı");
-  return pastStatus(tool, "Çalışıyor", "Çalıştırıldı");
+  if (kind === "create") return pastStatus(tool, labels.creating, labels.created, labels.failed);
+  if (kind === "delete") return pastStatus(tool, labels.deleting, labels.deleted, labels.failed);
+  if (kind === "modify") return pastStatus(tool, labels.editing, labels.edited, labels.failed);
+  if (isSearchTool(tool.toolName)) return pastStatus(tool, labels.searching, labels.searched, labels.failed);
+  if (isBrowserTool(tool.toolName)) return pastStatus(tool, labels.browser, labels.browser, labels.failed);
+  return pastStatus(tool, labels.working, labels.worked, labels.failed);
 }
 
-export function toolRunSubject(tool: ToolCardState): string {
-  if (isSubagentTool(tool.toolName)) return "bir ajan";
+export function toolRunSubject(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string {
+  if (isSubagentTool(tool.toolName)) return locale === "en" ? "an agent" : "bir ajan";
   const args = asToolArgsRecord(tool.args);
   const cmd = args.command ?? args.CommandLine;
   if (isCommandTool(tool.toolName) && cmd) return truncateOneLine(String(cmd), 122);
@@ -429,14 +546,14 @@ export function toolRunSubject(tool: ToolCardState): string {
   const kind = toolMutationKind(tool);
   if (kind === "create" || kind === "modify" || isReadTool(tool.toolName)) {
     // Gerçek ad yoksa generic "yeni dosya" gösterme — araç adını tercih et.
-    return truncateOneLine(toolDisplayName(tool.toolName), 122);
+    return truncateOneLine(toolDisplayName(tool.toolName, locale), 122);
   }
 
-  const summary = summarizeToolArgs(tool.toolName, tool.args);
+  const summary = summarizeToolArgs(tool.toolName, tool.args, {}, locale);
   return truncateOneLine(summary || tool.toolName, 122);
 }
 
-export function toolPanelSubject(tool: ToolCardState): string | undefined {
+export function toolPanelSubject(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string | undefined {
   if (isSubagentTool(tool.toolName)) {
     const details = tool.details && typeof tool.details === "object" ? tool.details as Record<string, any> : {};
     return truncateOneLine(String(details.nickname || details.agent_id || details.agentId || "").trim(), 96) || undefined;
@@ -475,21 +592,23 @@ export function resolveToolFilePath(tool: ToolCardState): string | undefined {
   return scanned;
 }
 
-export function toolPanelTitle(tool: ToolCardState): string {
+export function toolPanelTitle(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string {
   if (isSubagentTool(tool.toolName)) return "Subagent";
-  if (isCommandTool(tool.toolName)) return "Komut";
-  if (isReadTool(tool.toolName)) return "Dosya";
+  if (isCommandTool(tool.toolName)) return locale === "en" ? "Command" : "Komut";
+  if (isReadTool(tool.toolName)) return locale === "en" ? "File" : "Dosya";
 
   const kind = toolMutationKind(tool);
-  if (kind === "create") return "Yeni dosya";
-  if (kind === "delete") return "Silme";
-  if (kind === "modify") return "Dosya değişikliği";
-  if (isBrowserTool(tool.toolName)) return "Tarayıcı";
-  return "Araç";
+  if (kind === "create") return locale === "en" ? "New file" : "Yeni dosya";
+  if (kind === "delete") return locale === "en" ? "Delete" : "Silme";
+  if (kind === "modify") return locale === "en" ? "File change" : "Dosya değişikliği";
+  if (isBrowserTool(tool.toolName)) return locale === "en" ? "Browser" : "Tarayıcı";
+  if (isSearchTool(tool.toolName)) return locale === "en" ? "Search" : "Arama";
+  return locale === "en" ? "Tool" : "Araç";
 }
 
-export function toolExecutionPreview(tool: ToolCardState): string {
-  const cached = toolExecutionPreviewCache.get(tool);
+export function toolExecutionPreview(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string {
+  const cachedByLocale = toolExecutionPreviewCache.get(tool);
+  const cached = cachedByLocale?.get(locale);
   if (cached !== undefined) return cached;
 
   const args = (tool.args || {}) as Record<string, any>;
@@ -503,44 +622,45 @@ export function toolExecutionPreview(tool: ToolCardState): string {
 
   // Kimlik (komut/dosya yolu) kart başlığında zaten var. Gövde: okunan/yazılan/diff
   // mümkün olduğunca tam; UI max-height + scroll ile sınırlanır.
-  const outputPreview = boundedToolOutputPreview(stripLeadingDuplicatePreviewLead(String(tool.output || ""), duplicatePreviewLead));
+  const outputPreview = boundedToolOutputPreview(stripLeadingDuplicatePreviewLead(String(tool.output || ""), duplicatePreviewLead), locale);
   if (outputPreview) appendPreviewBlock(previewLines, outputPreview, TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
 
-  const patchPreview = toolPatchPreview(tool);
+  const patchPreview = toolPatchPreview(tool, locale);
   if (patchPreview) appendPreviewBlock(previewLines, patchPreview, TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
 
-  const editPreview = toolEditArgumentPreview(tool);
+  const editPreview = toolEditArgumentPreview(tool, locale);
   if (editPreview) appendPreviewBlock(previewLines, editPreview, TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
 
-  const contentPreview = toolWrittenContentPreview(tool);
+  const contentPreview = toolWrittenContentPreview(tool, locale);
   if (contentPreview) appendPreviewBlock(previewLines, contentPreview, TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
 
-  const intentPreview = toolIntentPreview(tool);
+  const intentPreview = toolIntentPreview(tool, locale);
   if (!outputPreview && !patchPreview && !editPreview && !contentPreview && intentPreview) {
     appendPreviewBlock(previewLines, intentPreview, TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
   }
 
   const hasInlinePreview = Boolean(outputPreview || patchPreview || editPreview || contentPreview || intentPreview);
-  if (!previewLines.length && tool.args) appendPreviewBlock(previewLines, toolArgumentsPreview(tool), TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
-  else if (!hasInlinePreview && isActiveTool(tool)) appendPreviewBlock(previewLines, toolActivePlaceholder(tool), 24, TOOL_PREVIEW_ARG_WIDTH);
-  else if (toolMutationKind(tool) === "create") appendPreviewBlock(previewLines, "Dosya oluşturuldu.", 4, TOOL_PREVIEW_ARG_WIDTH);
-  else if (toolMutationKind(tool) === "modify") appendPreviewBlock(previewLines, "Dosya değişikliği tamamlandı.", 4, TOOL_PREVIEW_ARG_WIDTH);
-  else if (isReadTool(tool.toolName)) appendPreviewBlock(previewLines, "Dosya okundu.", 4, TOOL_PREVIEW_ARG_WIDTH);
+  if (!previewLines.length && tool.args) appendPreviewBlock(previewLines, toolArgumentsPreview(tool, locale), TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
+  else if (!hasInlinePreview && isActiveTool(tool)) appendPreviewBlock(previewLines, toolActivePlaceholder(tool, locale), 24, TOOL_PREVIEW_ARG_WIDTH);
+  else if (toolMutationKind(tool) === "create") appendPreviewBlock(previewLines, locale === "en" ? "File created." : "Dosya oluşturuldu.", 4, TOOL_PREVIEW_ARG_WIDTH);
+  else if (toolMutationKind(tool) === "modify") appendPreviewBlock(previewLines, locale === "en" ? "File change completed." : "Dosya değişikliği tamamlandı.", 4, TOOL_PREVIEW_ARG_WIDTH);
+  else if (isReadTool(tool.toolName)) appendPreviewBlock(previewLines, locale === "en" ? "File read." : "Dosya okundu.", 4, TOOL_PREVIEW_ARG_WIDTH);
 
-  const preview = previewLines.join("\n") || (isActiveTool(tool) && isCommandTool(tool.toolName) ? "" : "Çıktı yok");
-  toolExecutionPreviewCache.set(tool, preview);
+  const preview = previewLines.join("\n") || (isActiveTool(tool) && isCommandTool(tool.toolName) ? "" : locale === "en" ? "No output" : "Çıktı yok");
+  if (cachedByLocale) cachedByLocale.set(locale, preview);
+  else toolExecutionPreviewCache.set(tool, new Map([[locale, preview]]));
   return preview;
 }
 
-export function inferToolPreviewLanguage(tool: ToolCardState, preview?: string): string {
-  const resolvedPreview = preview ?? toolExecutionPreview(tool);
+export function inferToolPreviewLanguage(tool: ToolCardState, preview?: string, locale: ToolActivityLocale = "tr"): string {
+  const resolvedPreview = preview ?? toolExecutionPreview(tool, locale);
   const cached = toolPreviewLanguageCache.get(tool);
   if (cached?.preview === resolvedPreview) return cached.language;
 
   let language = "typescript";
   const args = (tool.args || {}) as Record<string, any>;
   if (isCommandTool(tool.toolName)) language = "shell";
-  else if (isBrowserTool(tool.toolName) && /Tarayıcı kodu|function|await|document\.|locator|page\./.test(resolvedPreview)) language = "typescript";
+  else if (isBrowserTool(tool.toolName) && /Tarayıcı kodu|Browser code|function|await|document\.|locator|page\./.test(resolvedPreview)) language = "typescript";
   else {
     const path = String(toolArgPath(args) || extractWrittenPath(tool.output) || "");
     const extension = path.split(/[?#]/)[0].split(".").pop()?.toLowerCase();
@@ -565,8 +685,9 @@ export function inferToolPreviewLanguage(tool: ToolCardState, preview?: string):
   return language;
 }
 
-export function toolPreviewText(tool: ToolCardState): string {
-  const cached = toolPreviewTextCache.get(tool);
+export function toolPreviewText(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string {
+  const cachedByLocale = toolPreviewTextCache.get(tool);
+  const cached = cachedByLocale?.get(locale);
   if (cached !== undefined) return cached;
 
   const args = (tool.args || {}) as Record<string, any>;
@@ -576,54 +697,57 @@ export function toolPreviewText(tool: ToolCardState): string {
     : toolArgPath(args) || extractWrittenPath(tool.output);
   const output = stripLeadingDuplicatePreviewLead(String(tool.output || ""), duplicatePreviewLead).trim();
   if (output) {
-    const preview = formatToolOutputPreview(output);
-    toolPreviewTextCache.set(tool, preview);
+    const preview = formatToolOutputPreview(output, locale);
+    if (cachedByLocale) cachedByLocale.set(locale, preview); else toolPreviewTextCache.set(tool, new Map([[locale, preview]]));
     return preview;
   }
 
   const diff = toolDiffText(tool).trim();
   if (diff) {
-    toolPreviewTextCache.set(tool, diff);
+    if (cachedByLocale) cachedByLocale.set(locale, diff); else toolPreviewTextCache.set(tool, new Map([[locale, diff]]));
     return diff;
   }
 
-  const editPreview = toolEditArgumentPreview(tool);
+  const editPreview = toolEditArgumentPreview(tool, locale);
   if (editPreview) {
-    toolPreviewTextCache.set(tool, editPreview);
+    if (cachedByLocale) cachedByLocale.set(locale, editPreview); else toolPreviewTextCache.set(tool, new Map([[locale, editPreview]]));
     return editPreview;
   }
 
-  const contentPreview = toolWrittenContentPreview(tool);
+  const contentPreview = toolWrittenContentPreview(tool, locale);
   if (contentPreview) {
-    toolPreviewTextCache.set(tool, contentPreview);
+    if (cachedByLocale) cachedByLocale.set(locale, contentPreview); else toolPreviewTextCache.set(tool, new Map([[locale, contentPreview]]));
     return contentPreview;
   }
 
-  const intentPreview = toolIntentPreview(tool);
+  const intentPreview = toolIntentPreview(tool, locale);
   if (intentPreview) {
-    toolPreviewTextCache.set(tool, intentPreview);
+    if (cachedByLocale) cachedByLocale.set(locale, intentPreview); else toolPreviewTextCache.set(tool, new Map([[locale, intentPreview]]));
     return intentPreview;
   }
 
   const argsPreview = safeToolJson(tool.args);
   if (argsPreview) {
-    const preview = `Araç girdisi\n${argsPreview}`;
-    toolPreviewTextCache.set(tool, preview);
+    const preview = `${locale === "en" ? "Tool input" : "Araç girdisi"}\n${argsPreview}`;
+    if (cachedByLocale) cachedByLocale.set(locale, preview); else toolPreviewTextCache.set(tool, new Map([[locale, preview]]));
     return preview;
   }
 
-  const preview = toolActivePlaceholder(tool) || "";
-  toolPreviewTextCache.set(tool, preview);
+  const preview = toolActivePlaceholder(tool, locale) || "";
+  if (cachedByLocale) cachedByLocale.set(locale, preview); else toolPreviewTextCache.set(tool, new Map([[locale, preview]]));
   return preview;
 }
 
-export function toolResultLabel(tool: ToolCardState): string {
+export function toolResultLabel(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string {
+  const labels = locale === "en"
+    ? { noResult: "No results", failed: "× Failed", running: "Running", success: "✓ Succeeded" }
+    : { noResult: "Sonuç bulunamadı", failed: "× Başarısız", running: "Çalışıyor", success: "✓ Başarılı" };
   if (tool.status === "error") {
-    if (isNoResultCommand(tool)) return "Sonuç bulunamadı";
-    return "× Başarısız";
+    if (isNoResultCommand(tool)) return labels.noResult;
+    return labels.failed;
   }
-  if (isActiveTool(tool)) return "Çalışıyor";
-  return "✓ Başarılı";
+  if (isActiveTool(tool)) return labels.running;
+  return labels.success;
 }
 
 export function toolDiffText(tool: ToolCardState): string {
@@ -685,7 +809,7 @@ export function isBrowserTool(name: string): boolean {
 
 export function isSearchTool(name: string): boolean {
   const n = name.toLowerCase();
-  return ["grep", "find", "ls", "list_dir", "ls_dir", "grep_search"].includes(n) || n.includes("search") || n.includes("glob");
+  return ["grep", "find", "ls", "list_dir", "ls_dir", "list_directory", "grep_search"].includes(n) || n.includes("search") || n.includes("glob");
 }
 
 export function toolArgPath(args: Record<string, any>): string | undefined {
@@ -801,10 +925,10 @@ function collectFallbackToolCategory(summary: ToolBatchSummary, name: string): v
   if (/delete|remove|rm/.test(name)) summary.deletes += 1;
 }
 
-function formatToolOutputPreview(output: string): string {
-  if (output.trim() === "(no output)") return "Çıktı üretilmedi.";
+function formatToolOutputPreview(output: string, locale: ToolActivityLocale = "tr"): string {
+  if (output.trim() === "(no output)") return locale === "en" ? "No output produced." : "Çıktı üretilmedi.";
   const writeMatch = output.match(/^Successfully wrote (\d+) bytes to .+$/m);
-  if (writeMatch) return `Yazıldı: ${writeMatch[1]} bayt`;
+  if (writeMatch) return locale === "en" ? `Written: ${writeMatch[1]} bytes` : `Yazıldı: ${writeMatch[1]} bayt`;
   // Keep lightweight for list rows — full body uses toolExecutionPreview when expanded.
   if (output.length > 2_400) return `${output.slice(0, 2_400)}\n…`;
   return output;
@@ -820,20 +944,20 @@ function isNoResultCommand(tool: ToolCardState): boolean {
   return searchCommand && (noMatchOutput || !output.trim());
 }
 
-function pastStatus(tool: ToolCardState, active: string, done: string): string {
+function pastStatus(tool: ToolCardState, active: string, done: string, failed = "Başarısız"): string {
   if (isActiveTool(tool)) return active;
-  if (tool.status === "error") return "Başarısız";
+  if (tool.status === "error") return failed;
   return done;
 }
 
-function boundedToolOutputPreview(output: string): string | undefined {
+function boundedToolOutputPreview(output: string, locale: ToolActivityLocale = "tr"): string | undefined {
   const firstLine = firstVisibleOutputLine(output, 220);
   if (!firstLine) return undefined;
-  if (firstLine === "(no output)") return "Çıktı üretilmedi.";
+  if (firstLine === "(no output)") return locale === "en" ? "No output produced." : "Çıktı üretilmedi.";
   const writeMatch = firstLine.match(/^Successfully wrote (\d+) bytes to .+$/);
-  if (writeMatch) return `Yazıldı: ${writeMatch[1]} bayt`;
+  if (writeMatch) return locale === "en" ? `Written: ${writeMatch[1]} bytes` : `Yazıldı: ${writeMatch[1]} bayt`;
   if (/^Successfully replaced \d+ block\(s\) in /i.test(firstLine)) return undefined;
-  if (/^(Dosya değişikliği tamamlandı|Dosya oluşturuldu|Dosya okundu)\.?$/i.test(firstLine)) return undefined;
+  if (/^(Dosya değişikliği tamamlandı|Dosya oluşturuldu|Dosya okundu|File change completed|File created|File read)\.?$/i.test(firstLine)) return undefined;
   return output;
 }
 
@@ -857,7 +981,7 @@ function firstVisibleOutputLine(output: string, width: number): string | undefin
   return firstLine;
 }
 
-function toolPatchPreview(tool: ToolCardState): string | undefined {
+function toolPatchPreview(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string | undefined {
   const diff = toolDiffText(tool);
   if (!hasNonWhitespaceText(diff)) return undefined;
 
@@ -875,52 +999,52 @@ function toolPatchPreview(tool: ToolCardState): string | undefined {
     preview.push(truncatePreviewLine(diff, start, end, TOOL_BODY_LINE_WIDTH));
   });
 
-  const title = created ? "Yeni dosya içeriği" : "Değişiklik";
+  const title = created ? (locale === "en" ? "New file content" : "Yeni dosya içeriği") : (locale === "en" ? "Change" : "Değişiklik");
   if (truncated) preview.push("…");
   return preview.length ? `${title}\n${preview.join("\n")}` : undefined;
 }
 
-function toolEditArgumentPreview(tool: ToolCardState): string | undefined {
+function toolEditArgumentPreview(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string | undefined {
   if (hasPatchDetails(tool) || toolMutationKind(tool) !== "modify") return undefined;
   const args = (tool.args || {}) as Record<string, any>;
   const edits = collectEditReplacements(args);
   if (!edits.length) return undefined;
 
-  const preview: string[] = ["Düzenleme"];
+  const preview: string[] = [locale === "en" ? "Edit" : "Düzenleme"];
   edits.forEach((edit, index) => {
-    if (edits.length > 1) preview.push(`@@ değişim ${index + 1}`);
+    if (edits.length > 1) preview.push(`@@ ${locale === "en" ? "change" : "değişim"} ${index + 1}`);
     preview.push(...formatReplacementPreview(edit));
   });
   return preview.join("\n");
 }
 
-function toolWrittenContentPreview(tool: ToolCardState): string | undefined {
+function toolWrittenContentPreview(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string | undefined {
   if (hasPatchDetails(tool)) return undefined;
   const args = (tool.args || {}) as Record<string, any>;
   const raw = args.content ?? args.text ?? args.newText ?? args.new_text ?? args.replacement ?? args.patch;
   if (typeof raw !== "string" || !hasNonWhitespaceText(raw)) return undefined;
 
-  const title = toolMutationKind(tool) === "create" ? "Yazılan içerik" : "Değişen içerik";
+  const title = toolMutationKind(tool) === "create" ? (locale === "en" ? "Written content" : "Yazılan içerik") : (locale === "en" ? "Changed content" : "Değişen içerik");
   const preview = collectNumberedPreviewLines(raw, TOOL_BODY_MAX_LINES, TOOL_BODY_LINE_WIDTH);
   return `${title}\n${preview.lines.join("\n")}${preview.truncated ? "\n…" : ""}`;
 }
 
-function toolIntentPreview(tool: ToolCardState): string | undefined {
+function toolIntentPreview(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string | undefined {
   const args = (tool.args || {}) as Record<string, any>;
-  if (isBrowserTool(tool.toolName)) return toolBrowserIntentPreview(args);
-  if (isSearchTool(tool.toolName)) return toolSearchIntentPreview(tool.toolName, args);
+  if (isBrowserTool(tool.toolName)) return toolBrowserIntentPreview(args, locale);
+  if (isSearchTool(tool.toolName)) return toolSearchIntentPreview(tool.toolName, args, locale);
   if (isReadTool(tool.toolName)) {
     const path = toolArgPath(args);
-    return path ? `Okuma isteği\n${path}` : undefined;
+    return path ? `${locale === "en" ? "Read request" : "Okuma isteği"}\n${path}` : undefined;
   }
   const cmd = args.command ?? args.CommandLine;
   if (isCommandTool(tool.toolName) && typeof cmd === "string") return `$ ${cmd}`;
   return undefined;
 }
 
-function toolBrowserIntentPreview(args: Record<string, any>): string | undefined {
+function toolBrowserIntentPreview(args: Record<string, any>, locale: ToolActivityLocale = "tr"): string | undefined {
   const code = firstStringArg(args, ["code", "script", "function", "fn", "expression"]);
-  if (code) return `Tarayıcı kodu\n${previewCodeFragment(code, 12)}`;
+  if (code) return `${locale === "en" ? "Browser code" : "Tarayıcı kodu"}\n${previewCodeFragment(code, 12)}`;
 
   const lines: string[] = [];
   const url = firstStringArg(args, ["url", "href"]);
@@ -928,41 +1052,41 @@ function toolBrowserIntentPreview(args: Record<string, any>): string | undefined
   const action = firstStringArg(args, ["action", "method", "name"]);
   const file = firstStringArg(args, ["path", "filePath", "file_path", "filename"]);
   if (url) lines.push(`url: ${url}`);
-  if (target) lines.push(`hedef: ${target}`);
-  if (action) lines.push(`işlem: ${action}`);
-  if (file) lines.push(`dosya: ${file}`);
-  return lines.length ? `Tarayıcı işlemi\n${lines.map((line) => truncateLine(line, TOOL_PREVIEW_ARG_WIDTH)).join("\n")}` : undefined;
+  if (target) lines.push(`${locale === "en" ? "target" : "hedef"}: ${target}`);
+  if (action) lines.push(`${locale === "en" ? "action" : "işlem"}: ${action}`);
+  if (file) lines.push(`${locale === "en" ? "file" : "dosya"}: ${file}`);
+  return lines.length ? `${locale === "en" ? "Browser action" : "Tarayıcı işlemi"}\n${lines.map((line) => truncateLine(line, TOOL_PREVIEW_ARG_WIDTH)).join("\n")}` : undefined;
 }
 
-function toolSearchIntentPreview(name: string, args: Record<string, any>): string | undefined {
+function toolSearchIntentPreview(name: string, args: Record<string, any>, locale: ToolActivityLocale = "tr"): string | undefined {
   const lines: string[] = [];
   const query = firstStringArg(args, ["pattern", "query", "q", "glob", "needle", "search"]);
   const path = toolArgPath(args);
   const include = firstStringArg(args, ["include", "type", "extension"]);
   const depth = args.maxDepth ?? args.max_depth ?? args.depth;
-  if (query) lines.push(`aranan: ${query}`);
-  if (path) lines.push(`konum: ${path}`);
-  if (include) lines.push(`filtre: ${include}`);
-  if (depth !== undefined) lines.push(`derinlik: ${depth}`);
-  if (!lines.length && name === "ls" && path) lines.push(`konum: ${path}`);
-  return lines.length ? `Arama isteği\n${lines.map((line) => truncateLine(line, TOOL_PREVIEW_ARG_WIDTH)).join("\n")}` : undefined;
+  if (query) lines.push(`${locale === "en" ? "query" : "aranan"}: ${query}`);
+  if (path) lines.push(`${locale === "en" ? "location" : "konum"}: ${path}`);
+  if (include) lines.push(`${locale === "en" ? "filter" : "filtre"}: ${include}`);
+  if (depth !== undefined) lines.push(`${locale === "en" ? "depth" : "derinlik"}: ${depth}`);
+  if (!lines.length && name === "ls" && path) lines.push(`${locale === "en" ? "location" : "konum"}: ${path}`);
+  return lines.length ? `${locale === "en" ? "Search request" : "Arama isteği"}\n${lines.map((line) => truncateLine(line, TOOL_PREVIEW_ARG_WIDTH)).join("\n")}` : undefined;
 }
 
-function toolArgumentsPreview(tool: ToolCardState): string | undefined {
+function toolArgumentsPreview(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string | undefined {
   const raw = safeToolJson(tool.args);
-  return raw ? `Araç girdisi\n${raw}` : toolActivePlaceholder(tool);
+  return raw ? `${locale === "en" ? "Tool input" : "Araç girdisi"}\n${raw}` : toolActivePlaceholder(tool, locale);
 }
 
-function toolActivePlaceholder(tool: ToolCardState): string | undefined {
+function toolActivePlaceholder(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string | undefined {
   if (isCommandTool(tool.toolName)) return undefined;
-  if (isBrowserTool(tool.toolName)) return "Tarayıcı işlemi çalışıyor.";
-  if (isSearchTool(tool.toolName)) return "Arama çalışıyor.";
-  if (isReadTool(tool.toolName)) return "Dosya okunuyor.";
+  if (isBrowserTool(tool.toolName)) return locale === "en" ? "Browser action is running." : "Tarayıcı işlemi çalışıyor.";
+  if (isSearchTool(tool.toolName)) return locale === "en" ? "Search is running." : "Arama çalışıyor.";
+  if (isReadTool(tool.toolName)) return locale === "en" ? "Reading file." : "Dosya okunuyor.";
   const kind = toolMutationKind(tool);
-  if (kind === "create") return "Dosya oluşturuluyor.";
-  if (kind === "modify") return "Dosya düzenleniyor.";
-  if (kind === "delete") return "Dosya siliniyor.";
-  return "Araç çalışıyor.";
+  if (kind === "create") return locale === "en" ? "Creating file." : "Dosya oluşturuluyor.";
+  if (kind === "modify") return locale === "en" ? "Editing file." : "Dosya düzenleniyor.";
+  if (kind === "delete") return locale === "en" ? "Deleting file." : "Dosya siliniyor.";
+  return locale === "en" ? "Tool is running." : "Araç çalışıyor.";
 }
 
 function hasPatchDetails(tool: ToolCardState): boolean {

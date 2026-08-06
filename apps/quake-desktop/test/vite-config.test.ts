@@ -16,17 +16,17 @@ describe("Vite workspace configuration", () => {
     );
   });
 
-  it("assigns stable chunks for editor, React, and rich Markdown runtimes", () => {
+  it("assigns stable chunks for editor, React, and the complete Markdown runtime", () => {
     expect(quakeManualChunk("C:/repo/node_modules/monaco-editor/esm/vs/editor/editor.api.js")).toBe("monaco");
     expect(quakeManualChunk("C:/repo/node_modules/@monaco-editor/react/dist/index.js")).toBe("monaco");
     expect(quakeManualChunk(String.raw`C:\repo\node_modules\react-dom\client.js`)).toBe("react-vendor");
-    expect(quakeManualChunk("C:/repo/node_modules/streamdown/dist/index.js")).toBe("markdown-core");
-    expect(quakeManualChunk("C:/repo/node_modules/remark-gfm/index.js")).toBe("markdown-core");
-    expect(quakeManualChunk("C:/repo/node_modules/micromark-extension-gfm/index.js")).toBe("markdown-core");
-    expect(quakeManualChunk("C:/repo/node_modules/@streamdown/code/dist/index.js")).toBe("markdown-code");
-    expect(quakeManualChunk("C:/repo/node_modules/@streamdown/math/dist/index.js")).toBe("markdown-math");
-    expect(quakeManualChunk("C:/repo/node_modules/rehype-katex/index.js")).toBe("markdown-math");
-    expect(quakeManualChunk("C:/repo/node_modules/@streamdown/mermaid/dist/index.js")).toBe("markdown-diagrams");
+    expect(quakeManualChunk("C:/repo/node_modules/streamdown/dist/index.js")).toBe("markdown-runtime");
+    expect(quakeManualChunk("C:/repo/node_modules/remark-gfm/index.js")).toBe("markdown-runtime");
+    expect(quakeManualChunk("C:/repo/node_modules/micromark-extension-gfm/index.js")).toBe("markdown-runtime");
+    expect(quakeManualChunk("C:/repo/node_modules/@streamdown/code/dist/index.js")).toBe("markdown-runtime");
+    expect(quakeManualChunk("C:/repo/node_modules/@streamdown/math/dist/index.js")).toBe("markdown-runtime");
+    expect(quakeManualChunk("C:/repo/node_modules/rehype-katex/index.js")).toBe("markdown-runtime");
+    expect(quakeManualChunk("C:/repo/node_modules/@streamdown/mermaid/dist/index.js")).toBe("markdown-runtime");
   });
 
   it("includes the landing and account portal as independent page entries", () => {
@@ -37,11 +37,11 @@ describe("Vite workspace configuration", () => {
     expect(input?.auth.replaceAll("\\", "/")).toMatch(/src\/client\/auth\.html$/);
   });
 
-  it("preserves Shiki and Mermaid lazy module boundaries", () => {
+  it("keeps the Markdown graph ordered while preserving lazy Shiki and Mermaid modules", () => {
     const output = viteConfig.build?.rollupOptions?.output;
 
     expect(Array.isArray(output)).toBe(false);
-    expect((output as { onlyExplicitManualChunks?: boolean } | undefined)?.onlyExplicitManualChunks).toBe(true);
+    expect((output as { onlyExplicitManualChunks?: boolean } | undefined)?.onlyExplicitManualChunks).toBe(false);
     expect(quakeManualChunk("C:/repo/node_modules/shiki/dist/langs/typescript.mjs")).toBeUndefined();
     expect(
       quakeManualChunk("C:/repo/node_modules/mermaid/dist/chunks/mermaid.core/flowDiagram-ABC.mjs"),

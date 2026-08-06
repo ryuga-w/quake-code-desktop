@@ -124,6 +124,8 @@ export interface QuakeDesktopApi {
   setOverlay: (color: string, symbolColor: string) => void;
   /** Sync Chromium prefers-color-scheme with Quake's resolved theme. */
   setResolvedTheme?: (theme: "light" | "dark") => void;
+  /** Sync the Electron application menu with the renderer's resolved locale. */
+  setNativeLocale?: (locale: "tr" | "en") => void;
   /** Native klasör seçici (Add Folder). */
   pickFolder?: () => Promise<string | null>;
   /** Native multi-folder picker (multi-root workspace). */

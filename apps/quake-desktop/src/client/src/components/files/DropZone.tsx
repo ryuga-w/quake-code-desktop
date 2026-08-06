@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from "react";
 import { FolderInput } from "lucide-react";
 import { apiPost } from "../../lib/api";
 import { useAppStore } from "../../state/app-store";
+import { useI18n } from "../../i18n";
 import styles from "./DropZone.module.css";
 
 interface DropZoneProps {
@@ -14,6 +15,7 @@ function isComposerDropTarget(target: EventTarget | null): boolean {
 }
 
 export function DropZone({ onFilesUploaded, children }: DropZoneProps) {
+  const { locale } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -73,7 +75,7 @@ export function DropZone({ onFilesUploaded, children }: DropZoneProps) {
 
     const validFiles = files.filter((f) => {
       if (f.size > 10 * 1024 * 1024) {
-        showToast(`${f.name} çok büyük (>10MB)`, "warning");
+        showToast(locale === "en" ? `${f.name} is too large (>10MB)` : `${f.name} çok büyük (>10MB)`, "warning");
         return false;
       }
       return true;
@@ -88,7 +90,7 @@ export function DropZone({ onFilesUploaded, children }: DropZoneProps) {
     for (let i = 0; i < validFiles.length; i++) {
       const file = validFiles[i];
       try {
-        const content = await readFileAsText(file);
+        const content = await readFileAsText(file, locale);
         const result = await apiPost<{ path: string }>("/api/file/write", {
           path: file.name,
           content,
@@ -96,17 +98,17 @@ export function DropZone({ onFilesUploaded, children }: DropZoneProps) {
         });
         uploaded.push(result.path);
       } catch (error: any) {
-        showToast(`${file.name} yüklenemedi: ${error.message}`, "error");
+        showToast(`${locale === "en" ? `Could not upload ${file.name}` : `${file.name} yüklenemedi`}: ${error.message}`, "error");
       }
       setProgress(Math.round(((i + 1) / validFiles.length) * 100));
     }
 
     setUploading(false);
     if (uploaded.length > 0) {
-      showToast(`${uploaded.length} dosya yüklendi`, "success");
+      showToast(locale === "en" ? `${uploaded.length} file${uploaded.length === 1 ? "" : "s"} uploaded` : `${uploaded.length} dosya yüklendi`, "success");
       onFilesUploaded?.(uploaded);
     }
-  }, [onFilesUploaded, showToast]);
+  }, [locale, onFilesUploaded, showToast]);
 
   return (
     <div
@@ -121,25 +123,25 @@ export function DropZone({ onFilesUploaded, children }: DropZoneProps) {
         <div className={styles.overlay}>
           <div className={styles.message}>
             <span className={styles.icon} aria-hidden="true"><FolderInput size={28} /></span>
-            <span>Dosyaları buraya bırakın</span>
+            <span>{locale === "en" ? "Drop files here" : "Dosyaları buraya bırakın"}</span>
           </div>
         </div>
       )}
       {uploading && (
         <div className={styles.progressBar}>
           <div className={styles.progress} style={{ width: `${progress}%` }} />
-          <span className={styles.progressText}>Yükleniyor… {progress}%</span>
+          <span className={styles.progressText}>{locale === "en" ? "Uploading…" : "Yükleniyor…"} {progress}%</span>
         </div>
       )}
     </div>
   );
 }
 
-function readFileAsText(file: File): Promise<string> {
+function readFileAsText(file: File, locale: "tr" | "en" = "tr"): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("Dosya okunamadı"));
+    reader.onerror = () => reject(new Error(locale === "en" ? "Could not read file" : "Dosya okunamadı"));
     reader.readAsText(file);
   });
 }

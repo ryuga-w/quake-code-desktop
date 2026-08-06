@@ -59,8 +59,8 @@ describe("Codex-compatible plan contracts", () => {
     expect(composer).toContain('plan?.steps.some((step) => !step.completed && step.status !== "completed")');
     expect(composer).toContain('step.completed || step.status === "completed"');
     expect(composer).toContain("if (complete) return null");
-    expect(composer).toContain('aria-label="Plan ilerlemesi"');
-    expect(composer).toContain("Adım {currentStep} / {total}");
+    expect(composer).toContain('t("composer.plan.progress")');
+    expect(composer).toContain('t("composer.plan.progressText", { current: currentStep, total })');
     expect(composer).toContain("plan.steps.map");
     expect(composer).toContain("planPillStepList");
     expect(composer).toContain("planPillSpinner");

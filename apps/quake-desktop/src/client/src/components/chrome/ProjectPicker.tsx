@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Folder, FolderOpen, FolderPlus, Sparkles, Ban } from "lucide-react";
 import { focusFirstMenuItem, handleMenuKeyDown, restoreMenuTriggerFocus } from "../../lib/menu-keyboard";
+import { useI18n } from "../../i18n";
 import styles from "./ProjectPicker.module.css";
 
 export type ProjectPickerItem = {
@@ -39,6 +40,7 @@ export function ProjectPicker({
   onToggle,
   showChip = true,
 }: Props) {
+  const { t } = useI18n();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -128,8 +130,8 @@ export function ProjectPicker({
     : "";
   // Chip always shows the selected workspace (folder name), never "Yeni sohbet".
   const title = noProject
-    ? "No Project"
-    : activeFromList || label || folderFromPath || "Proje seç";
+    ? t("projectPicker.noProject")
+    : activeFromList || label || folderFromPath || t("projectPicker.selectProject");
   const openProjects = projects.filter((project) => project.open);
   const recentProjects = projects.filter((project) => !project.open);
 
@@ -150,7 +152,7 @@ export function ProjectPicker({
           >
             {project.open ? <FolderOpen size={14} strokeWidth={1.9} aria-hidden="true" /> : <Folder size={14} strokeWidth={1.9} aria-hidden="true" />}
             <span>{project.name}</span>
-            {project.open && <i className={styles.openIndicator} title="Bu pencerede açık" aria-label="Bu pencerede açık" />}
+            {project.open && <i className={styles.openIndicator} title={t("projectPicker.openInThisWindow")} aria-label={t("projectPicker.openInThisWindow")} />}
           </button>
         );
       })}
@@ -181,27 +183,27 @@ export function ProjectPicker({
           className={`${styles.menu} ${menuBounds?.placement === "above" ? styles.menuAbove : ""}`}
           style={menuBounds ? { maxHeight: menuBounds.maxHeight } : undefined}
           role="menu"
-          aria-label="Proje seç"
+          aria-label={t("projectPicker.selectProject")}
           onKeyDown={(event) => handleMenuKeyDown(event, { onEscape: closeAndRestoreFocus })}
         >
-          {renderProjects(openProjects, "Açık kökler")}
+          {renderProjects(openProjects, t("projectPicker.openRoots"))}
           {openProjects.length > 0 && recentProjects.length > 0 && <div className={styles.projectDivider} />}
-          {renderProjects(recentProjects, "Son kullanılanlar")}
+          {renderProjects(recentProjects, t("projectPicker.recentProjects"))}
 
           <div className={styles.divider} />
 
           <div className={styles.section}>
             <button type="button" role="menuitem" className={styles.item} onClick={onNewProject}>
               <FolderPlus size={14} strokeWidth={1.9} aria-hidden="true" />
-              <span>New Project</span>
+              <span>{t("projectPicker.newProject")}</span>
             </button>
             <button type="button" role="menuitem" className={styles.item} onClick={onQuickStart}>
               <Sparkles size={14} strokeWidth={1.9} aria-hidden="true" />
-              <span>Quick Start</span>
+              <span>{t("projectPicker.quickStart")}</span>
             </button>
             <button type="button" role="menuitem" className={`${styles.item} ${noProject ? styles.itemActive : ""}`} onClick={onNoProject}>
               <Ban size={14} strokeWidth={1.9} aria-hidden="true" />
-              <span>No Project</span>
+              <span>{t("projectPicker.noProject")}</span>
             </button>
           </div>
         </div>
@@ -218,6 +220,7 @@ type CreateProjectModalProps = {
 };
 
 export function CreateProjectModal({ open, onClose, onAddFolder, onSkip }: CreateProjectModalProps) {
+  const { t } = useI18n();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const backdropRef = useRef<HTMLDivElement | null>(null);
 
@@ -273,23 +276,23 @@ export function CreateProjectModal({ open, onClose, onAddFolder, onSkip }: Creat
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-label="Create Project"
+        aria-label={t("projectPicker.createProject")}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.modalHead}>
-          <h2>Create Project</h2>
-          <button type="button" className={styles.modalClose} onClick={onClose} aria-label="Kapat">
+          <h2>{t("projectPicker.createProject")}</h2>
+          <button type="button" className={styles.modalClose} onClick={onClose} aria-label={t("projectPicker.close")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
-        <p className={styles.modalHint}>Select Folder(s)</p>
+        <p className={styles.modalHint}>{t("projectPicker.selectFolders")}</p>
         <button type="button" className={styles.addFolderBtn} onClick={onAddFolder}>
-          + Add Folder(s)
+          {t("projectPicker.addFolders")}
         </button>
         <div className={styles.modalFoot}>
           <button type="button" className={styles.skipBtn} onClick={onSkip}>
-            Skip
+            {t("projectPicker.skip")}
           </button>
         </div>
       </div>

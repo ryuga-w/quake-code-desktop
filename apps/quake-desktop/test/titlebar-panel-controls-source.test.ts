@@ -15,7 +15,7 @@ describe("titlebar panel controls", () => {
     expect(titlebar).not.toContain("showPanelToggles");
     expect(titlebar).not.toContain('aria-label="Alt paneli aç/kapat"');
     expect(titlebar).not.toContain('aria-label="Sağ paneli aç/kapat"');
-    expect(titlebar).toContain('label: "Görünüm"');
+    expect(titlebar).toContain('label: t("common.titlebar.view")');
     expect(titlebar).toContain('action: "toggle-sidebar"');
     expect(titlebar).toContain('action: "toggle-bottom-panel"');
     expect(titlebar).toContain('action: "toggle-right-panel"');

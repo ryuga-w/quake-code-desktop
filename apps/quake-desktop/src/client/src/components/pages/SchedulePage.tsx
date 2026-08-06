@@ -18,6 +18,7 @@ import {
   TestTube,
 } from "lucide-react";
 import { apiGet, apiPost, apiPatch, apiDelete } from "../../lib/api";
+import { localeForIntl, type Translate, useI18n } from "../../i18n";
 import { SkeletonLines } from "../common/Feedback";
 import styles from "./SchedulePage.module.css";
 
@@ -167,6 +168,69 @@ const TEMPLATES: ScheduleTemplate[] = [
   },
 ];
 
+const TEMPLATE_EN: Record<string, Pick<ScheduleTemplate, "name" | "description" | "schedule" | "prompt">> = {
+  "commit-scan": {
+    name: "Scan commits",
+    description: "Scan commits since the last run or the last 24 hours for likely bugs and suggest the smallest fixes.",
+    schedule: "Daily at 9:00",
+    prompt: "Scan commits since the last run or the last 24 hours for likely bugs and suggest the smallest fixes.",
+  },
+  "pr-release-notes": {
+    name: "PR release notes",
+    description: "Draft release notes from workspace changes over the last week.",
+    schedule: "Every Friday at 9:00",
+    prompt: "Draft release notes from workspace changes over the last week.",
+  },
+  standup: {
+    name: "Standup summary",
+    description: "Summarize the previous day's workspace activity for standup.",
+    schedule: "Weekdays at 9:00",
+    prompt: "Summarize the previous day's workspace activity for standup.",
+  },
+  "ci-summary": {
+    name: "End-of-day summary",
+    description: "Summarize today's important changes and remaining work, then suggest the most important next steps.",
+    schedule: "Daily at 21:00",
+    prompt: "Summarize today's important changes and remaining work, then suggest the most important next steps.",
+  },
+  "build-game": {
+    name: "Build a game",
+    description: "Build a small, classic, tightly scoped game.",
+    schedule: "Daily at 14:00",
+    prompt: "Build a small, classic, tightly scoped game.",
+  },
+  "suggest-skills": {
+    name: "Suggest skills",
+    description: "Suggest the next skills to deepen based on recent PRs and reviews.",
+    schedule: "Every Friday at 10:00",
+    prompt: "Suggest the next skills to deepen based on recent PRs and reviews.",
+  },
+  "weekly-digest": {
+    name: "Weekly digest",
+    description: "Summarize this week's PRs, deployments, incidents, and reviews in a weekly update.",
+    schedule: "Every Friday at 16:00",
+    prompt: "Summarize this week's PRs, deployments, incidents, and reviews in a weekly update.",
+  },
+  benchmark: {
+    name: "Benchmark",
+    description: "Compare recent changes with benchmarks or traces and flag regressions early.",
+    schedule: "Daily at 9:00",
+    prompt: "Compare recent changes with benchmarks or traces and flag regressions early.",
+  },
+  "dependency-scan": {
+    name: "Scan dependencies",
+    description: "Detect dependency and SDK drift and suggest a minimal upgrade plan.",
+    schedule: "Daily at 9:00",
+    prompt: "Detect dependency and SDK drift and suggest a minimal upgrade plan.",
+  },
+  "untested-paths": {
+    name: "Untested paths",
+    description: "Identify untested code paths in recent changes and suggest targeted tests.",
+    schedule: "Daily at 9:00",
+    prompt: "Identify untested code paths in recent changes and suggest targeted tests.",
+  },
+};
+
 export function SchedulePage({
   onCreate,
   onToggle,
@@ -175,6 +239,7 @@ export function SchedulePage({
   onUseTemplate,
   onCreateWithChat,
 }: SchedulePageProps) {
+  const { locale, t } = useI18n();
   const [tab, setTab] = useState<TabKey>("tasks");
   const [tasks, setTasks] = useState<ScheduledTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,6 +247,10 @@ export function SchedulePage({
   const [busy, setBusy] = useState<string | null>(null);
   const [taskQuery, setTaskQuery] = useState("");
   const [tplQuery, setTplQuery] = useState("");
+  const templates = useMemo(
+    () => TEMPLATES.map((template) => locale === "en" ? { ...template, ...TEMPLATE_EN[template.id] } : template),
+    [locale],
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -190,12 +259,12 @@ export function SchedulePage({
       const data = await apiGet<{ tasks?: ScheduledTask[] }>("/api/scheduled");
       setTasks(Array.isArray(data?.tasks) ? data.tasks : []);
     } catch (err: any) {
-      setError(err?.message || "Zamanlanan görevler okunamadı");
+      setError(err?.message || t("schedule.taskNone"));
       setTasks([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void refresh();
@@ -264,38 +333,40 @@ export function SchedulePage({
   }
 
   const filteredTasks = useMemo(() => {
-    const q = taskQuery.trim().toLocaleLowerCase("tr");
+    const intlLocale = localeForIntl(locale);
+    const q = taskQuery.trim().toLocaleLowerCase(intlLocale);
     const base = q
       ? tasks.filter(
           (t) =>
-            (t.name || "").toLocaleLowerCase("tr").includes(q) ||
-            (t.cron || "").toLocaleLowerCase("tr").includes(q) ||
-            (t.prompt || "").toLocaleLowerCase("tr").includes(q),
+            (t.name || "").toLocaleLowerCase(intlLocale).includes(q) ||
+            (t.cron || "").toLocaleLowerCase(intlLocale).includes(q) ||
+            (t.prompt || "").toLocaleLowerCase(intlLocale).includes(q),
         )
       : tasks;
     return [...base].sort((a, b) => {
       const ea = a.enabled === false ? 1 : 0;
       const eb = b.enabled === false ? 1 : 0;
       if (ea !== eb) return ea - eb;
-      return (a.name || "").localeCompare(b.name || "", "tr");
+      return (a.name || "").localeCompare(b.name || "", intlLocale);
     });
-  }, [tasks, taskQuery]);
+  }, [tasks, taskQuery, locale]);
 
   const filteredTemplates = useMemo(() => {
-    const q = tplQuery.trim().toLocaleLowerCase("tr");
-    if (!q) return TEMPLATES;
-    return TEMPLATES.filter(
+    const intlLocale = localeForIntl(locale);
+    const q = tplQuery.trim().toLocaleLowerCase(intlLocale);
+    if (!q) return templates;
+    return templates.filter(
       (t) =>
-        t.name.toLocaleLowerCase("tr").includes(q) ||
-        t.description.toLocaleLowerCase("tr").includes(q) ||
-        t.schedule.toLocaleLowerCase("tr").includes(q),
+        t.name.toLocaleLowerCase(intlLocale).includes(q) ||
+        t.description.toLocaleLowerCase(intlLocale).includes(q) ||
+        t.schedule.toLocaleLowerCase(intlLocale).includes(q),
     );
-  }, [tplQuery]);
+  }, [tplQuery, templates, locale]);
 
   return (
     <div className={styles.page}>
       <header className={styles.topbar}>
-        <div className={styles.tabs} role="tablist" aria-label="Zamanlananlar görünümü">
+        <div className={styles.tabs} role="tablist" aria-label={t("schedule.view")}>
           <button
             type="button"
             role="tab"
@@ -303,7 +374,7 @@ export function SchedulePage({
             className={`${styles.tab} ${tab === "tasks" ? styles.tabActive : ""}`}
             onClick={() => setTab("tasks")}
           >
-            Tasks
+            {t("schedule.tasks")}
           </button>
           <button
             type="button"
@@ -312,19 +383,19 @@ export function SchedulePage({
             className={`${styles.tab} ${tab === "templates" ? styles.tabActive : ""}`}
             onClick={() => setTab("templates")}
           >
-            Şablonlar
+            {t("schedule.templates")}
           </button>
         </div>
         <div className={styles.createGroup}>
           <button type="button" className={styles.createBtn} onClick={onCreateWithChat}>
             <Sparkles size={14} aria-hidden="true" />
-            <span>Sohbetle oluştur</span>
+            <span>{t("schedule.createWithChat")}</span>
           </button>
           <button
             type="button"
             className={styles.caretBtn}
             onClick={onCreateWithChat}
-            aria-label="Oluşturma seçenekleri"
+            aria-label={t("schedule.createOptions")}
           >
             <ChevronDown size={15} aria-hidden="true" />
           </button>
@@ -334,9 +405,9 @@ export function SchedulePage({
       <div className={styles.scroll}>
         <div className={styles.container}>
           {tab === "tasks" ? (
-            <section role="tabpanel" aria-label="Tasks">
-              <h1 className={styles.heading}>Zamanlandı</h1>
-              <p className={styles.subhead}>Yinelenen görevleri, hatırlatıcıları ve izleyicileri yönet</p>
+            <section role="tabpanel" aria-label={t("schedule.tasks")}>
+              <h1 className={styles.heading}>{t("schedule.title")}</h1>
+              <p className={styles.subhead}>{t("schedule.subtitle")}</p>
 
               <div className={styles.searchBox}>
                 <Search size={16} aria-hidden="true" className={styles.searchIcon} />
@@ -344,13 +415,13 @@ export function SchedulePage({
                   className={styles.searchInput}
                   value={taskQuery}
                   onChange={(e) => setTaskQuery(e.target.value)}
-                  placeholder="Zamanlanmış görev ara"
+                  placeholder={t("schedule.searchTasks")}
                   type="search"
-                  aria-label="Zamanlanmış görev ara"
+                  aria-label={t("schedule.searchTasks")}
                 />
               </div>
 
-              <div className={styles.sectionLabel}>Geçerli</div>
+              <div className={styles.sectionLabel}>{t("schedule.current")}</div>
               <div className={styles.divider} />
 
               {loading && tasks.length === 0 ? (
@@ -362,8 +433,8 @@ export function SchedulePage({
               ) : filteredTasks.length === 0 ? (
                 <div className={styles.empty}>
                   {taskQuery.trim()
-                    ? "Aramanızla eşleşen zamanlanmış görev yok."
-                    : "Henüz zamanlanmış görev yok. Bir şablonla başlayın veya sohbetle oluşturun."}
+                    ? t("schedule.taskMatchNone")
+                    : t("schedule.taskNone")}
                 </div>
               ) : (
                 <ul className={styles.taskList}>
@@ -377,22 +448,22 @@ export function SchedulePage({
                           onClick={() => toggleEnabled(task)}
                           disabled={!!busy}
                           aria-pressed={!off}
-                          aria-label={off ? "Etkinleştir" : "Pasifleştir"}
-                          title={off ? "Etkinleştir" : "Pasifleştir"}
+                          aria-label={off ? t("schedule.enable") : t("schedule.disable")}
+                          title={off ? t("schedule.enable") : t("schedule.disable")}
                         >
                           <span className={styles.radioDot} />
                         </button>
                         <div className={styles.taskMain}>
                           <div className={styles.taskTopline}>
                             <span className={styles.taskName} title={task.name}>
-                              {task.name || "Adsız görev"}
+                              {task.name || t("schedule.unnamedTask")}
                             </span>
                             <span className={styles.taskSep} aria-hidden="true">
                               ·
                             </span>
                           </div>
                           <div className={styles.taskMeta}>
-                            Next run {formatNextRun(task.nextRun)} · {cronSummary(task.cron)}
+                            {t("schedule.nextRun", { value: formatNextRun(task.nextRun, t) })} · {cronSummary(task.cron, t)}
                           </div>
                         </div>
                         <div className={styles.taskActions}>
@@ -401,8 +472,8 @@ export function SchedulePage({
                             className={styles.rowIconBtn}
                             onClick={() => runNow(task)}
                             disabled={!!busy}
-                            aria-label="Şimdi çalıştır"
-                            title="Şimdi çalıştır"
+                            aria-label={t("schedule.runNow")}
+                            title={t("schedule.runNow")}
                           >
                             <Play size={14} aria-hidden="true" />
                           </button>
@@ -411,8 +482,8 @@ export function SchedulePage({
                             className={`${styles.rowIconBtn} ${off ? "" : styles.rowIconActive}`}
                             onClick={() => toggleEnabled(task)}
                             disabled={!!busy}
-                            aria-label={off ? "Etkinleştir" : "Pasifleştir"}
-                            title={off ? "Etkinleştir" : "Pasifleştir"}
+                            aria-label={off ? t("schedule.enable") : t("schedule.disable")}
+                            title={off ? t("schedule.enable") : t("schedule.disable")}
                           >
                             <Power size={14} aria-hidden="true" />
                           </button>
@@ -421,8 +492,8 @@ export function SchedulePage({
                             className={`${styles.rowIconBtn} ${styles.rowIconDanger}`}
                             onClick={() => remove(task)}
                             disabled={!!busy}
-                            aria-label="Sil"
-                            title="Sil"
+                            aria-label={t("schedule.delete")}
+                            title={t("schedule.delete")}
                           >
                             <Trash2 size={14} aria-hidden="true" />
                           </button>
@@ -434,9 +505,9 @@ export function SchedulePage({
               )}
             </section>
           ) : (
-            <section role="tabpanel" aria-label="Şablonlar">
-              <h1 className={styles.heading}>Şablonlar</h1>
-              <p className={styles.subhead}>Zamanlanmış görev şablonlarından biriyle başla</p>
+            <section role="tabpanel" aria-label={t("schedule.templates")}>
+              <h1 className={styles.heading}>{t("schedule.templateTitle")}</h1>
+              <p className={styles.subhead}>{t("schedule.templateSubtitle")}</p>
 
               <div className={styles.searchBox}>
                 <Search size={16} aria-hidden="true" className={styles.searchIcon} />
@@ -444,16 +515,16 @@ export function SchedulePage({
                   className={styles.searchInput}
                   value={tplQuery}
                   onChange={(e) => setTplQuery(e.target.value)}
-                  placeholder="Şablonlarda ara"
+                  placeholder={t("schedule.searchTemplates")}
                   type="search"
-                  aria-label="Şablonlarda ara"
+                  aria-label={t("schedule.searchTemplates")}
                 />
               </div>
 
-              <div className={styles.sectionLabel}>Sistem</div>
+              <div className={styles.sectionLabel}>{t("schedule.system")}</div>
 
               {filteredTemplates.length === 0 ? (
-                <div className={styles.empty}>Aramanızla eşleşen şablon yok.</div>
+                <div className={styles.empty}>{t("schedule.templateMatchNone")}</div>
               ) : (
                 <div className={styles.templateGrid}>
                   {filteredTemplates.map((tpl) => (
@@ -480,27 +551,27 @@ export function SchedulePage({
 }
 
 /* ---- nextRun → "18 saat sonra" gibi göreli TR metin ---- */
-function formatNextRun(value: number | string | null | undefined): string {
-  if (value == null || value === "") return "planlanmadı";
+function formatNextRun(value: number | string | null | undefined, t: Translate): string {
+  if (value == null || value === "") return t("schedule.nextRunNotScheduled");
   let ms: number;
   if (typeof value === "number") {
     ms = value < 1e12 ? value * 1000 : value;
   } else {
     const parsed = Date.parse(value);
-    if (Number.isNaN(parsed)) return String(value);
+  if (Number.isNaN(parsed)) return String(value);
     ms = parsed;
   }
   const diff = ms - Date.now();
-  if (diff <= 0) return "az sonra";
+  if (diff <= 0) return t("schedule.nextRunSoon");
   const sec = Math.round(diff / 1000);
-  if (sec < 60) return "az sonra";
-  if (sec < 3600) return `${Math.round(sec / 60)} dakika sonra`;
-  if (sec < 86400) return `${Math.round(sec / 3600)} saat sonra`;
-  return `${Math.round(sec / 86400)} gün sonra`;
+  if (sec < 60) return t("schedule.nextRunSoon");
+  if (sec < 3600) return t("schedule.nextRunMinutes", { count: Math.round(sec / 60) });
+  if (sec < 86400) return t("schedule.nextRunHours", { count: Math.round(sec / 3600) });
+  return t("schedule.nextRunDays", { count: Math.round(sec / 86400) });
 }
 
 /* ---- cron ifadesini okunaklı TR özete çevir ---- */
-function cronSummary(cron: string | undefined): string {
+function cronSummary(cron: string | undefined, t: Translate): string {
   const raw = (cron || "").trim();
   if (!raw) return "—";
   const parts = raw.split(/\s+/);
@@ -509,27 +580,27 @@ function cronSummary(cron: string | undefined): string {
   const h = Number(hour);
   const m = Number(min);
   const hasTime = !Number.isNaN(h) && !Number.isNaN(m) && hour !== "*" && min !== "*";
-  const time = hasTime ? `saat ${pad(h)}:${pad(m)}` : "";
+  const time = hasTime ? t("schedule.cronAt", { time: `${pad(h)}:${pad(m)}` }) : "";
 
   const days: Record<string, string> = {
-    "0": "Pazar",
-    "1": "Pazartesi",
-    "2": "Salı",
-    "3": "Çarşamba",
-    "4": "Perşembe",
-    "5": "Cuma",
-    "6": "Cumartesi",
-    "7": "Pazar",
+    "0": t("schedule.sunday"),
+    "1": t("schedule.monday"),
+    "2": t("schedule.tuesday"),
+    "3": t("schedule.wednesday"),
+    "4": t("schedule.thursday"),
+    "5": t("schedule.friday"),
+    "6": t("schedule.saturday"),
+    "7": t("schedule.sunday"),
   };
 
-  if (dow === "1-5") return joinTime("Hafta içi", time);
-  if (dow === "0,6" || dow === "6,0") return joinTime("Hafta sonu", time);
+  if (dow === "1-5") return joinTime(t("schedule.cronWeekday"), time);
+  if (dow === "0,6" || dow === "6,0") return joinTime(t("schedule.cronWeekend"), time);
   if (dow && dow !== "*") {
     const name = days[dow];
-    if (name) return joinTime(`Her ${name}`, time);
+    if (name) return joinTime(t("schedule.cronEvery", { day: name }), time);
   }
-  if (dom && dom !== "*") return joinTime(`Her ayın ${dom}. günü`, time);
-  return joinTime("Günlük olarak", time);
+  if (dom && dom !== "*") return joinTime(t("schedule.cronMonthDay", { day: dom }), time);
+  return joinTime(t("schedule.cronDaily"), time);
 }
 
 function joinTime(label: string, time: string): string {

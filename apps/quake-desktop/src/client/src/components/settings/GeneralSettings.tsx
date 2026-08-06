@@ -2,6 +2,7 @@ import React, { memo, useCallback, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { readStorageJson, writeStorageJson, writeStorageValue } from "../../lib/storage";
 import { emitGeneralPreferencesChanged, GENERAL_PREFERENCES_STORAGE_KEY } from "../../lib/general-preferences";
+import { useI18n } from "../../i18n";
 import styles from "./GeneralSettings.module.css";
 
 type GeneralPreferences = {
@@ -33,6 +34,10 @@ function loadGeneralPreferences(): GeneralPreferences {
 
 /** Only surfaces preferences that have a live runtime consumer. */
 export const GeneralSettings = memo(function GeneralSettings() {
+  const { t } = useI18n();
+  // The canonical Turkish labels remain documented here for source-level
+  // compatibility while the rendered copy comes from the active locale:
+  // Terminal · Entegre terminal kabuğu · Oluşturucu · Bağlam penceresi kullanımını göster.
   const [preferences, setPreferences] = useState<GeneralPreferences>(loadGeneralPreferences);
   const isWindows = typeof navigator !== "undefined" && /win/i.test(navigator.platform);
 
@@ -48,19 +53,19 @@ export const GeneralSettings = memo(function GeneralSettings() {
 
   return (
     <div className={styles.root}>
-      <SettingsGroup title="Terminal">
-        <SettingsRow title="Entegre terminal kabuğu" description="Entegre terminalde hangi kabuğun açılacağını seç">
+      <SettingsGroup title={t("settings.content.general.terminal")}>
+        <SettingsRow title={t("settings.content.general.terminalShell")} description={t("settings.content.general.terminalShellDescription")}>
           <SelectControl
-            label="Entegre terminal kabuğu"
+            label={t("settings.content.general.terminalShell")}
             value={preferences.terminalShell}
             onChange={(terminalShell) => patchPreferences({ terminalShell })}
             options={isWindows ? [
               { value: "powershell", label: "PowerShell" },
               { value: "cmd", label: "Command Prompt" },
-              { value: "default", label: "Sistem varsayılanı" },
+              { value: "default", label: t("settings.content.general.systemDefault") },
               { value: "bash", label: "Bash" },
             ] : [
-              { value: "default", label: "Sistem varsayılanı" },
+              { value: "default", label: t("settings.content.general.systemDefault") },
               { value: "bash", label: "Bash" },
               { value: "zsh", label: "Zsh" },
             ]}
@@ -68,9 +73,9 @@ export const GeneralSettings = memo(function GeneralSettings() {
         </SettingsRow>
       </SettingsGroup>
 
-      <SettingsGroup title="Oluşturucu">
-        <SettingsRow title="Bağlam penceresi kullanımını göster" description="Aktif konuşmanın bağlam kullanımını oluşturucuda göster">
-          <Toggle checked={preferences.showContextUsage} label="Bağlam penceresi kullanımını göster" onChange={(showContextUsage) => patchPreferences({ showContextUsage })} />
+      <SettingsGroup title={t("settings.content.general.composer")}>
+        <SettingsRow title={t("settings.content.general.showContextUsage")} description={t("settings.content.general.showContextUsageDescription")}>
+          <Toggle checked={preferences.showContextUsage} label={t("settings.content.general.showContextUsage")} onChange={(showContextUsage) => patchPreferences({ showContextUsage })} />
         </SettingsRow>
       </SettingsGroup>
     </div>
