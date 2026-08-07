@@ -62,9 +62,10 @@ describe("Guardian durable always-allow source contracts (S-TRUST.1–2)", () =>
   });
 
   it("Composer offers durable always for guardian, prefix, and host", () => {
-    expect(composerApproval).toContain("Her zaman izin ver");
-    expect(composerApproval).toContain("Kalıcı izinler");
-    expect(composerApproval).toContain("her zaman izin ver");
+    // Görünür metinler i18n'e taşındı; kalıcı "always" akışının davranışını doğrula.
+    expect(composerApproval).toContain('t("runtime.approval.always")');
+    expect(composerApproval).toContain('t("runtime.approval.allowPrefixAlways", { prefix: prefixLabel })');
+    expect(composerApproval).toContain('t("runtime.approval.allowHostAlways", { host: hostLabel })');
     expect(composerApproval).toContain('scope: "always"');
     expect(composerApproval).toContain("acceptAlways");
   });

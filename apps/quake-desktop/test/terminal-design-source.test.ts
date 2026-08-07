@@ -29,7 +29,7 @@ describe("Quake terminal visual contract", () => {
   });
 
   it("keeps the shell compact, responsive, and keyboard operable", () => {
-    expect(bottomPanel).toContain('aria-label="Terminal alt panel"');
+    expect(bottomPanel).toContain('aria-label={t("runtime.chrome.terminalPanel")}');
     expect(bottomPanel).not.toContain("<strong>Terminal</strong>");
     expect(bottomPanel).not.toContain("Yerel PTY");
     expect(bottomPanel).toContain('typeof children === "function" ? children(panelControls)');

@@ -43,8 +43,9 @@ describe("MCP durable always-allow source contracts (T4.C1)", () => {
   });
 
   it("Composer always-allow is durable (not session-only copy) and adapter remembers always", () => {
-    expect(composerApproval).toContain("Her zaman izin ver");
-    expect(composerApproval).toContain("yeniden başlatmada da geçerli");
+    // Görünür metinler i18n'e taşındı; kalıcı "always" akışının davranışını doğrula.
+    expect(composerApproval).toContain('t("runtime.approval.always")');
+    expect(composerApproval).toContain('t("runtime.approval.alwaysDescription")');
     expect(toolAdapter).toContain('rememberMcpToolApproval(serverId, tool.name, "always")');
     expect(toolAdapter).toContain('rememberMcpToolApproval(serverId, tool.name, "session")');
   });

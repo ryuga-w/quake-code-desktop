@@ -46,8 +46,8 @@ describe("Codex-compatible plan contracts", () => {
   });
 
   it("renders Proposed Plan and Updated Plan without execution controls", () => {
-    expect(artifactPanel).toContain('aria-label="Proposed Plan"');
-    expect(artifactPanel).toContain('aria-label="Updated Plan"');
+    expect(artifactPanel).toContain('aria-label={t("runtime.plan.proposedPlan")}');
+    expect(artifactPanel).toContain('aria-label={t("runtime.plan.updatedPlan")}');
     expect(artifactPanel).toContain("plan.steps.map");
     expect(artifactPanel).not.toContain("Uygula");
     expect(artifactPanel).not.toContain("onResume");
@@ -82,9 +82,10 @@ describe("Codex-compatible plan contracts", () => {
     expect(shell).toContain("<PlanApprovalCard");
     expect(main).toContain('conversationMode: "execute"');
     expect(main).toContain("reviseReadyPlan");
-    expect(approval).toContain("Bu plan uygulansın mı?");
-    expect(approval).toContain("Evet, bu planı uygula");
-    expect(approval).toContain("neyi farklı yapacağını söyle");
+    // Görünür metinler i18n'e taşındı.
+    expect(approval).toContain('t("runtime.plan.applyQuestion")');
+    expect(approval).toContain('t("runtime.plan.apply")');
+    expect(approval).toContain('t("runtime.plan.revise")');
   });
 
   it("switches composer modes directly", () => {
@@ -96,8 +97,8 @@ describe("Codex-compatible plan contracts", () => {
 
   it("renders request_user_input through the Questions card", () => {
     expect(main).toContain('event.method === "requestUserInput"');
-    expect(questions).toContain("Questions");
-    expect(questions).toContain("Other...");
+    expect(questions).toContain('t("runtime.plan.questions")');
+    expect(questions).toContain('t("runtime.plan.other")');
     expect(questions).toContain("await onComplete");
   });
 });

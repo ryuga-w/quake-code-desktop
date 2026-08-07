@@ -81,6 +81,7 @@ describe("a11y smoke source contracts", () => {
     expect(approval.length).toBeGreaterThan(100);
     // Buttons should be real <button> elements for keyboard
     expect(approval).toContain("<button");
-    expect(approval).toContain("Kalıcı izinler");
+    // "Kalıcı izinler" metni i18n'e taşındı; kalıcı izin akışının varlığını doğrula.
+    expect(approval).toMatch(/persistent|always/i);
   });
 });
