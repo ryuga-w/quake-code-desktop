@@ -96,3 +96,16 @@ quake-code-desktop-release/
 apps/quake-desktop/sayilar.txt
 apps/quake-desktop/tmp-*.html
 apps/quake-desktop/C*tempmodels.json
+
+# Secret / credential dosyaları (asla commit'lenmemeli)
+apps/quake-desktop/sada.txt
+apps/quake-desktop/svc.json
+apps/quake-desktop/pcls.json
+apps/quake-desktop/usage-*.json
+apps/quake-desktop/auth*.json
+apps/quake-desktop/aws-identity.json
+apps/quake-desktop/bedrock-*.json
+apps/quake-desktop/force-claude-*.json
+apps/quake-desktop/inference-profiles.json
+apps/quake-desktop/models-*.json
+apps/quake-desktop/modelseastus.json
