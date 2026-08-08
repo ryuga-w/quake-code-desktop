@@ -111,3 +111,7 @@ apps/quake-desktop/models-*.json
 apps/quake-desktop/modelseastus.json
 AZURE_MODELS.md
 gpt-5-6-sol-test-raporu.md
+
+# OAuth client credentials (local only, asla commit'lenmez)
+.env.oauth.local
+.env.oauth

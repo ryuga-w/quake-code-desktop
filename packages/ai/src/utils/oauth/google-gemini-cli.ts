@@ -23,11 +23,11 @@ if (typeof process !== "undefined" && (process.versions?.node || process.version
 	});
 }
 
-const decode = (s: string) => atob(s);
-const CLIENT_ID = decode(
-	"***REMOVED***",
-);
-const CLIENT_SECRET = decode("***REMOVED***");
+// OAuth client credentials are read from environment variables so no secret is
+// committed to the repository. Configure GEMINI_CLI_OAUTH_CLIENT_ID /
+// GEMINI_CLI_OAUTH_CLIENT_SECRET (e.g. in a local .env) before using Google login.
+const CLIENT_ID = process.env.GEMINI_CLI_OAUTH_CLIENT_ID ?? "";
+const CLIENT_SECRET = process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET ?? "";
 const REDIRECT_URI = "http://localhost:8085/oauth2callback";
 const SCOPES = [
 	"https://www.googleapis.com/auth/cloud-platform",

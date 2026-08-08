@@ -14,9 +14,8 @@ if (typeof process !== "undefined" && (process.versions?.node || process.version
         _createServer = m.createServer;
     });
 }
-const decode = (s) => atob(s);
-const CLIENT_ID = decode("***REMOVED***");
-const CLIENT_SECRET = decode("***REMOVED***");
+const CLIENT_ID = process.env.GEMINI_CLI_OAUTH_CLIENT_ID ?? "";
+const CLIENT_SECRET = process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET ?? "";
 const REDIRECT_URI = "http://localhost:8085/oauth2callback";
 const SCOPES = [
     "https://www.googleapis.com/auth/cloud-platform",

@@ -23,12 +23,12 @@ if (typeof process !== "undefined" && (process.versions?.node || process.version
 	});
 }
 
-// Antigravity OAuth credentials (different from Gemini CLI)
-const decode = (s: string) => atob(s);
-const CLIENT_ID = decode(
-	"***REMOVED***",
-);
-const CLIENT_SECRET = decode("***REMOVED***");
+// Antigravity OAuth credentials (different from Gemini CLI).
+// Values are read from environment variables so no secret is committed to the
+// repository. Configure ANTIGRAVITY_OAUTH_CLIENT_ID / ANTIGRAVITY_OAUTH_CLIENT_SECRET
+// (e.g. in a local .env) before using the Antigravity login flow.
+const CLIENT_ID = process.env.ANTIGRAVITY_OAUTH_CLIENT_ID ?? "";
+const CLIENT_SECRET = process.env.ANTIGRAVITY_OAUTH_CLIENT_SECRET ?? "";
 const REDIRECT_URI = "http://localhost:51121/oauth-callback";
 
 // Antigravity requires additional scopes
