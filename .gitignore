@@ -109,3 +109,5 @@ apps/quake-desktop/force-claude-*.json
 apps/quake-desktop/inference-profiles.json
 apps/quake-desktop/models-*.json
 apps/quake-desktop/modelseastus.json
+AZURE_MODELS.md
+gpt-5-6-sol-test-raporu.md
