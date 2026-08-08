@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import { Search } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Search, ShieldCheck } from "lucide-react";
 import {
   getToolActivity,
   getToolExecutionBody,
@@ -82,6 +82,71 @@ function SearchActivityIcon() {
 }
 
 
+/** Hook to track live elapsed seconds while a tool is active. */
+function useLiveToolElapsed(startedAt?: number, active?: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active || !startedAt) return;
+    const tick = () => setNow(Date.now());
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [active, startedAt]);
+
+  if (!active || !startedAt) return 0;
+  return Math.max(0, Math.floor((now - startedAt) / 1000));
+}
+
+function formatLiveElapsed(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s}s`;
+}
+
+/** Extract Quake Chrome Bridge presentation extras (site favicon + real-input
+ *  flag) from a chrome_* tool result's details payload. */
+function chromeRowExtras(tool: ToolCardState): { favicon?: string; site?: string; host?: string; trusted?: boolean; favicons?: Array<{ host: string; favicon: string }> } {
+  if (!tool.toolName.toLowerCase().startsWith("chrome_")) return {};
+  const d = tool.details;
+  if (!d || typeof d !== "object") return {};
+  const rec = d as Record<string, unknown>;
+  const site = (rec._site && typeof rec._site === "object" ? rec._site : {}) as Record<string, unknown>;
+  const favicon = typeof site.favicon === "string" && site.favicon.startsWith("http") ? site.favicon : undefined;
+  // chrome_list_tabs supplies a deduped favicon strip (one per host).
+  const rawList = Array.isArray(rec._favicons) ? rec._favicons : undefined;
+  const favicons = rawList
+    ? rawList
+        .filter((f): f is { host: string; favicon: string } => !!f && typeof f === "object" && typeof (f as Record<string, unknown>).favicon === "string")
+        .slice(0, 12)
+    : undefined;
+  return {
+    favicon,
+    site: typeof site.site === "string" ? site.site : undefined,
+    host: typeof site.host === "string" ? site.host : undefined,
+    trusted: rec.trusted === true,
+    favicons,
+  };
+}
+
+/** Small site-favicon badge; hides itself if the image fails to load. */
+function FaviconBadge({ src, host }: { src: string; host?: string }) {
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    <img
+      src={src}
+      alt={host || "site"}
+      title={host}
+      width={14}
+      height={14}
+      loading="lazy"
+      onError={() => setOk(false)}
+      style={{ borderRadius: 3, flex: "0 0 auto", verticalAlign: "middle" }}
+    />
+  );
+}
+
 export function ToolRunDetails({
   tool,
   hideSummary = false,
@@ -148,11 +213,57 @@ export function ToolRunDetails({
     else window.dispatchEvent(new CustomEvent("quake:open-tool-file", { detail: { path: filePath } }));
   };
 
+  const chromeExtras = chromeRowExtras(tool);
+  const liveSeconds = useLiveToolElapsed(tool.startedAt, active);
   const isRead = isReadTool(tool.toolName);
   const compactActivity = compactCommand || isCommandTool(tool.toolName) || isRead;
-  const showStats = showLineStats || !compactActivity;
+  // No +/- line-stat meter for non-mutation narration tools (chrome_*, plan, ask).
+  const isNarrationTool = tool.toolName.toLowerCase().startsWith("chrome_") || tool.toolName === "update_plan" || tool.toolName === "request_user_input";
+  const showStats = (showLineStats || !compactActivity) && !isNarrationTool;
   const displaySubject = compactActivity ? subject : compactToolSubject(subject);
-  const hideActiveCommandSubject = compactActivity && active && isCommandTool(tool.toolName);
+  const hideActiveCommandSubject = false;
+
+  // Narration tools (chrome_*, update_plan, request_user_input) have no useful
+  // expandable body — render a plain, non-collapsible row (no chevron/toggle).
+  if (isNarrationTool) {
+    return <div
+      className={`${styles.toolRun} ${styles.toolRunStatic ?? ""} ${active ? styles.toolRunLive : ""}`.trim()}
+      data-active={active ? "true" : "false"}
+      aria-label={`${action} ${subject}`.trim()}
+    >
+      <span className={styles.toolRunStaticRow ?? ""} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        {chromeExtras.favicon && <FaviconBadge src={chromeExtras.favicon} host={chromeExtras.host} />}
+        {chromeExtras.trusted && (
+          <span
+            title={locale === "en" ? "Real OS-level input (trusted)" : "Gerçek OS-seviyesi giriş (trusted)"}
+            style={{ display: "inline-flex", flex: "0 0 auto", verticalAlign: "middle" }}
+            aria-label={locale === "en" ? "real input" : "gerçek tıklama"}
+          >
+            <ShieldCheck size={13} strokeWidth={2.2} style={{ color: "#188038" }} />
+          </span>
+        )}
+        {action ? <span className={styles.toolRunAction}>{action}</span> : null}
+        <span className={`${styles.toolRunSubject} ${active ? styles.textShimmer : ""}`.trim()} title={subject}>
+          {displaySubject}
+        </span>
+        {active && (
+          <span style={{ opacity: 0.75, fontSize: "11.5px", fontFamily: "var(--font-mono)", marginLeft: 2 }}>
+            · {formatLiveElapsed(liveSeconds)}
+          </span>
+        )}
+        {chromeExtras.favicons && chromeExtras.favicons.length > 0 && (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, marginLeft: 4, flexWrap: "wrap" }}>
+            {chromeExtras.favicons.map((f, i) => (
+              <FaviconBadge key={`${f.host}-${i}`} src={f.favicon} host={f.host} />
+            ))}
+          </span>
+        )}
+        {tool.status === "error" && (
+          <span className={`${styles.fileMutationResultMark} ${styles.fileMutationResultError}`} aria-hidden="true">!</span>
+        )}
+      </span>
+    </div>;
+  }
 
   return <details
     className={`${styles.toolRun} ${compactActivity ? styles.compactCommandRun : ""} ${compactMutation ? styles.compactMutationRun : ""} ${active ? styles.toolRunLive : ""}`}
@@ -165,7 +276,16 @@ export function ToolRunDetails({
     <summary aria-label={`${action} ${subject}`}>
       {compactActivity && (compactMutation ? <MutationPencilIcon compact /> : isRead ? <ReadFileIcon /> : <CommandTerminalIcon />)}
       {!compactActivity && semanticIcon}
-      <span className={styles.toolRunAction}>{action}</span>
+      {chromeExtras.favicon && <FaviconBadge src={chromeExtras.favicon} host={chromeExtras.host} />}
+      {chromeExtras.trusted && (
+        <span
+          title={locale === "en" ? "Real OS-level input (trusted)" : "Gerçek OS-seviyesi giriş (trusted)"}
+          style={{ display: "inline-flex", flex: "0 0 auto", verticalAlign: "middle" }}
+          aria-label={locale === "en" ? "real input" : "gerçek tıklama"}
+        >
+          <ShieldCheck size={13} strokeWidth={2.2} style={{ color: "#188038" }} />
+        </span>
+      )}
       {!hideActiveCommandSubject && openFileOnSubjectClick && filePath ? (
         <button
           type="button"

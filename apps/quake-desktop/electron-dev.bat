@@ -69,7 +69,7 @@ if defined PORT_PID (
 
 set "BLOCKED_PORT="
 set "BLOCKED_PID="
-for %%Q in (3737 9222 9223 9224) do (
+for %%Q in (3737 9222 9223 9224 51999) do (
   if not defined BLOCKED_PORT (
     call :get_port_pid %%Q
     if defined PORT_PID (
@@ -138,7 +138,7 @@ if defined DEV_PID (
 
 del /q "%PID_FILE%" >nul 2>&1
 
-for %%Q in (5173 3737 9222 9223 9224) do call :cleanup_project_port %%Q
+for %%Q in (5173 3737 9222 9223 9224 51999) do call :cleanup_project_port %%Q
 exit /b 0
 
 :cleanup_project_port
@@ -236,7 +236,7 @@ exit /b !errorlevel!
 :capture_port_owners
 set "PORT_TMP=%PORT_FILE%.tmp"
 type nul > "!PORT_TMP!"
-for %%Q in (5173 3737 9222 9223 9224) do (
+for %%Q in (5173 3737 9222 9223 9224 51999) do (
   call :get_port_pid %%Q
   if defined PORT_PID (
     call :get_process_ticks !PORT_PID!
@@ -254,14 +254,14 @@ exit /b 0
 
 :get_owned_kill_pid
 set "OWNED_KILL_PID="
-for /f "delims=" %%K in ('powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "[int]$pidValue=0; [int]$portValue=0; if(-not [int]::TryParse($env:ELECTRON_DEV_CHECK_PID,[ref]$pidValue)){exit 1}; if(-not [int]::TryParse($env:ELECTRON_DEV_CHECK_PORT,[ref]$portValue)){exit 1}; $all=Get-CimInstance Win32_Process; $byId=@{}; foreach($item in $all){$byId[[int]$item.ProcessId]=$item}; if(-not $byId.ContainsKey($pidValue)){exit 1}; $process=$byId[$pidValue]; $chain=New-Object System.Collections.ArrayList; $seen=New-Object 'System.Collections.Generic.HashSet[int]'; $current=$process; for($depth=0; $depth -lt 20 -and $current; $depth++){if(-not $seen.Add([int]$current.ProcessId)){break}; [void]$chain.Add($current); $parentId=[int]$current.ParentProcessId; if($parentId -le 0 -or -not $byId.ContainsKey($parentId)){break}; $current=$byId[$parentId]}; $chainText=''; foreach($node in $chain){$chainText += ([string]$node.CommandLine) + [Environment]::NewLine}; $root=$env:ELECTRON_DEV_ROOT.TrimEnd([char]92); $command=[string]$process.CommandLine; $projectPathSeen=$chainText.IndexOf($root,[StringComparison]::OrdinalIgnoreCase)-ge 0; $desktopSignature=($chainText -match 'QUAKE_BROWSER_BRIDGE_PORT=9223') -and ($chainText -match 'QUAKE_CDP_PORT=9222') -and ($chainText -match 'QUAKE_COMPUTER_USE_BRIDGE_PORT=9224') -and ($chainText -match 'vite --config vite\.config\.ts') -and ($chainText -match '--strictPort') -and ($chainText -match 'run-electron-dev\.mjs'); $recorded=$false; if(Test-Path -LiteralPath $env:ELECTRON_DEV_PORT_FILE){$ticks=$process.CreationDate.ToUniversalTime().Ticks; foreach($line in [IO.File]::ReadAllLines($env:ELECTRON_DEV_PORT_FILE)){ $parts=$line.Split([char]124); if($parts.Length -ge 3 -and $parts[0] -eq [string]$portValue -and $parts[1] -eq [string]$pidValue -and $parts[2] -eq [string]$ticks){$recorded=$true; break}}}; $portSignature=$false; if($portValue -eq 5173){$portSignature=($command -match '(?i)vite') -and ($command -match '--config\s+vite\.config\.ts') -and ($command -match '--host\s+127\.0\.0\.1') -and ($command -match '--port\s+5173') -and ($command -match '--strictPort')} elseif($portValue -eq 3737){$portSignature=($command -match '(?i)tsx') -and ($command -match 'src[\\/]server[\\/]index\.ts')} elseif($portValue -ge 9222 -and $portValue -le 9224){$portSignature=($process.Name -ieq 'QuakeCode.exe') -and ($command.IndexOf($root,[StringComparison]::OrdinalIgnoreCase)-ge 0) -and ($command.IndexOf('--dev',[StringComparison]::OrdinalIgnoreCase)-ge 0)}; $trusted=$projectPathSeen -or $desktopSignature -or $recorded; if(-not ($portSignature -and $trusted)){exit 1}; $killPid=[int]$process.ProcessId; foreach($node in $chain){$nodeCommand=[string]$node.CommandLine; $managedBat=($node.Name -ieq 'cmd.exe') -and ($nodeCommand.IndexOf($env:ELECTRON_DEV_BAT,[StringComparison]::OrdinalIgnoreCase)-ge 0) -and ($nodeCommand.IndexOf('__run',[StringComparison]::OrdinalIgnoreCase)-ge 0); $legacyRoot=($node.Name -ieq 'cmd.exe') -and ($nodeCommand -match '(?i)npm(?:\.cmd)?\s+run\s+desktop:dev'); if($managedBat -or $legacyRoot){$killPid=[int]$node.ProcessId}}; $killPid"') do if not defined OWNED_KILL_PID set "OWNED_KILL_PID=%%K"
+for /f "delims=" %%K in ('powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "[int]$pidValue=0; [int]$portValue=0; if(-not [int]::TryParse($env:ELECTRON_DEV_CHECK_PID,[ref]$pidValue)){exit 1}; if(-not [int]::TryParse($env:ELECTRON_DEV_CHECK_PORT,[ref]$portValue)){exit 1}; $all=Get-CimInstance Win32_Process; $byId=@{}; foreach($item in $all){$byId[[int]$item.ProcessId]=$item}; if(-not $byId.ContainsKey($pidValue)){exit 1}; $process=$byId[$pidValue]; $chain=New-Object System.Collections.ArrayList; $seen=New-Object 'System.Collections.Generic.HashSet[int]'; $current=$process; for($depth=0; $depth -lt 20 -and $current; $depth++){if(-not $seen.Add([int]$current.ProcessId)){break}; [void]$chain.Add($current); $parentId=[int]$current.ParentProcessId; if($parentId -le 0 -or -not $byId.ContainsKey($parentId)){break}; $current=$byId[$parentId]}; $chainText=''; foreach($node in $chain){$chainText += ([string]$node.CommandLine) + [Environment]::NewLine}; $root=$env:ELECTRON_DEV_ROOT.TrimEnd([char]92); $command=[string]$process.CommandLine; $projectPathSeen=$chainText.IndexOf($root,[StringComparison]::OrdinalIgnoreCase)-ge 0; $desktopSignature=($chainText -match 'QUAKE_BROWSER_BRIDGE_PORT=9223') -and ($chainText -match 'QUAKE_CDP_PORT=9222') -and ($chainText -match 'QUAKE_COMPUTER_USE_BRIDGE_PORT=9224') -and ($chainText -match 'vite --config vite\.config\.ts') -and ($chainText -match '--strictPort') -and ($chainText -match 'run-electron-dev\.mjs'); $recorded=$false; if(Test-Path -LiteralPath $env:ELECTRON_DEV_PORT_FILE){$ticks=$process.CreationDate.ToUniversalTime().Ticks; foreach($line in [IO.File]::ReadAllLines($env:ELECTRON_DEV_PORT_FILE)){ $parts=$line.Split([char]124); if($parts.Length -ge 3 -and $parts[0] -eq [string]$portValue -and $parts[1] -eq [string]$pidValue -and $parts[2] -eq [string]$ticks){$recorded=$true; break}}}; $portSignature=$false; if($portValue -eq 5173){$portSignature=($command -match '(?i)vite') -and ($command -match '--config\s+vite\.config\.ts') -and ($command -match '--host\s+127\.0\.0\.1') -and ($command -match '--port\s+5173') -and ($command -match '--strictPort')} elseif($portValue -eq 3737){$portSignature=($command -match '(?i)tsx') -and ($command -match 'src[\\/]server[\\/]index\.ts')} elseif($portValue -ge 9222 -and $portValue -le 9224){$portSignature=($process.Name -ieq 'QuakeCode.exe') -and ($command.IndexOf($root,[StringComparison]::OrdinalIgnoreCase)-ge 0) -and ($command.IndexOf('--dev',[StringComparison]::OrdinalIgnoreCase)-ge 0)} elseif($portValue -eq 51999){$portSignature=($projectPathSeen -or $desktopSignature -or $recorded)}; $trusted=$projectPathSeen -or $desktopSignature -or $recorded; if(-not ($portSignature -and $trusted)){exit 1}; $killPid=[int]$process.ProcessId; foreach($node in $chain){$nodeCommand=[string]$node.CommandLine; $managedBat=($node.Name -ieq 'cmd.exe') -and ($nodeCommand.IndexOf($env:ELECTRON_DEV_BAT,[StringComparison]::OrdinalIgnoreCase)-ge 0) -and ($nodeCommand.IndexOf('__run',[StringComparison]::OrdinalIgnoreCase)-ge 0); $legacyRoot=($node.Name -ieq 'cmd.exe') -and ($nodeCommand -match '(?i)npm(?:\.cmd)?\s+run\s+desktop:dev'); if($managedBat -or $legacyRoot){$killPid=[int]$node.ProcessId}}; $killPid"') do if not defined OWNED_KILL_PID set "OWNED_KILL_PID=%%K"
 exit /b 0
 
 :wait_for_ports_free
 set /a FREE_WAIT_COUNT=0
 :wait_for_ports_free_loop
 set "BUSY_PORTS="
-for %%Q in (5173 3737 9222 9223 9224) do (
+for %%Q in (5173 3737 9222 9223 9224 51999) do (
   call :get_port_pid %%Q
   if defined PORT_PID set "BUSY_PORTS=!BUSY_PORTS! %%Q(PID !PORT_PID!)"
 )

@@ -4,7 +4,11 @@ import { describe, expect, it } from "vitest";
 
 const markdown = readFileSync(join(process.cwd(), "src/client/src/components/markdown/MarkdownMessage.tsx"), "utf8");
 const toolActivity = readFileSync(join(process.cwd(), "src/client/src/components/markdown/ToolActivityNotice.tsx"), "utf8");
-const semanticFlow = readFileSync(join(process.cwd(), "src/client/src/components/markdown/SemanticFlow.tsx"), "utf8");
+const semanticFlowDir = join(process.cwd(), "src/client/src/components/markdown/semantic-flow");
+const semanticFlowSubmodules = ["types.ts", "constants.ts", "builders.ts", "hooks.ts", "components.tsx"]
+  .map((file) => readFileSync(join(semanticFlowDir, file), "utf8"))
+  .join("\n");
+const semanticFlow = readFileSync(join(process.cwd(), "src/client/src/components/markdown/SemanticFlow.tsx"), "utf8") + "\n" + semanticFlowSubmodules;
 const markdownRuntime = [markdown, toolActivity, semanticFlow].join("\n");
 const markdownStyles = readFileSync(
   join(process.cwd(), "src/client/src/components/markdown/MarkdownMessage.module.css"),

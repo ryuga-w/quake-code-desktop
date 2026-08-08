@@ -34,12 +34,14 @@ export type UpdatePlanToolInput = Static<typeof schema>;
 export const UPDATE_PLAN_TOOL_DESCRIPTION = `Updates the task plan.
 Provide an optional explanation and a list of plan items, each with a step and status.
 At most one step can be in_progress at a time.
+When every step is done, send one final update marking all steps completed. When the whole task is finished and you want the plan panel dismissed, call clear_plan.
 `;
 
 export const UPDATE_PLAN_PROMPT_GUIDELINES: string[] = [
 	"Use update_plan for non-trivial multi-step work; skip for the easiest ~25% of tasks and never make single-step plans.",
 	"When you made a plan, call update_plan again after each completed sub-task (mark completed, set next in_progress).",
 	"Keep at most one step in_progress until everything is done; mark all completed when finished.",
+	"When the whole task is fully finished, call clear_plan to dismiss the plan panel. Do not call it if work is incomplete, interrupted, or errored — leave the plan visible so the user can resume.",
 	"Do not dump the full plan in chat after update_plan — the product UI shows the checklist.",
 ];
 

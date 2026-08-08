@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { apiPost } from "../../lib/api";
 import { configureLocalMonaco } from "../../lib/monaco";
+import { registerQuakeMonacoThemes } from "../../lib/theme";
 import { useAppStore } from "../../state/app-store";
 import { fileUndoManager } from "../../lib/undo-stack";
 import { EditorToolbar } from "./EditorToolbar";
@@ -130,7 +131,8 @@ export function EditableMonaco({ path, content, language, readOnly = false, onCl
       />
       <div style={{ flex: 1, minHeight: 0 }}>
         <Editor
-          theme={typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light" ? "vs" : "vs-dark"}
+          theme={typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light" ? "quake-light" : "quake-dark"}
+          beforeMount={registerQuakeMonacoThemes}
           language={detectedLanguage}
           value={currentContent}
           onChange={(value) => setCurrentContent(value || "")}

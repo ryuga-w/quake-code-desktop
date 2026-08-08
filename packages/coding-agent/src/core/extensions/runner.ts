@@ -220,6 +220,7 @@ export class ExtensionRunner {
 	private getCollaborationModeFn: ExtensionContextActions["getCollaborationMode"] = () => "default";
 	private setCollaborationModeFn: ExtensionContextActions["setCollaborationMode"] = () => {};
 	private emitPlanUpdateFn: ExtensionContextActions["emitPlanUpdate"] = () => {};
+	private clearPlanFn: ExtensionContextActions["clearPlan"] = () => {};
 	private isRootAgentFn: ExtensionContextActions["isRootAgent"] = () => true;
 	private newSessionHandler: NewSessionHandler = async () => ({ cancelled: false });
 	private forkHandler: ForkHandler = async () => ({ cancelled: false });
@@ -282,6 +283,7 @@ export class ExtensionRunner {
 			this.getCollaborationModeFn = contextActions.getCollaborationMode;
 			this.setCollaborationModeFn = contextActions.setCollaborationMode;
 			this.emitPlanUpdateFn = contextActions.emitPlanUpdate;
+			this.clearPlanFn = contextActions.clearPlan;
 			this.isRootAgentFn = contextActions.isRootAgent;
 
 		// Flush provider registrations queued during extension loading
@@ -563,6 +565,7 @@ export class ExtensionRunner {
 			getCollaborationMode: () => this.getCollaborationModeFn(),
 			setCollaborationMode: (mode) => this.setCollaborationModeFn(mode),
 			emitPlanUpdate: (update) => this.emitPlanUpdateFn(update),
+			clearPlan: () => this.clearPlanFn(),
 			isRootAgent: () => this.isRootAgentFn(),
 		};
 	}

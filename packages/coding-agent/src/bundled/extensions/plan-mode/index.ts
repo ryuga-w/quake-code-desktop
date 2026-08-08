@@ -18,7 +18,7 @@ Your active mode changes only when new developer instructions with a different <
 
 Use the \`request_user_input\` tool only when it is listed in the available tools for this turn.
 
-In Default mode, strongly prefer making reasonable assumptions and executing the user's request rather than stopping to ask questions. If you absolutely must ask a question because the answer cannot be discovered from local context and a reasonable assumption would be risky, ask the user directly with a concise plain-text question. Never write a multiple choice question as a textual assistant message.
+In Default mode, strongly prefer making reasonable assumptions and executing the user's request rather than stopping to ask questions. But when you genuinely need the user's decision — a real ambiguity or a critical/irreversible choice that cannot be resolved from local context, and where a wrong assumption would be costly — you MAY call \`request_user_input\` to ask one or more focused multiple-choice questions and wait for the answer. Prefer this structured tool over free-text questions when offering discrete choices. Do not overuse it for trivial or easily-assumable details, and never write a multiple choice question as a plain textual assistant message.
 
 ## Planning
 
@@ -128,7 +128,7 @@ export default function planModeExtension(quake: ExtensionAPI): void {
 		name: "request_user_input",
 		label: "request_user_input",
 		description:
-			"Request user input for one to three short questions and wait for the response. Set autoResolutionMs only when continuing with best judgment is acceptable if the user does not answer. This tool is only available in Plan mode.",
+			"Request user input for one or more short questions and wait for the response. Use when you genuinely need the user's decision on ambiguity or a critical choice that cannot be resolved from context. Set autoResolutionMs only when continuing with best judgment is acceptable if the user does not answer. Available in every collaboration mode (root thread only).",
 		promptSnippet: "Ask focused Plan mode questions",
 		parameters: Type.Object(
 			{
@@ -158,7 +158,7 @@ export default function planModeExtension(quake: ExtensionAPI): void {
 						},
 						{ additionalProperties: false },
 					),
-					{ minItems: 1, maxItems: 3 },
+					{ minItems: 1 },
 				),
 				autoResolutionMs: Type.Optional(
 					Type.Number(),
@@ -170,9 +170,9 @@ export default function planModeExtension(quake: ExtensionAPI): void {
 			if (!ctx.isRootAgent()) {
 				throw new Error("request_user_input can only be used by the root thread");
 			}
-			if (ctx.getCollaborationMode() !== "plan") {
-				throw new Error("request_user_input is unavailable in Default mode");
-			}
+			// NOT: Artik Default modda da soru sorulabilir. Ajan gercekten kullanici
+			// girdisine ihtiyac duydugunda (belirsizlik / kritik karar) her modda
+			// request_user_input calisir; Plan modu zorunlulugu kaldirildi.
 			const request: RequestUserInputArgs = {
 				questions: params.questions.map((question) => ({
 					header: question.header,
@@ -254,7 +254,10 @@ export default function planModeExtension(quake: ExtensionAPI): void {
 
 function syncRequestUserInputTool(quake: ExtensionAPI, mode: "default" | "plan"): void {
 	const active = quake.getActiveTools().filter((name) => name !== "request_user_input");
-	if (mode === "plan") active.push("request_user_input");
+	// request_user_input her modda aktif: ajan gerektiginde Default modda da
+	// kullaniciya odakli soru sorabilsin (mode fark etmeksizin arac erisilebilir).
+	void mode;
+	active.push("request_user_input");
 	if (!active.includes("update_plan")) active.push("update_plan");
 	quake.setActiveTools(active);
 }

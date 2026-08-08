@@ -1270,10 +1270,12 @@ export function App() {
   }) {
     // Park previous agent in the background — do NOT wait for it / do NOT abort.
     const previousDraftKey = activeComposerDraftKeyRef.current;
-    const parentSession =
-      options?.parentSession
-      || useAppStore.getState().state?.sessionFile
-      || undefined;
+    // KRITIK: parentSession SADECE gercekten yan sohbet / fork acilirken set edilmeli.
+    // Eskiden `|| state.sessionFile` fallback'i vardi -> her normal "yeni sohbet" bir
+    // onceki sohbeti parent yapiyordu. Bu yuzden her ana sohbet "child" sayilip
+    // isRootAgent() hep false donuyor, request_user_input (Plan sorulari) kiriliyordu.
+    // Fallback kaldirildi: explicit parent yoksa oturum KOK kalir.
+    const parentSession = options?.parentSession || undefined;
     saveActiveComposerDraft();
     activateComposerDraft(`new:${Date.now()}:${sessionSwitchSeqRef.current + 1}`);
     // Capture the departing chat's complete dock before clearing plan lifecycle UI.
@@ -1806,6 +1808,7 @@ export function App() {
     ctx.scheduleRefreshSessions = scheduleRefreshSessions;
     ctx.upsertActiveSessionInSidebar = upsertActiveSessionInSidebar;
     ctx.openRightPanel = openRightPanel;
+    ctx.closePlanTab = () => closeDockTab("plan");
     ctx.handleExtensionRequest = handleExtensionRequest;
     ctx.sendQueuedUserMessage = sendQueuedUserMessage;
     if (!serverEventHandlersRef.current) {

@@ -67,4 +67,9 @@ export type PlanSessionEvent =
 			threadId: string;
 			turnId: string;
 			item: { type: "plan"; id: string; text: string };
+	  }
+	| {
+			type: "plan/cleared";
+			threadId: string;
+			turnId: string;
 	  };

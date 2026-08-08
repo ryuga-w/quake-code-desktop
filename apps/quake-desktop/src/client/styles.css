@@ -316,7 +316,9 @@ select { font-family: inherit; }
   z-index: calc(var(--z-dock, 80) + 2);
   width: var(--left-sidebar-preview-width, var(--left-sidebar-width, 320px));
   max-width: calc(100% - 44px);
-  border-right: 1px solid var(--stroke-strong, var(--border-strong));
+  /* Sidebar sag kenar cizgisi: sidebar zemini (--surface-navigation) ile ayni
+     yapip aydinlik temada karartma/koyu cizgi hissini kaldiriyoruz. */
+  border-right: 1px solid var(--surface-navigation, var(--stroke-strong, var(--border-strong)));
   box-shadow: none;
   opacity: 0;
   visibility: hidden;
@@ -334,7 +336,7 @@ select { font-family: inherit; }
   visibility: visible;
   pointer-events: auto;
   transform: translateX(0);
-  box-shadow: 16px 0 34px rgba(0, 0, 0, 0.34);
+  box-shadow: var(--left-peek-shadow, 16px 0 34px rgba(0, 0, 0, 0.34));
   transition:
     opacity 160ms var(--ease-panel, ease),
     transform var(--duration-panel, 280ms) var(--ease-panel, ease),
@@ -849,6 +851,28 @@ select { font-family: inherit; }
   transition: margin-right 180ms ease;
 }
 .main::before { display: none; }
+.fixed-sidebar-toggle-btn {
+  position: fixed;
+  top: calc(var(--titlebar-height, 36px) + 7px);
+  left: 10px;
+  z-index: 85;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-navigation-muted, var(--muted));
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.fixed-sidebar-toggle-btn:hover {
+  background: var(--surface-navigation-hover, color-mix(in srgb, var(--heading) 8%, transparent));
+  color: var(--text-navigation, var(--heading));
+}
 .workspace-chrome {
   --workspace-context-width: clamp(286px, 22vw, 324px);
   position: fixed;
@@ -927,13 +951,24 @@ button.workspace-context-row:hover { background: var(--surface-hover, var(--pane
 .workspace-context-agent-status { flex: 0 0 auto; margin: 7px 4px 0; padding: 8px 3px 2px; overflow: hidden; border-top: 1px solid var(--border); color: var(--muted-2); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-context-muted { display: block; flex: 0 0 auto; width: 100%; min-height: 38px; padding: 8px 7px; overflow: hidden; border: 0; border-radius: 9px; background: transparent; color: var(--muted-2); box-shadow: none; font: 12px var(--font-sans); text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-context-muted:hover { background: var(--surface-hover, var(--panel-2)); color: var(--text); transform: none; }
+/* Ajan uygulama içi tarayıcıyı sürerken: imleç + shimmer'lı adres. */
+.workspace-context-browser-cursor { display: inline-grid; place-items: center; color: color-mix(in srgb, var(--heading) 72%, var(--muted)); }
+.workspace-context-browser-cursor svg { width: 14px; height: 14px; stroke-width: 2; animation: workspaceBrowserCursorNudge 2.7s ease-in-out infinite; }
+.workspace-context-browser-url { min-width: 0; overflow: hidden; font-family: var(--font-mono, var(--font-sans)); text-overflow: ellipsis; white-space: nowrap; color: transparent; background: linear-gradient(90deg, color-mix(in srgb, var(--muted) 88%, transparent) 0%, color-mix(in srgb, var(--muted) 88%, transparent) 25%, color-mix(in srgb, var(--heading) 58%, var(--muted)) 31%, color-mix(in srgb, var(--heading) 92%, var(--muted)) 35%, color-mix(in srgb, var(--heading) 58%, var(--muted)) 39%, color-mix(in srgb, var(--muted) 88%, transparent) 46%, color-mix(in srgb, var(--muted) 88%, transparent) 57%, color-mix(in srgb, var(--heading) 58%, var(--muted)) 64%, color-mix(in srgb, var(--heading) 92%, var(--muted)) 68%, color-mix(in srgb, var(--heading) 58%, var(--muted)) 72%, color-mix(in srgb, var(--muted) 88%, transparent) 79%, color-mix(in srgb, var(--muted) 88%, transparent) 100%); background-size: 270% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; will-change: background-position; animation: workspaceBrowserShimmer 2.7s linear infinite; transform: translateZ(0); backface-visibility: hidden; }
+@keyframes workspaceBrowserShimmer { from { background-position: 135% 0; } to { background-position: -35% 0; } }
+@keyframes workspaceBrowserCursorNudge { 0%, 100% { transform: translate(0, 0); } 42% { transform: translate(1.5px, 1px); } 70% { transform: translate(.5px, -.5px); } }
 @keyframes workspaceContextSpin { to { transform: rotate(360deg); } }
+/* Ortak panel yükleme göstergesi: ortalanmış + ince spinner. className="panel-loading"
+   olan tüm Suspense fallback'leri tek yerden tutarlı yapar (eskiden stilsizdi). */
+.panel-loading { display: flex; gap: 9px; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 120px; padding: 24px; color: var(--muted); font: 12.5px/1.4 var(--font-sans); }
+.panel-loading::before { content: ""; flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--muted) 32%, transparent); border-top-color: var(--heading); animation: workspaceContextSpin .7s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .panel-loading::before { animation: none; } }
 @keyframes workspaceStatusPulse { 50% { opacity: .35; transform: scale(.76); } }
 @keyframes workspaceAgentWorking { 0%, 100% { transform: translateY(0) rotate(0); } 34% { transform: translateY(-1.5px) rotate(-4deg); } 68% { transform: translateY(-.5px) rotate(3deg); } }
 @keyframes workspaceAgentSignal { 0% { opacity: 0; transform: scale(.72); } 24% { opacity: .34; } 72%, 100% { opacity: 0; transform: scale(1.12); } }
 @keyframes workspaceCardIn { from { opacity: 0; transform: translateY(-4px) scale(.985); } to { opacity: 1; transform: none; } }
 [data-theme="light"] .workspace-context-card { background: #fff; border-color: #e2e0e2; color: #282528; box-shadow: 0 10px 28px rgba(24,20,24,.09), 0 1px 2px rgba(24,20,24,.05); }
-@media (prefers-reduced-motion: reduce) { .workspace-context-card, .workspace-context-spinner, .workspace-context-status-dot, .workspace-context-agent[data-active="true"] .workspace-context-agent-icon::after, .workspace-context-agent[data-active="true"] .workspace-context-agent-icon svg { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .workspace-context-card, .workspace-context-spinner, .workspace-context-status-dot, .workspace-context-browser-cursor svg, .workspace-context-agent[data-active="true"] .workspace-context-agent-icon::after, .workspace-context-agent[data-active="true"] .workspace-context-agent-icon svg { animation: none; } .workspace-context-browser-url { color: var(--muted) !important; -webkit-text-fill-color: var(--muted) !important; background: none !important; animation: none !important; } }
 /* dock artik 3. grid kolonu — .main margin-right hilesi kaldirildi */
 .sidebar-toggle {
   display: inline-grid;
@@ -1950,6 +1985,17 @@ a:focus-visible,
   max-width: var(--chat-column-max-width);
   margin: 0 auto;
 }
+/* ChatGPT tarzi "yeni mesaji tepeye sabitle" boslugu: aktif turn'un altinda
+   JS ile BIR KEZ ayarlanan yukseklik. Composer'a yaklasinca sifirlanir (follow).
+   contain: layout -> yukseklik degisimi ust layout'u tetiklemez (perf + izolasyon).
+   width 100% oldugu icin responsive; ayri breakpoint gerekmez. */
+.timeline-anchor-spacer {
+  flex: none;
+  width: 100%;
+  pointer-events: none;
+  height: 0;
+  contain: layout;
+}
 /* react-virtuoso: her oge sarmalayicisina dikey ritim (eski .timeline-virtual
    per-item padding'inin yerine). Virtuoso oge yuksekligini bu padding dahil olcer. */
 .timeline-row {
@@ -1967,8 +2013,14 @@ a:focus-visible,
  * Sticky user turn (scroll up): keep that turn's user bubble pinned at the top
  * until the previous user message reaches the top and replaces it.
  */
+/* STICKY USER MESSAGE (kullanici mesajinin scroll'da tepede yapisip seni takip
+   etmesi) SU AN DEVRE DISI. Tekrar aktif etmek icin: asagidaki
+   `position: static` satirini `position: sticky` yap (ve `top: 0` acik kalsin).
+   Not: anchor-to-top (yeni mesaji tepeye sabitleme) bundan bagimsizdir, calismaya
+   devam eder. */
 .timeline-row-user {
-  position: sticky;
+  /* position: sticky;  <-- geri acmak icin bunu kullan */
+  position: static;
   top: 0;
   z-index: 6;
   display: flex;
@@ -2071,6 +2123,13 @@ a:focus-visible,
 .main.empty-chat .timeline-empty-wrap,
 .main.empty-chat .empty-timeline {
   display: none !important;
+}
+/* Composer sticky mesaj balonlarinin (timeline-row-user z-index 6-8) uzerinde
+   kalmali; aksi halde Add/Ekle menusu acildiginda mesaj metni menunun icinden
+   sizip okunuyor. Kendi stacking-context'ini olusturup katmani yukselt. */
+.composer-shell {
+  position: relative;
+  z-index: 30;
 }
 .main.empty-chat .composer-shell {
   display: flex;
@@ -2264,15 +2323,24 @@ a:focus-visible,
 .streamdown-scope [data-streamdown="code-block"] code {
   white-space: pre;
 }
+/* KRITIK: Streamdown/shiki her kod satırını `<span class="block">` ile sarar; satır
+   aralarında GERÇEK newline karakteri YOKTUR, satır sonları yalnızca span'lerin
+   display:block olmasıyla oluşur. Tailwind `block` utility'si herhangi bir sebeple
+   (purge/katman sırası) uygulanmazsa tüm satırlar tek satıra sığışıp yatay kayar.
+   Bu yüzden kod bloğu içindeki doğrudan satır span'lerini burada AÇIKÇA block yapıp
+   garanti altına alıyoruz (satır içi token span'leri inline kalır). */
+.streamdown-scope [data-streamdown="code-block"] pre > code > span {
+  display: block;
+}
 .message.user.has-attachments { background: transparent; padding: 0; }
 .message.user.has-attachments .meta { padding: 0 2px; }
-.message-images { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; justify-content: flex-start; }
+.message-images { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; justify-content: flex-start; }
 .message.user .message-images { justify-content: flex-start; }
-.message-images button { display: block; padding: 0; border: 0; border-radius: 14px; background: transparent; box-shadow: none; }
-.message-images button:hover { transform: none; box-shadow: none; }
-.message-images img { display: block; object-fit: cover; border-radius: 14px; background: transparent; box-shadow: none; }
-.message-images.single img { width: 150px; height: 150px; }
-.message-images.multi img { width: 70px; height: 70px; }
+.message-images button { display: block; padding: 0; border: 0; border-radius: 10px; background: transparent; box-shadow: none; cursor: pointer; overflow: hidden; }
+.message-images button:hover img { transform: scale(1.05); }
+.message-images img { display: block; object-fit: cover; border-radius: 10px; background: transparent; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); transition: transform 160ms cubic-bezier(0, 0, 0.2, 1); }
+.message-images.single img { width: 54px; height: 54px; max-width: 60px; max-height: 60px; }
+.message-images.multi img { width: 48px; height: 48px; }
 .message.assistant {
   background: transparent;
   border: 0;
@@ -2322,7 +2390,7 @@ a:focus-visible,
 .markdown-text h2, .markdown-text h3, .markdown-text h4 { margin: 12px 0 7px; color: var(--heading); letter-spacing: -0.025em; }
 .markdown-text h2 { font-size: 21px; }
 .markdown-text h3 { font-size: 17px; }
-.markdown-text a { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
+.markdown-text a { color: var(--link, var(--accent-2)); text-decoration: underline; text-underline-offset: 3px; }
 .markdown-text blockquote {
   margin: 10px 0;
   padding: 9px 12px;
@@ -2488,14 +2556,170 @@ textarea:focus, input:focus, select:focus { border-color: var(--accent); outline
 }
 .composer-send:disabled { opacity: 0.55; }
 .send-dots { display: inline-block; color: #0a0a0a; font-weight: 900; transform: translateY(-2px); }
-.image-preview-backdrop { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 24px; background: rgba(5,5,6,0.8); backdrop-filter: blur(12px) saturate(.8); }
-.image-preview-card { position: relative; display: grid; gap: 10px; max-width: min(980px, 92vw); max-height: 90vh; }
-.image-preview-card img { max-width: 100%; max-height: 82vh; object-fit: contain; border-radius: 18px; box-shadow: 0 28px 90px rgba(0,0,0,0.55); }
-.image-preview-close { position: absolute; top: -10px; right: -10px; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid rgba(255,255,255,.12); border-radius: 9px; background: rgba(27,27,29,.92); color: #c9c9ce; box-shadow: 0 10px 28px rgba(0,0,0,.42); backdrop-filter: blur(10px); cursor: pointer; transition: border-color 120ms ease, background 120ms ease, color 120ms ease, transform 120ms ease; }
-.image-preview-close:hover { border-color: rgba(255,255,255,.22); background: #303034; color: #fff; transform: translateY(-1px); }
-.image-preview-close:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 2px; }
-.image-preview-close svg { width: 16px; height: 16px; }
-.image-preview-card span { justify-self: center; color: #cfcfcf; font-size: 12px; }
+.image-preview-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: none !important;
+  animation: previewBackdropIn 180ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes previewBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.image-preview-header {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  left: 12px;
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.image-preview-filename {
+  pointer-events: auto;
+  min-width: 0;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(24, 24, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px 16px;
+  border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.image-preview-toolbar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(24, 24, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 5px 6px;
+  border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.image-preview-action-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.image-preview-action-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
+/* Light Theme Lightbox Overrides */
+[data-theme="light"] .image-preview-backdrop {
+  background: rgba(0, 0, 0, 0.18) !important;
+  backdrop-filter: none !important;
+}
+
+[data-theme="light"] .image-preview-filename,
+[data-theme="light"] .image-preview-toolbar {
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #111111 !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-theme="light"] .image-preview-filename {
+  color: #111111 !important;
+}
+
+[data-theme="light"] .image-preview-action-btn {
+  color: #444444 !important;
+}
+
+[data-theme="light"] .image-preview-action-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+}
+
+.image-preview-close-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.image-preview-close-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
+[data-theme="light"] .image-preview-close-btn {
+  color: #444444 !important;
+}
+
+[data-theme="light"] .image-preview-close-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+}
+
+.image-preview-card {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  height: fit-content;
+  max-width: min(1050px, 92vw);
+  max-height: 88vh;
+  outline: none;
+  animation: previewCardZoom 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes previewCardZoom {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.image-preview-card img {
+  display: block;
+  max-width: 100%;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.75);
+}
 .tool-list { display: grid; gap: 10px; }
 .changed-file-list { display: grid; gap: 8px; }
 .changed-file {
@@ -2657,7 +2881,7 @@ body,
 .tool-status-dot.error { background: var(--error); }
 
 .timeline {
-  --timeline-bottom-gap: 132px;
+  --timeline-bottom-gap: 10px;
 }
 
 .timeline-scroll {
@@ -2809,11 +3033,11 @@ body,
   max-width: 100%;
   min-height: 36px;
   padding: 7px 10px 7px 12px;
-  border: 1px solid var(--stroke-subtle, var(--border, rgba(255, 255, 255, 0.1)));
-  border-radius: 13px;
-  background: var(--user-bubble-bg, #2b2b2b);
-  color: var(--user-bubble-fg, #f0f0f2);
-  box-shadow: var(--user-bubble-shadow, none);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  background: var(--user-bubble-bg, #1e1e1e);
+  color: var(--user-bubble-fg, #e3e3e3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
   box-sizing: border-box;
   transition: box-shadow 140ms ease, border-color 140ms ease, background 140ms ease;
 }
@@ -2822,6 +3046,11 @@ body,
   align-items: flex-start;
   border-radius: 13px;
   padding: 8px 10px 8px 12px;
+}
+
+.message.user.user-multi .user-msg-actions {
+  align-self: flex-start;
+  margin-top: 1px;
 }
 
 .user-msg-text {
@@ -2842,9 +3071,9 @@ body,
 }
 
 .user-msg-actions {
-  position: absolute;
-  top: calc(100% + 5px);
-  right: 2px;
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -2876,7 +3105,7 @@ body,
 .message.user.user-goal {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 6px;
 }
 
@@ -2932,6 +3161,29 @@ body,
 
 .message.user.has-attachments .user-msg-bubble {
   margin-top: 8px;
+}
+
+/* Metin + aksiyon butonlarini tek satirda tutan sarmalayici */
+.user-msg-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Gorsel ekli mesajlarda balon dikey akar: gorsel ustte, metin+aksiyon altta */
+.message.user.has-attachments .user-msg-bubble {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.message.user.has-attachments .user-msg-bubble .message-images {
+  margin: 0 0 8px;
+}
+
+.message.user.user-multi .user-msg-row {
+  align-items: flex-start;
 }
 
 /* Dokunmatik: aksiyonlar her zaman görünsün */
@@ -3041,7 +3293,7 @@ body,
 }
 
 .streamdown-scope a {
-  color: var(--accent-2);
+  color: var(--link, var(--accent-2));
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -3067,6 +3319,21 @@ body,
   background: var(--code-bg, #101010);
   text-align: start !important;
   direction: ltr;
+}
+
+/* Kod govde metni tema-duyarli renk alsin. Token'lar --sdm-c uzerinden
+   inherit ettigi icin code/pre rengini set etmek aydinlik temada da okunur
+   kilar (koyu temada #e6e6e8, aydinlikta #24292f). */
+.streamdown-scope [data-streamdown="code-block"] pre,
+.streamdown-scope [data-streamdown="code-block"] pre code,
+.streamdown-scope [data-streamdown="code-block"] pre code span {
+  color: var(--code-fg, #e8e8e8);
+}
+
+[data-theme="light"] .streamdown-scope [data-streamdown="code-block"] pre,
+[data-theme="light"] .streamdown-scope [data-streamdown="code-block"] pre code,
+[data-theme="light"] .streamdown-scope [data-streamdown="code-block"] pre code span {
+  color: var(--code-fg, #24292f);
 }
 
 /* Language label ("css") + copy: left-aligned header row */
@@ -4170,8 +4437,8 @@ body,
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 8px;
-  background: color-mix(in srgb, var(--heading) 11%, var(--panel));
-  box-shadow: 0 24px 70px rgba(0,0,0,0.42), inset 0 1px 0 color-mix(in srgb, var(--heading) 4.5%, transparent);
+  background: var(--composer-surface, var(--panel));
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
 }
 .composer-footer-right > .composer-popover {
   right: 0;
@@ -4439,7 +4706,8 @@ body,
   height: 100%;
   min-height: 0;
   margin: 0;
-  background: var(--surface-canvas, var(--bg));
+  /* Dosya onizleme zemini timeline ile ayni (#ececec). */
+  background: var(--surface-timeline, var(--bg));
 }
 
 .preview-breadcrumb {
@@ -4447,7 +4715,8 @@ body,
   align-items: center;
   gap: 4px;
   padding: 10px 14px;
-  background: var(--surface-raised, var(--panel));
+  /* Onizleme baslik/breadcrumb zemini timeline ile ayni (#ececec). */
+  background: var(--surface-timeline, var(--bg));
   border-bottom: 1px solid color-mix(in srgb, var(--heading) 6%, transparent);
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -4478,7 +4747,7 @@ body,
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: var(--surface-raised, var(--panel));
+  background: var(--surface-timeline, var(--bg));
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -4560,7 +4829,7 @@ body,
 .preview-monaco-container {
   flex: 1;
   min-height: 0;
-  background: var(--surface-canvas, var(--bg));
+  background: var(--surface-timeline, var(--bg));
   overflow: hidden;
 }
 
@@ -4869,10 +5138,10 @@ body.panel-resize-active .right-resize-handle {
   --code-header-bg: #1a1b1c;
   --code-inline-bg: rgba(255, 255, 255, 0.07);
   /* Dedicated charcoal surface for user messages. */
-  --composer-surface: #242426;
-  --composer-project-surface: #18191b;
-  --user-bubble-bg: #1b1b1d;
-  --user-bubble-fg: #ececee;
+  --composer-surface: #1e1e1e;
+  --composer-project-surface: #171717;
+  --user-bubble-bg: #1e1e1e;
+  --user-bubble-fg: #e3e3e3;
   --titlebar-bg: color-mix(in srgb, #101112 92%, transparent);
   --overlay-chrome: #101112;
 }
@@ -4882,7 +5151,7 @@ body.panel-resize-active .right-resize-handle {
 }
 
 .timeline {
-  --timeline-bottom-gap: 160px;
+  --timeline-bottom-gap: 10px;
 }
 
 .timeline-scroll {
@@ -4921,18 +5190,18 @@ body.panel-resize-active .right-resize-handle {
 .message.user.clean-user {
   display: flex !important;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-self: stretch;
   width: 100%;
 }
 
 .message.user .message-images {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .user-msg-bubble {
-  width: fit-content;
-  max-width: min(78%, 610px);
+  width: 100%;
+  max-width: 100%;
   min-height: 34px;
   padding: 7px 12px 8px;
   border-color: color-mix(in srgb, var(--heading) 7%, transparent);
@@ -4941,14 +5210,14 @@ body.panel-resize-active .right-resize-handle {
 }
 
 .message.user.user-multi .user-msg-bubble {
-  width: fit-content;
-  max-width: min(84%, 620px);
+  width: 100%;
+  max-width: 100%;
   padding: 8px 12px;
   border-radius: 12px;
 }
 
 .user-msg-text {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   width: auto;
   padding: 0;
   font-size: 12.5px;
@@ -5045,8 +5314,7 @@ body.panel-resize-active .right-resize-handle {
 }
 
 .user-msg-actions {
-  top: calc(100% + 3px);
-  right: 0;
+  margin-left: auto;
 }
 
 .user-msg-time {
@@ -5154,49 +5422,23 @@ body.panel-resize-active .right-resize-handle {
 
 /* Selected response motion R06 — newly streamed words leave a short signal
    trail, then settle into the exact same static Markdown surface. */
+/* Kelime giris animasyonu: ARTIK sadece hafif opacity fade. Onceden translateX +
+   blur ile kelimeler yana kayarak/ucarak geliyordu ("bir sagdan bir soldan" hissi,
+   ozellikle satir sonu wrap'te kotu). Kaydirma ve blur kaldirildi -> kelimeler
+   yerinde sakin belirir, ucmaz. */
 @keyframes sd-signalTrailFast {
-  from {
-    opacity: 0.55;
-    filter: blur(0.7px);
-    transform: translateX(2px);
-    text-shadow: 2px 0 5px color-mix(in srgb, var(--heading) 8%, transparent);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateX(0);
-    text-shadow: 0 0 0 transparent;
-  }
+  from { opacity: 0.5; }
+  to { opacity: 1; }
 }
 
 @keyframes sd-signalTrail {
-  from {
-    opacity: 0.12;
-    filter: blur(2.5px);
-    transform: translateX(5px);
-    text-shadow: 4px 0 9px color-mix(in srgb, var(--heading) 16%, transparent);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateX(0);
-    text-shadow: 0 0 0 transparent;
-  }
+  from { opacity: 0.35; }
+  to { opacity: 1; }
 }
 
 @keyframes sd-signalTrailSlow {
-  from {
-    opacity: 0.08;
-    filter: blur(3.5px);
-    transform: translateX(8px);
-    text-shadow: 6px 0 12px color-mix(in srgb, var(--heading) 20%, transparent);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateX(0);
-    text-shadow: 0 0 0 transparent;
-  }
+  from { opacity: 0.25; }
+  to { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5365,7 +5607,7 @@ body.panel-resize-active .right-resize-handle {
 }
 
 .streamdown-scope a {
-  color: color-mix(in srgb, var(--heading) 68%, var(--text));
+  color: var(--link, var(--accent-2));
   font-weight: 520;
   text-decoration-color: color-mix(in srgb, currentColor 38%, transparent);
   text-decoration-thickness: 1px;
@@ -5628,21 +5870,46 @@ body.panel-resize-active .right-resize-handle {
 }
 
 .streamdown-scope input[type="checkbox"]:checked {
-  border-color: var(--muted);
-  background-color: var(--muted);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m2.8 6.1 2.1 2.1 4.3-4.4' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  /* Referans gorsel: dolu koyu daire DEGIL; ince, ici bos/seffaf yuvarlak +
+     soluk gri ince tik. */
+  border-color: color-mix(in srgb, var(--heading) 24%, transparent);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m2.8 6.1 2.1 2.1 4.3-4.4' fill='none' stroke='%23888' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 10px 10px;
+  background-size: 9px 9px;
+}
+
+.streamdown-scope .qc-md-ul.contains-task-list {
+  /* Referans gorsel: task list sola daha yakin, dar sol bosluk. */
+  padding-left: 4px !important;
+  margin-left: 0 !important;
 }
 
 .streamdown-scope .qc-md-ul.contains-task-list > .qc-md-li.task-list-item {
   list-style: none !important;
   padding-left: 0 !important;
+  /* Satirlari referanstaki gibi biraz daha sik. */
+  margin-bottom: 2px !important;
+  line-height: 1.5 !important;
 }
 
 .streamdown-scope .qc-md-ul.contains-task-list > .qc-md-li.task-list-item::marker {
   content: none !important;
+}
+
+/* Referans gorsel: tamamlanan (checked) gorevler soluk/muted renkte;
+   bekleyen gorevler canli/normal renkte kalir. */
+.streamdown-scope li.task-list-item:has(> input[type="checkbox"]:checked) {
+  color: var(--muted) !important;
+}
+.streamdown-scope li.task-list-item:has(> input[type="checkbox"]:checked) :where(strong, b, code, a) {
+  color: var(--muted) !important;
+  opacity: 0.85;
+}
+/* Bekleyen gorev: etiket canli kalsin. */
+.streamdown-scope li.task-list-item:has(> input[type="checkbox"]:not(:checked)) {
+  color: var(--text) !important;
 }
 
 [data-theme="light"] .user-msg-bubble {
@@ -5688,6 +5955,278 @@ body.panel-resize-active .right-resize-handle {
 
   .user-msg-bubble,
   .message.user.user-multi .user-msg-bubble {
-    max-width: 92%;
+    max-width: 100%;
   }
 }
+
+/* GitHub Alert Cards & Blockquotes (Streamdown & Quake Code) */
+:root .streamdown-scope blockquote,
+:root .streamdown-animation-boundary blockquote,
+.streamdown-scope blockquote,
+.qc-md-blockquote,
+.text blockquote {
+  margin: 12px 0 !important;
+  padding: 2px 0 2px 14px !important;
+  border-left: 3px solid var(--border-strong, #8e8e93) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text) !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+}
+
+.streamdown-scope blockquote p,
+.qc-md-blockquote p,
+.text blockquote p {
+  margin: 4px 0 !important;
+}
+
+.streamdown-scope blockquote p:first-child,
+.qc-md-blockquote p:first-child,
+.text blockquote p:first-child {
+  margin-top: 0 !important;
+}
+
+/* Nested Blockquote styling.
+   GitHub alert kutulari ([data-github-alert]) haric: onlar kendi anlam
+   rengini (NOTE mavi, TIP yesil...) her seviyede ozgurce korur. */
+:root .streamdown-scope blockquote blockquote:not([data-github-alert]),
+:root .streamdown-animation-boundary blockquote blockquote:not([data-github-alert]),
+.streamdown-scope blockquote blockquote:not([data-github-alert]),
+.qc-md-blockquote .qc-md-blockquote:not([data-github-alert]),
+.text blockquote blockquote:not([data-github-alert]) {
+  margin: 8px 0 4px !important;
+  padding: 2px 0 2px 12px !important;
+  border-left: 3px solid #3b82f6 !important;
+  background: transparent !important;
+}
+
+:root .streamdown-scope blockquote blockquote blockquote:not([data-github-alert]),
+:root .streamdown-animation-boundary blockquote blockquote blockquote:not([data-github-alert]),
+.streamdown-scope blockquote blockquote blockquote:not([data-github-alert]),
+.qc-md-blockquote .qc-md-blockquote .qc-md-blockquote:not([data-github-alert]),
+.text blockquote blockquote blockquote:not([data-github-alert]) {
+  border-left: 3.5px solid #8b5cf6 !important;
+}
+
+.streamdown-scope blockquote[data-github-alert="note"],
+.streamdown-scope blockquote.markdown-alert-note,
+.streamdown-scope blockquote.markdown-alert-NOTE {
+  border-left-color: #2563eb !important;
+}
+
+.streamdown-scope blockquote[data-github-alert="note"] .markdown-alert-title,
+.streamdown-scope blockquote.markdown-alert-note .markdown-alert-title {
+  color: #2563eb !important;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.streamdown-scope blockquote[data-github-alert="tip"],
+.streamdown-scope blockquote.markdown-alert-tip,
+.streamdown-scope blockquote.markdown-alert-TIP {
+  border-left-color: #16a34a !important;
+}
+
+.streamdown-scope blockquote[data-github-alert="tip"] .markdown-alert-title,
+.streamdown-scope blockquote.markdown-alert-tip .markdown-alert-title {
+  color: #16a34a !important;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.streamdown-scope blockquote[data-github-alert="warning"],
+.streamdown-scope blockquote.markdown-alert-warning,
+.streamdown-scope blockquote.markdown-alert-WARNING {
+  border-left-color: #d97706 !important;
+}
+
+.streamdown-scope blockquote[data-github-alert="warning"] .markdown-alert-title,
+.streamdown-scope blockquote.markdown-alert-warning .markdown-alert-title {
+  color: #d97706 !important;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.streamdown-scope blockquote[data-github-alert="important"],
+.streamdown-scope blockquote.markdown-alert-important,
+.streamdown-scope blockquote.markdown-alert-IMPORTANT {
+  border-left-color: #9333ea !important;
+}
+
+.streamdown-scope blockquote[data-github-alert="important"] .markdown-alert-title,
+.streamdown-scope blockquote.markdown-alert-important .markdown-alert-title {
+  color: #9333ea !important;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.streamdown-scope blockquote[data-github-alert="caution"],
+.streamdown-scope blockquote.markdown-alert-caution,
+.streamdown-scope blockquote.markdown-alert-CAUTION {
+  border-left-color: #dc2626 !important;
+}
+
+.streamdown-scope blockquote[data-github-alert="caution"] .markdown-alert-title,
+.streamdown-scope blockquote.markdown-alert-caution .markdown-alert-title {
+  color: #dc2626 !important;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* ============================================================
+   Katmanli ic ice alintilar (Nested Blockquotes)
+   Referans gorsele gore: dis saran kutu + her seviyede konusma
+   balonu ikonu + katmanli renkli sol cizgiler.
+   NOT: GitHub alert kutulari ([data-github-alert]) bu stilden
+   haric tutulur; onlar kendi renkli etiket/kenarlik stilini korur.
+   ============================================================ */
+
+/* Dis (en ust seviye) alinti: yumusak arka plan kutusu icine al.
+   Ic ice alintilar daha yuksek ozgullukteki asagidaki kurallarla
+   bu kutuyu devralmaz (seffaf kalir). */
+:root .streamdown-scope blockquote:not([data-github-alert]):not(.markdown-alert),
+:root .streamdown-animation-boundary blockquote:not([data-github-alert]):not(.markdown-alert),
+.qc-md-blockquote:not([data-github-alert]):not(.markdown-alert) {
+  position: relative !important;
+  margin: 16px 0 20px !important;
+  padding: 12px 16px 12px 20px !important;
+  border: 0 !important;
+  border-left: 3px solid #60a5fa !important;
+  border-radius: 12px !important;
+  background: color-mix(in srgb, var(--heading) 4.5%, transparent) !important;
+  box-shadow: inset 3px 0 0 0 #60a5fa, 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Konusma balonu ikonu: her seviyenin ilk paragrafinin basina. */
+.streamdown-scope blockquote:not([data-github-alert]):not(.markdown-alert) > p:first-child::before,
+.qc-md-blockquote:not([data-github-alert]):not(.markdown-alert) > p:first-child::before {
+  content: "\1F5E8";
+  margin-right: 7px;
+  opacity: 0.55;
+  font-size: 0.92em;
+  vertical-align: baseline;
+}
+
+/* Seviye 2: ic ice detay katmani (mavi). Dis kutuyu tasimaz,
+   kendi renkli cizgisini alir, arka plan seffaf.
+   ONEMLI: ata blockquote GitHub alert (NOTE/TIP...) olsa bile ic alinti
+   kutu ALMAMALI. Bu yuzden ata seciciyi sade `blockquote` biraktik; ozgullugu
+   dis-kutu kuralinin uzerine cikarmak icin hedefte iki :not() tutuyoruz. */
+:root .streamdown-scope blockquote blockquote:not([data-github-alert]):not(.markdown-alert),
+:root .streamdown-animation-boundary blockquote blockquote:not([data-github-alert]):not(.markdown-alert),
+.qc-md-blockquote .qc-md-blockquote:not([data-github-alert]):not(.markdown-alert) {
+  margin: 10px 0 4px !important;
+  padding: 2px 0 2px 16px !important;
+  border: 0 !important;
+  border-left: 3px solid #3b82f6 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Seviye 3: en derin katman (mor). Ekstra bir `blockquote` ile ozgullugu
+   Seviye 2 kuralinin uzerine cikariyoruz. */
+:root .streamdown-scope blockquote blockquote blockquote:not([data-github-alert]):not(.markdown-alert),
+:root .streamdown-animation-boundary blockquote blockquote blockquote:not([data-github-alert]):not(.markdown-alert),
+.qc-md-blockquote .qc-md-blockquote .qc-md-blockquote:not([data-github-alert]):not(.markdown-alert) {
+  border-left: 3px solid #8b5cf6 !important;
+}
+
+/* Seviye 4+ (guvenlik agi): acik mor tonunu koru. */
+:root .streamdown-scope blockquote blockquote blockquote blockquote:not([data-github-alert]):not(.markdown-alert),
+.qc-md-blockquote .qc-md-blockquote .qc-md-blockquote .qc-md-blockquote:not([data-github-alert]):not(.markdown-alert) {
+  border-left-color: #a78bfa !important;
+}
+
+/* Ic ice seviyelerde balon ikonunun tonu seviye rengine yaklassin. */
+.streamdown-scope blockquote blockquote:not([data-github-alert]) > p:first-child::before,
+.qc-md-blockquote .qc-md-blockquote:not([data-github-alert]) > p:first-child::before {
+  opacity: 0.6;
+}
+
+/* Ic ice GitHub alert kutulari ( or. NOTE ici TIP) kendi renkli sol cizgisini
+   korumali; yukaridaki katmanli nested (mavi/mor) kurallari bu alert'lerin
+   kenarligini EZMEMELI. Ekstra `blockquote` ile ozgullugu tirmandirip
+   alert rengini geri dayatiyoruz. */
+.streamdown-scope blockquote blockquote blockquote[data-github-alert="note"],
+.streamdown-scope blockquote blockquote[data-github-alert="note"],
+.streamdown-scope blockquote[data-github-alert="note"] { border-left-color: #2563eb !important; }
+.streamdown-scope blockquote blockquote blockquote[data-github-alert="tip"],
+.streamdown-scope blockquote blockquote[data-github-alert="tip"],
+.streamdown-scope blockquote[data-github-alert="tip"] { border-left-color: #16a34a !important; }
+.streamdown-scope blockquote blockquote blockquote[data-github-alert="warning"],
+.streamdown-scope blockquote blockquote[data-github-alert="warning"],
+.streamdown-scope blockquote[data-github-alert="warning"] { border-left-color: #d97706 !important; }
+.streamdown-scope blockquote blockquote blockquote[data-github-alert="important"],
+.streamdown-scope blockquote blockquote[data-github-alert="important"],
+.streamdown-scope blockquote[data-github-alert="important"] { border-left-color: #9333ea !important; }
+.streamdown-scope blockquote blockquote blockquote[data-github-alert="caution"],
+.streamdown-scope blockquote blockquote[data-github-alert="caution"],
+.streamdown-scope blockquote[data-github-alert="caution"] { border-left-color: #dc2626 !important; }
+
+/* Konusma balonu ikonu GitHub alert kutularinda gorunmesin (onlarin kendi
+   buyuk harf etiketi var). */
+.streamdown-scope blockquote[data-github-alert] > .markdown-alert-title::before,
+.streamdown-scope blockquote[data-github-alert] > .markdown-alert-body > p:first-child::before {
+  content: none !important;
+}
+
+/* ============================================================
+   Renkli durum noktalari (status dots)
+   Metindeki renkli daire emojileri ve :dot-color: / {status:color}
+   token'lari, MarkdownContent -> remarkStatusDots plugini ile
+   .qc-status-dot span'ine cevrilir. Parlak 3D gradyan nokta.
+   ============================================================ */
+.streamdown-scope .qc-status-dot,
+.qc-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 0.35em 0 0.1em;
+  border-radius: 50%;
+  vertical-align: 0px;
+  background: radial-gradient(circle at 32% 30%,
+      color-mix(in srgb, var(--qc-dot, #34c759) 40%, #fff) 0%,
+      var(--qc-dot, #34c759) 55%,
+      color-mix(in srgb, var(--qc-dot, #34c759) 72%, #000) 100%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--qc-dot, #34c759) 30%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.28),
+    inset 0 0.5px 0.5px rgba(255, 255, 255, 0.55);
+  flex: 0 0 auto;
+}
+
+/* Inline-code (cip) icindeki nokta biraz daha kucuk ve hizali. */
+.streamdown-scope :where(code, .inline-code) .qc-status-dot {
+  width: 9px;
+  height: 9px;
+  vertical-align: -0.5px;
+}
+
+.qc-status-dot[data-qc-status-dot="green"]  { --qc-dot: #34c759; }
+.qc-status-dot[data-qc-status-dot="red"]    { --qc-dot: #ff3b30; }
+.qc-status-dot[data-qc-status-dot="amber"]  { --qc-dot: #ffcc00; }
+.qc-status-dot[data-qc-status-dot="blue"]   { --qc-dot: #3b82f6; }
+.qc-status-dot[data-qc-status-dot="purple"] { --qc-dot: #a855f7; }
+.qc-status-dot[data-qc-status-dot="orange"] { --qc-dot: #ff8c42; }
+.qc-status-dot[data-qc-status-dot="gray"]   { --qc-dot: #c4c4cc; }
+.qc-status-dot[data-qc-status-dot="black"]  { --qc-dot: #48484a; }
+.qc-status-dot[data-qc-status-dot="brown"]  { --qc-dot: #a2845e; }
+.qc-status-dot[data-qc-status-dot="teal"]   { --qc-dot: #30b0c7; }
+.qc-status-dot[data-qc-status-dot="pink"]   { --qc-dot: #ff2d92; }

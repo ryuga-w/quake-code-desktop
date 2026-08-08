@@ -2,6 +2,44 @@ import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
+/**
+ * Launch a headless browser context for web fetching in a version-safe way.
+ *
+ * Playwright's bundled Chromium is always ABI/protocol-compatible with the
+ * installed Playwright, so it is tried FIRST. The system Edge `channel` is only
+ * used as a fallback (and can drift out of sync with Playwright — e.g. a very
+ * new Edge + older Playwright crashes on launch with exitCode 21). This makes
+ * web_open_page resilient regardless of the user's installed Edge version.
+ */
+async function launchWebContext(chromium: any, userDataDir: string): Promise<any> {
+	const baseOptions = {
+		headless: true,
+		viewport: { width: 1440, height: 960 },
+		locale: "tr-TR",
+		args: ["--disable-blink-features=AutomationControlled", "--disable-infobars"],
+	};
+	// Optional explicit override wins outright.
+	const forcedChannel = process.env.QUAKE_WEB_CHANNEL?.trim();
+	if (forcedChannel) {
+		return chromium.launchPersistentContext(userDataDir, { ...baseOptions, channel: forcedChannel });
+	}
+	// 1) Bundled Chromium (version-matched, most reliable).
+	try {
+		return await chromium.launchPersistentContext(userDataDir, baseOptions);
+	} catch (bundledErr) {
+		// 2) Fallback: system Edge (Windows) / Chrome.
+		const channels = process.platform === "win32" ? ["msedge", "chrome"] : ["chrome", "chromium"];
+		for (const channel of channels) {
+			try {
+				return await chromium.launchPersistentContext(userDataDir, { ...baseOptions, channel });
+			} catch {
+				/* try next channel */
+			}
+		}
+		throw bundledErr;
+	}
+}
+
 export interface WebSearchResultItem {
 	title: string;
 	url: string;
@@ -132,13 +170,7 @@ class QuakeWebRuntime {
 			const userDataDir =
 				process.env.QUAKE_WEB_PROFILE_DIR?.trim() ||
 				join(homedir(), ".quake-code", `playwright-web-profile-${process.pid}`);
-			this.contextPromise = chromium.launchPersistentContext(userDataDir, {
-				headless: true,
-				channel: process.platform === "win32" ? "msedge" : undefined,
-				viewport: { width: 1440, height: 960 },
-				locale: "tr-TR",
-				args: ["--disable-blink-features=AutomationControlled", "--disable-infobars"],
-			});
+			this.contextPromise = launchWebContext(chromium, userDataDir);
 		}
 		return this.contextPromise;
 	}

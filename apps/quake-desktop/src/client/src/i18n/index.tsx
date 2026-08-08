@@ -905,6 +905,7 @@ const trMessages = {
         openPlan: "Planı aç",
         add: "Yeni çıktı ekle",
         empty: "Dosya veya site oluştur",
+        browsing: "Geziniyor",
         subagents: "Alt otonom ajanlar",
         resources: "Kaynaklar",
         addResource: "Kaynak ekle",
@@ -969,8 +970,8 @@ const trMessages = {
       },
       prompt: {
         documentPlaceholder: "Oluşturmak istediğin belgeyi anlat…",
-        existingTaskPlaceholder: "Quake’e bir görev ver…",
-        firstTaskPlaceholder: "Ne oluşturmak veya değiştirmek istiyorsun?",
+        existingTaskPlaceholder: "Bir şey sor, bahsetmek için @, eylemler için /",
+        firstTaskPlaceholder: "Bir şey sor, bahsetmek için @, eylemler için /",
         aria: "Quake'e mesaj",
       },
       add: {
@@ -1133,6 +1134,7 @@ const trMessages = {
         skip: "Atla",
         panel: "Plan",
         proposedPlan: "Önerilen plan",
+        appliedPlan: "Uygulanan plan",
         planMode: "Plan modu",
         defaultMode: "Varsayılan mod",
         closeTab: "Plan sekmesini kapat",
@@ -2258,6 +2260,7 @@ const enMessages = {
         openPlan: "Open plan",
         add: "Add new output",
         empty: "Create a file or site",
+        browsing: "Browsing",
         subagents: "Autonomous subagents",
         resources: "Resources",
         addResource: "Add resource",
@@ -2322,8 +2325,8 @@ const enMessages = {
       },
       prompt: {
         documentPlaceholder: "Describe the document you want to create…",
-        existingTaskPlaceholder: "Give Quake a task…",
-        firstTaskPlaceholder: "What would you like to create or change?",
+        existingTaskPlaceholder: "Ask anything, @ to mention, / for actions",
+        firstTaskPlaceholder: "Ask anything, @ to mention, / for actions",
         aria: "Message Quake",
       },
       add: {
@@ -2486,6 +2489,7 @@ const enMessages = {
         skip: "Skip",
         panel: "Plan",
         proposedPlan: "Proposed plan",
+        appliedPlan: "Applied plan",
         planMode: "Plan mode",
         defaultMode: "Default mode",
         closeTab: "Close plan tab",

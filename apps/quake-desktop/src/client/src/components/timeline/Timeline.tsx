@@ -170,6 +170,14 @@ function userMessageClipboardText(meta: ArtifactTemplateMessageMeta | undefined,
   return [`Documents · ${meta.displayName}`, meta.userText].filter(Boolean).join("\n");
 }
 
+// Anchor-to-top (ChatGPT tarzi: yeni mesaji tepeye sabitle + CSS bosluk).
+// false yaparsan klasik "en altta kal" davranisina doner.
+const ANCHOR_TO_TOP_ENABLED = false;
+// Anchor'lanan user satirinin tepeyle arasinda birakilan kucuk nefes payi (px).
+// Scroll padding'i (28px) kadar bosluk birakinca onceki cevabin alti gorunuyordu;
+// bunun yerine bu kucuk sabiti kullaniyoruz -> mesaj neredeyse tam tepede.
+const ANCHOR_TOP_GAP = 0;
+
 export function TimelineInner({
   messages,
   streamingMessage,
@@ -290,6 +298,33 @@ export function TimelineInner({
   // Kullanici yukari kayinca serbest birakir; dipteyken icerik buyudukce alta kilitler.
   const stickContextRef = useRef<StickToBottomContext | null>(null);
   const pendingOlderAnchorRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
+  // ChatGPT tarzi "yeni mesaji tepeye sabitle" durumu (CSS-first, JS minimal).
+  const anchorSpacerRef = useRef<HTMLDivElement | null>(null);
+  const prevPendingLenRef = useRef(0);
+  const prevUserRowKeyRef = useRef<string | null>(null);
+  const justSwitchedConversationRef = useRef(true);
+  // Aktif turn anchor'landi mi (mesaj tepede, altinda bosluk). Follow moduna gecince
+  // kutuphaneye devredilir; sohbet degisince/yeni turn'de sifirlanir.
+  const anchorEngagedRef = useRef(false);
+  const followingRef = useRef(false);
+  // Anchor aktifken kutuphanenin "dip" hedefini bu sabit scrollTop'a kilitleriz.
+  // Boylece stream buyudukce kutuphane icerigi dibe cekmez; user satiri tepede kalir,
+  // cevap ASAGI (composer'a) dogru buyur. null iken kutuphane normal dibe-kilit yapar.
+  const anchoredScrollTopRef = useRef<number | null>(null);
+  // Anchor aktifken tepeye kilitlenen hedef user satiri. Pin dongusu her frame BUNU
+  // yeniden olcup gercek tepesine oturtur -> tool karti eklenip layout kayinca bile
+  // sabit piksel yerine CANLI olcum kullanildigi icin "pat yukari ziplama" olmaz.
+  const anchorTargetElRef = useRef<HTMLElement | null>(null);
+  // use-stick-to-bottom targetScrollTop override: anchor aktifken sabit konum dondur.
+  const resolveTargetScrollTop = useCallback((targetScrollTop: number) => {
+    const locked = anchoredScrollTopRef.current;
+    if (locked === null) return targetScrollTop; // normal davranis (gercek dip)
+    // Anchor kilitliyken SABIT locked dondur. `Math.min(locked, targetScrollTop)`
+    // stream sirasinda targetScrollTop'un locked etrafinda 1-2px salinmasina izin
+    // verip mesaji her frame oynatiyordu (kucuk titreme). Sabit locked -> mesaj
+    // tepede tas gibi durur, kutuphane dibe cekemez.
+    return locked;
+  }, []);
   const { open: openContextMenu, menu: contextMenu } = useContextMenu();
   const isToolOnlyItem = (item: TimelineRowItem) => {
     if (item.kind === "toolGroup") return true;
@@ -391,6 +426,7 @@ export function TimelineInner({
       ];
       return (
         <article
+          data-timeline-user-row="true"
           className={`message user clean-user ${attached.length ? "has-attachments" : ""} ${multiLine ? "user-multi" : ""} ${sentAsGoal ? "user-goal" : ""} ${artifactTemplate ? "user-artifact-template" : ""}`}
           tabIndex={0}
           aria-label="Kullanıcı mesajı"
@@ -399,8 +435,9 @@ export function TimelineInner({
             openContextMenu(event, contextItems);
           }}
         >
-          {attached.length > 0 && <UserImageAttachments images={attached} onPreview={onPreviewImage} />}
           <div className="user-msg-bubble">
+            {attached.length > 0 && <UserImageAttachments images={attached} onPreview={onPreviewImage} />}
+            <div className="user-msg-row">
             {artifactTemplate
               ? <ArtifactTemplateUserMessage meta={artifactTemplate} onOpenSkill={onOpenArtifactTemplateSkill} />
               : <ExpandableUserMessage text={displayText} />}
@@ -441,6 +478,7 @@ export function TimelineInner({
                   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="6" r="2.5" /><circle cx="6" cy="18" r="2.5" /><path d="M8.5 7.5c2.5 0 5 2 5 6.5v2" /><path d="M15.5 7.5c-1.2 0-2.2.4-3 1.1" /><path d="M6 8.5v7" /></svg>
                 </button>
               )}
+            </div>
             </div>
           </div>
           {sentAsGoal ? (
@@ -548,8 +586,8 @@ export function TimelineInner({
     [visibleTimelineItems, streamingItem],
   );
   const timelineRows = useMemo(
-    () => groupTimelineRows(rows as Array<TimelineMessageItem | TimelineToolItem>, streamingText, messageToolHistory, activeStreamingTurnId),
-    [activeStreamingTurnId, messageToolHistory, rows, streamingText],
+    () => groupTimelineRows(rows as Array<TimelineMessageItem | TimelineToolItem>, streamingText, messageToolHistory, activeStreamingTurnId, agentIsStreaming),
+    [activeStreamingTurnId, agentIsStreaming, messageToolHistory, rows, streamingText],
   );
   // Attach turn/diff/updated snapshot to the latest assistant answer (Codex history cell).
   const latestAssistantKey = useMemo(() => {
@@ -569,6 +607,15 @@ export function TimelineInner({
     );
     return latestAssistant ? [latestAssistant] : [];
   }, [compactOverlay, timelineRows, streamingText]);
+
+  // Anchor hedefi: render edilen satirlardaki son kullanici mesajinin key'i.
+  const lastUserRowKey = useMemo(() => {
+    for (let i = renderedTimelineRows.length - 1; i >= 0; i--) {
+      const item = renderedTimelineRows[i];
+      if (item.kind === "message" && item.message?.role === "user") return item.key;
+    }
+    return null;
+  }, [renderedTimelineRows]);
 
   // Sticky kullanıcı mesajları aynı top noktasında üst üste biner. Scroll konumuna
   // göre yalnızca en yeni yapışan satırı görünür tutup eskisini yumuşakça devreden
@@ -607,12 +654,77 @@ export function TimelineInner({
     };
   }, [conversationKey, renderedTimelineRows.length]);
 
-  // Sohbet degisince / zorla alta isteginde aninda dibe kilitlen.
+  // ===== ChatGPT tarzi anchor-to-top (CSS-first, JS minimal) =====
+  // Yontem: Aktif turn'un altina CSS ile viewport-bosluk verilir (min-height, JS'siz).
+  // Yeni mesaj gonderilince TEK BIR scrollIntoView ile user satiri tepeye alinir.
+  // Stream sirasinda HICBIR JS scroll/olcum YOK -> titreme fiziksel olarak imkansiz.
+  // Bosluk .timeline-anchor-spacer CSS'inde (min-height) tanimli; JS dokunmaz.
+
+  // Yeni kullanici mesajini (son user satirini) bir kez tepeye kaydir.
+  const scrollUserRowToTop = useCallback((behavior: ScrollBehavior) => {
+    const scrollElement = stickContextRef.current?.scrollRef.current;
+    if (!scrollElement) return;
+    const rows = scrollElement.querySelectorAll<HTMLElement>("[data-timeline-user-row='true'], .timeline-row-user, .timeline-row-user-static, .pending-messages-row");
+    const target = rows[rows.length - 1];
+    if (!target) { void stickContextRef.current?.scrollToBottom({ animation: "smooth" }); return; }
+    anchorTargetElRef.current = target; // pin dongusu her frame bunu canli olcup tepeye oturtur
+    stickContextRef.current?.stopScroll();
+    // Kutuphanenin dibe-kilit spring'ini tamamen sustur ki bizim anchor'la savasmasin.
+    // KRITIK: sadece escapedFromLock yetmez; ResizeObserver'in pozitif-resize dalindaki
+    // otomatik scrollToBottom'i `state.isAtBottom` true iken calisir. Anchor sirasinda
+    // isAtBottom'i da false'a cekmezsek her stream token'inda icerik dibe kilitlenir
+    // (mesaj tepede durmaz, yukari akar). Ikisini birden kapatiyoruz.
+    // NOT: `isNearBottom` kutuphanede getter-only (scrollDifference'tan turer) -> yazILAMAZ.
+    // Sadece yazilabilir olan escapedFromLock ve isAtBottom'i set ediyoruz; isNearBottom
+    // otomatik olarak scroll konumundan hesaplanir.
+    const st = stickContextRef.current?.state as { escapedFromLock?: boolean; isAtBottom?: boolean } | undefined;
+    if (st) { st.escapedFromLock = true; st.isAtBottom = false; }
+    // Anchor devreye girdi, follow henuz baslamadi.
+    anchorEngagedRef.current = true;
+    followingRef.current = false;
+    // KRITIK: `offsetTop` satirin offsetParent'ina goredir; scroll konteyneriyle ayni
+    // katman olmayabilir (StickToBottom ic sarmalayicilari) -> yanlis hedef, mesaj tam
+    // tepeye gitmez. getBoundingClientRect farkiyla scroll-BAGIMSIZ gercek offset'i bul:
+    // hedefin su anki scrollTop'a gore konteyner icindeki mutlak ust konumu.
+    const scrollRect = scrollElement.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const targetOffsetInScroll = (targetRect.top - scrollRect.top) + scrollElement.scrollTop;
+    // Bosluk (spacer) yuksekligini BIR KEZ set et: user satiri tepeye gelince altinda
+    // viewport'u dolduracak alan olsun. Stream sirasinda ASLA yeniden dokunulmaz.
+    const spacer = anchorSpacerRef.current;
+    if (spacer) {
+      const viewport = scrollElement.clientHeight;
+      const spacerH = spacer.offsetHeight;
+      const contentBelow = (scrollElement.scrollHeight - spacerH) - targetOffsetInScroll; // turn yuksekligi (spacer haric)
+      spacer.style.height = `${Math.max(0, Math.round(viewport - contentBelow - ANCHOR_TOP_GAP))}px`;
+    }
+    // KRITIK: `- paddingTop` cikarinca mesaj tepeden ~28px asagida durur ve o boslukta
+    // ONCEKI cevabin alt ucu gorunur kalir. Bunun yerine kucuk SABIT bir nefes payi
+    // (ANCHOR_TOP_GAP) birak; boylece user satiri neredeyse tam tepeye oturur ve
+    // onceki turn goruntuden tamamen cikar.
+    const anchorTop = Math.max(0, targetOffsetInScroll - ANCHOR_TOP_GAP);
+    // Kutuphanenin "dip" hedefini bu konuma kilitle: stream buyurken icerik dibe
+    // cekilmez, user satiri tepede kalir, cevap asagi (composer'a) dogru buyur.
+    anchoredScrollTopRef.current = anchorTop;
+    // KRITIK: spacer.style.height yeni set edildi. `smooth` (async) scroll, spacer'in
+    // yeni yuksekligi layout'a yansimadan calisirsa scroll alani daha yokken yarida
+    // kalir -> mesaj tam tepeye gitmez, onceki turn gorunur kalir (kisa konusmada bariz).
+    // Once SENKRON scrollTop yaz (reflow'u zorlar, spacer'i uygular, kesin oturur).
+    scrollElement.scrollTop = anchorTop;
+    // NOT: Eskiden burada bir rAF settle vardi (hedefi tekrar olcup scrollTop yazardi).
+    // Ama pin dongusu ARTIK her frame ayni olcumu yapip sabitliyor -> bu rAF ile pin
+    // ilk frame'de CIFT duzeltme yapip "bir tik titreme" olusturuyordu. Kaldirdik;
+    // canli pin dongusu ilk frame'den itibaren hedefi tepede tutar (titreme yok).
+  }, []);
+
+  // Sohbet degisince: bosluk sifirla, normal dibe kilitlen.
   useLayoutEffect(() => {
+    prevUserRowKeyRef.current = null;
+    justSwitchedConversationRef.current = true;
+    anchoredScrollTopRef.current = null; // dip kilidini ac -> normal davranis
+    if (anchorSpacerRef.current) anchorSpacerRef.current.style.height = "0px";
     void stickContextRef.current?.scrollToBottom({ animation: "instant" });
-    const r = requestAnimationFrame(() => {
-      void stickContextRef.current?.scrollToBottom({ animation: "smooth" });
-    });
+    const r = requestAnimationFrame(() => { void stickContextRef.current?.scrollToBottom({ animation: "smooth" }); });
     return () => cancelAnimationFrame(r);
   }, [conversationKey]);
 
@@ -621,14 +733,276 @@ export function TimelineInner({
     void stickContextRef.current?.scrollToBottom({ animation: "smooth" });
   }, [scrollRequest]);
 
-  // StickToBottom's ResizeObserver is the sole owner of stream-time scrolling.
-  // A second explicit spring here competed with its resize spring whenever a
-  // token or tool row arrived, which made the timeline visibly jitter.
+  // Yeni kullanici mesaji gonderilince (pending balon): anchor acikken tepeye,
+  // kapaliyken normal dibe kaydir. TEK sefer, stream'de tekrar yok.
+  useLayoutEffect(() => {
+    const prev = prevPendingLenRef.current;
+    prevPendingLenRef.current = pendingMessages.length;
+    if (pendingMessages.length > prev) {
+      if (ANCHOR_TO_TOP_ENABLED) scrollUserRowToTop("smooth");
+      else void stickContextRef.current?.scrollToBottom({ animation: "smooth" });
+    }
+  }, [pendingMessages.length, scrollUserRowToTop]);
 
+  // Pending -> gercek turn satiri gecisinde bir kez daha hizala (yeni user key).
+  useLayoutEffect(() => {
+    if (lastUserRowKey === prevUserRowKeyRef.current) return;
+    const justSwitched = justSwitchedConversationRef.current;
+    justSwitchedConversationRef.current = false;
+    prevUserRowKeyRef.current = lastUserRowKey;
+    if (!justSwitched && lastUserRowKey && ANCHOR_TO_TOP_ENABLED) scrollUserRowToTop("instant");
+  }, [lastUserRowKey, scrollUserRowToTop]);
+
+  // KRITIK: Anchor kilitliyken kutuphane (use-stick-to-bottom) KENDI rAF spring
+  // dongusuyle her frame scrollTop'u dibe cekiyor. React render'i her frame olmadigi
+  // icin useLayoutEffect yetmez -> aradaki frame'lerde kutuphane kazanir ve icerik
+  // YUKARI kacar (user satiri tepeden yukari kayar). Cozum: anchor aktifken KENDI rAF
+  // dongumuzle her frame scrollTop'u kilitli konuma zorla. resolveTargetScrollTop zaten
+  // locked donduruyor -> ikisi cakismaz, mesaj tepede tas gibi durur, cevap ASAGI
+  // (composer'a) dogru buyur. Follow moduna gecince (locked=null) dongu kendini durdurur.
   useEffect(() => {
-    if (!pendingMessages.length) return;
-    void stickContextRef.current?.scrollToBottom({ animation: "smooth" });
-  }, [pendingMessages.length]);
+    if (!ANCHOR_TO_TOP_ENABLED) return;
+    let frame = 0;
+    const pin = () => {
+      const locked = anchoredScrollTopRef.current;
+      if (locked !== null && anchorEngagedRef.current && !followingRef.current) {
+        const ctx = stickContextRef.current;
+        const scrollElement = ctx?.scrollRef.current;
+        if (scrollElement) {
+          // KRITIK: Sadece scrollTop'u sabitlemek yetmiyor; kutuphane her frame
+          // isAtBottom'i yeniden hesaplayip kendi spring'iyle dibe cekiyor. O yuzden
+          // her frame stick-to-bottom durumunu da kapatiyor ve animasyonu durduruyoruz.
+          const st = ctx?.state as { escapedFromLock?: boolean; isAtBottom?: boolean } | undefined;
+          if (st && (st.isAtBottom || !st.escapedFromLock)) {
+            ctx?.stopScroll();
+            st.escapedFromLock = true;
+            st.isAtBottom = false;
+          }
+          // CANLI OLCUM: sabit `locked` piksel, tool karti eklenip layout kayinca bir frame
+          // yanlis kalir -> goze "pat yukari ziplama". Bunun yerine hedef satiri her frame
+          // yeniden olcup gercek tepesine oturt; layout ne kadar kayarsa kaysin mesaj
+          // fiziksel olarak tepede sabit kalir. locked'i de guncelle (release/resize icin).
+          const targetEl = anchorTargetElRef.current;
+          let desired = locked;
+          if (targetEl && scrollElement.contains(targetEl)) {
+            const sr = scrollElement.getBoundingClientRect();
+            const tr = targetEl.getBoundingClientRect();
+            desired = Math.max(0, ((tr.top - sr.top) + scrollElement.scrollTop) - ANCHOR_TOP_GAP);
+            anchoredScrollTopRef.current = desired;
+          }
+          if (Math.abs(scrollElement.scrollTop - desired) > 0.5) {
+            scrollElement.scrollTop = desired;
+          }
+        }
+      }
+      frame = requestAnimationFrame(pin);
+    };
+    frame = requestAnimationFrame(pin);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  // Stream sirasinda "composer'a yaklasinca yukari ak" davranisi (RESPONSIVE).
+  // Once mesaj tepede SABIT durur. Cevap buyudukce icerigin ALT kenari composer'a
+  // yaklasir; esige girince dibe-kilit kutuphaneye BIR KEZ devredilir ve o andan
+  // itibaren kutuphane yumusakca takip eder. Devir tek sefer -> her token'da yeni
+  // animasyon acilmaz -> titreme olmaz.
+  //
+  // Esik responsive: viewport'un ~%18'i (min 90, max 220 px). Boylece kucuk ekranda
+  // da buyuk ekranda da composer'a "orantili" mesafede takip baslar.
+  useEffect(() => {
+    if (!ANCHOR_TO_TOP_ENABLED) return;
+    // NOT: `streamingItem` sadece asistan METNI akarken dolu. Ama turn'de once TOOL
+    // calisir (metin yok) ve tool kartlari eklendikce icerik buyur. O donemde de esik
+    // kontrolu lazim; yoksa tool kartlari birikince anchor konumu kayar. Bu yuzden
+    // `agentIsStreaming` (gercek streaming sinyali) veya streamingItem varsa devam et.
+    if (!agentIsStreaming && !streamingItem) return;
+    if (!anchorEngagedRef.current || followingRef.current) return; // henuz anchor yoksa veya zaten takip ediyorsak cik
+    const scrollElement = stickContextRef.current?.scrollRef.current;
+    if (!scrollElement) return;
+    const spacerH = anchorSpacerRef.current?.offsetHeight ?? 0;
+    const viewport = scrollElement.clientHeight;
+    const threshold = Math.min(220, Math.max(90, Math.round(viewport * 0.18)));
+    // Icerik alt kenari (spacer haric) ile viewport dibi (composer ustu) mesafesi.
+    const contentBottom = scrollElement.scrollHeight - spacerH;
+    const viewBottom = scrollElement.scrollTop + viewport;
+    // Icerik alt kenari (composer ustu = viewBottom) ile arasindaki isaretli mesafe.
+    // Cevap kisayken NEGATIF (icerik viewport'tan kisa); buyudukce 0'a dogru artar.
+    // Alt kenar composer'a `threshold` px yaklasinca (>= -threshold) takibe devret.
+    // NOT: eski kod `<= threshold` idi -> negatif deger hep kucuk oldugu icin stream'in
+    // ILK token'inda devrediyor, anchor'i bozuyordu (isaret hatasi).
+    const distanceToComposer = contentBottom - viewBottom;
+    if (distanceToComposer >= -threshold) {
+      // Esige girildi: takip moduna gec. Spacer'i sifirlarken GORSEL SICRAMA olmasin
+      // diye scrollTop'u spacer kadar azalt (icerik ayni yerde kalir). Sonra dibe-kilidi
+      // ac ve kutuphaneye devret; bundan sonra kutuphane akisi yumusakca yonetir.
+      followingRef.current = true;
+      anchorEngagedRef.current = false;
+      anchoredScrollTopRef.current = null; // dip kilidini ac -> kutuphane dibe kilitlensin
+      const prevScrollTop = scrollElement.scrollTop;
+      if (anchorSpacerRef.current && spacerH > 0) {
+        anchorSpacerRef.current.style.height = "0px";
+        // Spacer kaldirildi -> scrollHeight kuculdu; konumu koru (sicrama yok).
+        scrollElement.scrollTop = Math.max(0, prevScrollTop);
+      }
+      const st = stickContextRef.current?.state as { escapedFromLock?: boolean } | undefined;
+      if (st) st.escapedFromLock = false;
+      void stickContextRef.current?.scrollToBottom({ animation: "smooth" });
+    }
+  }, [streamingText, streamingItem, agentIsStreaming, renderedTimelineRows.length]);
+
+  // Stream bitince anchor/follow bayraklarini sifirla (bir sonraki turn temiz baslasin).
+  // KRITIK: Kisa cevaplarda follow'a HIC gecmeden stream biter; bu an hala anchor
+  // konumundayiz. Kilidi (anchoredScrollTopRef) aniden null yapip birakirsak kutuphane
+  // icerigi dibe ceker -> mesaj bir tik YUKARI kayar (kullanicinin gordugu bug).
+  // Cozum: hala anchor aktifken bittiyse, mevcut scroll konumunu koru ve kutuphaneye
+  // "dipte degilsin" de (escapedFromLock=true, isAtBottom=false) -> sicrama olmaz.
+  // KRITIK: `streamingItem` sadece asistan METNI akarken dolar. Turn basinda TOOL
+  // asamasinda (metin henuz yok) streamingItem BOS olur -> bu reset yanlislikla
+  // tetiklenir, kilidi acar ve tool kartlari eklendikce icerik YUKARI kayar (bug).
+  // Bu yuzden gercek streaming sinyali `agentIsStreaming` de false olana kadar
+  // reset yapmiyoruz (yani turn tamamen bitince).
+  useEffect(() => {
+    if (!ANCHOR_TO_TOP_ENABLED) {
+      // Anchor kapaliyken olasi artik bosluk kalmasin.
+      if (anchorSpacerRef.current) anchorSpacerRef.current.style.height = "0px";
+      return;
+    }
+    if (streamingItem || agentIsStreaming) return;
+    const wasAnchored = anchorEngagedRef.current && !followingRef.current;
+    anchorEngagedRef.current = false;
+    followingRef.current = false;
+    anchoredScrollTopRef.current = null;
+    const scrollElement = stickContextRef.current?.scrollRef.current;
+    // KRITIK: Turn bitince anchor SPACER'ini (aktif turn'un altindaki bosluk) DOGRU
+    // yukseklige getir. Iki hatali uc nokta vardi:
+    //  - Bosluk hic temizlenmezse: cevap uzunken alt taraf gereginden fazla bos kalir,
+    //    asagi inince cevabin yarisi yukarida kalir (bir onceki bug).
+    //  - Bosluk 0'a cekilip scrollTop azaltilirsa: scroll yukari kayar, ESKI mesajlar
+    //    gorunur (kullanicinin son gordugu bug).
+    // DOGRU: spacer mesajin ALTINDA -> yuksekligini degistirmek mesajin konumunu
+    // (scrollTop cinsinden) ETKILEMEZ. O yuzden scrollTop'a DOKUNMADAN spacer'i,
+    // "user satirini tepede tutacak minimum bosluk" degerine yeniden hesapliyoruz:
+    //   kisa cevap -> bir miktar bosluk kalir, mesaj tepede durur (ChatGPT gibi).
+    //   uzun cevap -> contentBelow >= viewport -> bosluk 0 olur, fazlalik gider.
+    const spacer = anchorSpacerRef.current;
+    // KRITIK: Kalici bosluk her turn sonunda hesaplanmali. Kisa cevaplarda stream
+    // sirasinda erkenden "follow" moduna gecilir (wasAnchored=false) ve eski kod bu
+    // durumda spacer'i 0 yapip bosluk kaybolmasina yol aciyordu. Artik follow'a
+    // gecilmis olsa bile son user satirini tepeye getiren KALICI spacer'i set ediyoruz.
+    if (scrollElement && spacer) {
+      const rows = scrollElement.querySelectorAll<HTMLElement>("[data-timeline-user-row='true'], .timeline-row-user, .timeline-row-user-static, .pending-messages-row");
+      const target = rows[rows.length - 1];
+      const viewport = scrollElement.clientHeight;
+      if (target) {
+        // Bosluk KALICI olsun (yukari cikip inince kaybolmasin). contentBelow'u
+        // SPACER 0 iken olcuyoruz ki eski spacer yuksekligi hesaba karismasin.
+        spacer.style.height = "0px";
+        void scrollElement.scrollHeight; // reflow
+        const sr = scrollElement.getBoundingClientRect();
+        const tr = target.getBoundingClientRect();
+        const targetOffset = (tr.top - sr.top) + scrollElement.scrollTop;
+        const contentBelow = scrollElement.scrollHeight - targetOffset;
+        const spacerH = Math.max(0, Math.round(viewport - contentBelow - ANCHOR_TOP_GAP));
+        spacer.style.height = `${spacerH}px`;
+        // scrollTop'u SADECE anchor hala aktifken (kullanici serbest kalmadiysa)
+        // tepeye oturt. Kullanici stream sirasinda yukari kaydirip serbest kaldiysa
+        // (wasAnchored=false) konumuna DOKUNMA; sadece kalici bosluk korunur.
+        if (wasAnchored) {
+          scrollElement.scrollTop = Math.max(0, targetOffset - ANCHOR_TOP_GAP);
+        }
+      } else {
+        spacer.style.height = "0px";
+      }
+    }
+    if (wasAnchored) {
+      const st = stickContextRef.current?.state as { escapedFromLock?: boolean; isAtBottom?: boolean } | undefined;
+      if (scrollElement && st) {
+        stickContextRef.current?.stopScroll();
+        st.escapedFromLock = true;
+        st.isAtBottom = false;
+      }
+      // KRITIK: Pin dongusu artik durdu (locked=null). Stream bitince tool kartinin
+      // FINAL render'i + spacer degisimi bir sonraki frame'de layout'u son kez oynatip
+      // mesaji "azicik yukari" atiyor. Reset'ten sonra bir frame daha hedefi canli olcup
+      // scrollTop'u tam tepeye sabitle -> son kayma da kapanir.
+      const targetEl = anchorTargetElRef.current;
+      requestAnimationFrame(() => {
+        if (!scrollElement || !targetEl || !scrollElement.contains(targetEl)) return;
+        const s2 = stickContextRef.current?.state as { escapedFromLock?: boolean; isAtBottom?: boolean } | undefined;
+        if (s2) { stickContextRef.current?.stopScroll(); s2.escapedFromLock = true; s2.isAtBottom = false; }
+        // Kalici spacer set edildi; user satirini tepede tutan konumu son bir kez
+        // olcup sabitle (layout tool kartinin final render'iyla oynamis olabilir).
+        const sr = scrollElement.getBoundingClientRect();
+        const tr = targetEl.getBoundingClientRect();
+        const settled = Math.max(0, ((tr.top - sr.top) + scrollElement.scrollTop) - ANCHOR_TOP_GAP);
+        if (Math.abs(scrollElement.scrollTop - settled) > 0.5) scrollElement.scrollTop = settled;
+      });
+    }
+  }, [streamingItem, agentIsStreaming]);
+
+  // Kullanici stream sirasinda ELLE yukari kaydirirsa anchor'i birak (mudahaleye saygi).
+  // KRITIK: Onceden burada spacer'i aninda 0'a cekip scrollTop'u resetliyorduk. Ama bu,
+  // kullanicinin O ANDAKI tekerlek hareketiyle CAKISIP onu bos alana/garip konuma
+  // atiyordu (kullanicinin bildirdigi bug). Cozum: yukari kaydirinca SADECE kilidi
+  // birak; scrollTop'a ve spacer'a DOKUNMA. Native scroll dogal aksin. Spacer zaten
+  // stream bitince temizleniyor; stream boyunca kalmasi bir sorun degil (asagida bosluk).
+  useEffect(() => {
+    if (!ANCHOR_TO_TOP_ENABLED) return;
+    const scrollElement = stickContextRef.current?.scrollRef.current;
+    if (!scrollElement) return;
+    const releaseAnchor = () => {
+      if (!anchorEngagedRef.current && !followingRef.current && anchoredScrollTopRef.current === null) return;
+      anchorEngagedRef.current = false;
+      followingRef.current = false;
+      anchoredScrollTopRef.current = null; // kilidi ac -> kutuphane/biz artik konuma karismayiz
+      // Kutuphaneye "kullanici serbest" de: dibe kilitleme, kullanici nerede kaldiysa orada kalsin.
+      const st = stickContextRef.current?.state as { escapedFromLock?: boolean; isAtBottom?: boolean } | undefined;
+      if (st) { st.escapedFromLock = true; st.isAtBottom = false; }
+      stickContextRef.current?.stopScroll();
+    };
+    // Sadece GERCEK yukari hareket anchor'i birakir; asagi/yatay minik olayları yoksay.
+    const onWheel = (e: WheelEvent) => { if (e.deltaY < 0) releaseAnchor(); };
+    const onTouch = () => releaseAnchor();
+    scrollElement.addEventListener("wheel", onWheel, { passive: true });
+    scrollElement.addEventListener("touchmove", onTouch, { passive: true });
+    return () => {
+      scrollElement.removeEventListener("wheel", onWheel);
+      scrollElement.removeEventListener("touchmove", onTouch);
+    };
+  }, []);
+
+  // RESPONSIVE: Pencere/panel yeniden boyutlanirsa (maximize, panel ac/kapa, klavye
+  // acilmasi vb.) ve anchor hala aktifse, spacer'i yeni viewport'a gore YENIDEN olcup
+  // user satirini tepede tut. Sadece resize aninda calisir (stream token'inda DEGIL),
+  // o yuzden titretmez.
+  useEffect(() => {
+    if (!ANCHOR_TO_TOP_ENABLED) return;
+    const scrollElement = stickContextRef.current?.scrollRef.current;
+    if (!scrollElement || typeof ResizeObserver === "undefined") return;
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      if (!anchorEngagedRef.current) return; // sadece anchor aktifken
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const rows = scrollElement.querySelectorAll<HTMLElement>("[data-timeline-user-row='true'], .timeline-row-user, .timeline-row-user-static, .pending-messages-row");
+        const target = rows[rows.length - 1];
+        const spacer = anchorSpacerRef.current;
+        if (!target || !spacer) return;
+        const viewport = scrollElement.clientHeight;
+        const spacerH = spacer.offsetHeight;
+        // scroll-bagimsiz gercek offset (offsetParent farkina karsi guvenli).
+        const scrollRect = scrollElement.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const targetOffsetInScroll = (targetRect.top - scrollRect.top) + scrollElement.scrollTop;
+        const contentBelow = (scrollElement.scrollHeight - spacerH) - targetOffsetInScroll;
+        spacer.style.height = `${Math.max(0, Math.round(viewport - contentBelow - ANCHOR_TOP_GAP))}px`;
+        anchoredScrollTopRef.current = Math.max(0, targetOffsetInScroll - ANCHOR_TOP_GAP);
+        scrollElement.scrollTop = Math.max(0, targetOffsetInScroll - ANCHOR_TOP_GAP);
+      });
+    });
+    ro.observe(scrollElement);
+    return () => { cancelAnimationFrame(frame); ro.disconnect(); };
+  }, []);
 
   useEffect(() => setWindowSize(TIMELINE_INITIAL_WINDOW), [filter]);
 
@@ -686,6 +1060,7 @@ export function TimelineInner({
       damping={0.7}
       stiffness={0.06}
       mass={1.05}
+      targetScrollTop={resolveTargetScrollTop}
     >
       <StickToBottom.Content className="timeline-stick-content" scrollClassName="timeline-scroll">
         <TimelineHeader context={timelineContext} />
@@ -719,6 +1094,9 @@ export function TimelineInner({
                 onSendNow={onSendPending}
               />
             </div>
+          )}
+          {filter !== "tools" && filter !== "errors" && (
+            <div ref={anchorSpacerRef} className="timeline-anchor-spacer" aria-hidden="true" />
           )}
         </div>
       </StickToBottom.Content>

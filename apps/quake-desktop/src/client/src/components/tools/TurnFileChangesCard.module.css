@@ -29,14 +29,16 @@
   50% { opacity: 1; }
 }
 
+/* Referans (kompakt tek satir): "N files changed +X -Y >  ...  Review".
+   Alt kenarlik yok, dusuk yukseklik, sade. */
 .head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 38px;
-  padding: 7px 10px;
-  border-bottom: 1px solid color-mix(in srgb, var(--heading) 6%, transparent);
+  gap: 10px;
+  min-height: 34px;
+  padding: 5px 10px;
+  border-bottom: 0;
 }
 
 .headLeft {
@@ -44,30 +46,62 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  flex: 1 1 auto;
+  border: 0;
+  padding: 2px 4px 2px 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.headLeft:hover {
+  background: color-mix(in srgb, var(--heading) 5%, transparent);
+}
+
+.headChevron {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  margin-left: 4px;
+  color: var(--muted, var(--heading));
+  opacity: 0.7;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.headLeft:hover .headChevron {
+  opacity: 1;
 }
 
 .icon {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   flex: 0 0 auto;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--heading) 6%, transparent);
-  color: var(--heading);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted, var(--heading));
 }
 
+/* Referans: baslik + totals ayni satirda yan yana (grid degil flex). */
 .headCopy {
-  display: grid;
-  gap: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
 }
 
 .headCopy strong {
   color: var(--heading);
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .totals {
@@ -95,15 +129,15 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 26px;
-  border: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
-  border-radius: 999px;
-  padding: 3px 9px;
+  min-height: 24px;
+  border: 1px solid color-mix(in srgb, var(--heading) 10%, transparent);
+  border-radius: 6px;
+  padding: 2px 9px;
   background: transparent;
   color: var(--heading);
   box-shadow: none;
   font-size: 11.5px;
-  font-weight: 540;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -123,6 +157,12 @@
   margin: 0;
   padding: 2px 0;
   list-style: none;
+}
+
+/* Referans (kompakt accordion): liste varsayilan KAPALI; baslik/chevron'a
+   basinca acilir. Boylece kart tek satir baslar, tiklayinca dosyalari gosterir. */
+.card:not([data-open="true"]) .list {
+  display: none;
 }
 
 .fileItem {
@@ -225,8 +265,28 @@
   background: color-mix(in srgb, var(--heading) 6%, transparent);
 }
 
+/* Dosya-tipi rozeti: uzantiya gore renkli, kucuk kutulu etiket (or. TSX/CSS). */
+.fileTypeBadge {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-width: 21px;
+  height: 15px;
+  margin-right: 8px;
+  padding: 0 3px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  opacity: 0.92;
+}
+
 .filePath {
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   color: color-mix(in srgb, var(--heading) 88%, var(--muted));
   font-family: var(--font-mono);

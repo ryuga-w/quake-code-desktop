@@ -373,6 +373,35 @@ function shortPath(path: string): string {
   return parts.slice(-3).join("/");
 }
 
+/** Dosya uzantisina gore renkli tip rozeti (kisa etiket + renk). */
+const FILE_ICON_MAP: Record<string, { label: string; color: string }> = {
+  tsx: { label: "TSX", color: "#61dafb" },
+  jsx: { label: "JSX", color: "#61dafb" },
+  ts: { label: "TS", color: "#3178c6" },
+  js: { label: "JS", color: "#f7df1e" },
+  mjs: { label: "JS", color: "#f7df1e" },
+  cjs: { label: "JS", color: "#f7df1e" },
+  css: { label: "CSS", color: "#2965f1" },
+  scss: { label: "SCSS", color: "#c6538c" },
+  html: { label: "HTML", color: "#e34f26" },
+  json: { label: "{}", color: "#cbcb41" },
+  md: { label: "MD", color: "#519aba" },
+  py: { label: "PY", color: "#3572a5" },
+  rs: { label: "RS", color: "#dea584" },
+  go: { label: "GO", color: "#00add8" },
+  sh: { label: "SH", color: "#89e051" },
+  yml: { label: "YML", color: "#cb171e" },
+  yaml: { label: "YML", color: "#cb171e" },
+  svg: { label: "SVG", color: "#ffb13b" },
+  png: { label: "IMG", color: "#a074c4" },
+  jpg: { label: "IMG", color: "#a074c4" },
+};
+
+function fileTypeBadge(path: string): { label: string; color: string } {
+  const ext = path.replace(/\\/g, "/").split("/").pop()?.split(".").pop()?.toLowerCase() || "";
+  return FILE_ICON_MAP[ext] || { label: ext ? ext.slice(0, 3).toUpperCase() : "•", color: "#8e8e93" };
+}
+
 function FileDiffExpand({ row, active, onOpenFile, onInspect }: { row: TurnFileChangeRow; active: boolean; onOpenFile?: (path: string) => void; onInspect?: () => void }) {
   const { t } = useI18n();
   const hasDiff = Boolean(row.diff?.trim());
@@ -416,6 +445,18 @@ function FileDiffExpand({ row, active, onOpenFile, onInspect }: { row: TurnFileC
           }}
           title={onInspect ? `${row.path} · ${t("tools.changes.inspectFile")}` : row.path}
         >
+          {(() => {
+            const badge = fileTypeBadge(row.path);
+            return (
+              <span
+                className={styles.fileTypeBadge}
+                style={{ color: badge.color, borderColor: badge.color }}
+                aria-hidden="true"
+              >
+                {badge.label}
+              </span>
+            );
+          })()}
           <span className={styles.filePath}>{shortPath(row.path)}</span>
           <span className={styles.fileStats}>
             <span className={row.added ? styles.add : styles.zero}>+{row.added}</span>
@@ -468,11 +509,17 @@ export function TurnFileChangesCard({
   const { confirm } = useConfirmAction();
   const rows = React.useMemo(() => collectTurnFileChanges(tools, turnDiff), [tools, turnDiff]);
   const [expanded, setExpanded] = useState(false);
+  // Referans accordion: kart varsayilan kapali (tek satir); baslik/chevron'a
+  // basinca dosya listesi acilir. Canli (active) turn'de otomatik acik gelir.
+  const [listOpen, setListOpen] = useState(false);
   const [confirmingUndo, setConfirmingUndo] = useState(false);
   const [busy, setBusy] = useState(false);
   const [undoComplete, setUndoComplete] = useState(false);
 
   if (!rows.length) return null;
+
+  const active = rows.some(isActiveFileChange);
+  const isListOpen = listOpen || active;
 
   const totalAdded =
     turnDiff?.totalAdded && turnDiff.totalAdded > 0
@@ -484,7 +531,6 @@ export function TurnFileChangesCard({
       : rows.reduce((sum, row) => sum + row.removed, 0);
   const visible = expanded ? rows : rows.slice(0, VISIBLE_DEFAULT);
   const hiddenCount = Math.max(0, rows.length - VISIBLE_DEFAULT);
-  const active = rows.some(isActiveFileChange);
   const title = titleForChanges(rows, active, locale);
   const fullDiff = turnDiff?.diff?.trim() || "";
 
@@ -579,9 +625,15 @@ export function TurnFileChangesCard({
   };
 
   return (
-    <section className={styles.card} aria-label={title} data-turn-file-changes="true" data-live={active ? "true" : undefined}>
+    <section className={styles.card} aria-label={title} data-turn-file-changes="true" data-single={rows.length === 1 ? "true" : undefined} data-open={isListOpen ? "true" : undefined} data-live={active ? "true" : undefined}>
       <header className={styles.head}>
-        <div className={styles.headLeft}>
+        <button
+          type="button"
+          className={styles.headLeft}
+          onClick={() => setListOpen((value) => !value)}
+          aria-expanded={isListOpen}
+          title={isListOpen ? t("tools.changes.hideChange") : t("tools.changes.showChange")}
+        >
           <span className={styles.icon} aria-hidden="true">
             <FilePenLine size={14} strokeWidth={1.8} />
           </span>
@@ -594,7 +646,10 @@ export function TurnFileChangesCard({
               </span>
             )}
           </div>
-        </div>
+          <span className={styles.headChevron} aria-hidden="true">
+            {isListOpen ? <ChevronDown size={14} strokeWidth={2} /> : <ChevronRight size={14} strokeWidth={2} />}
+          </span>
+        </button>
         {!active && <div className={styles.actions}>
           <button type="button" className={styles.actionBtn} onClick={() => void handleUndo()} disabled={confirmingUndo || busy || undoComplete} title={t("tools.changes.undoChanges")}>
             <RotateCcw size={13} strokeWidth={1.9} aria-hidden="true" />

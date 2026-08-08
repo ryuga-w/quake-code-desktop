@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUp, Box, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X } from "lucide-react";
+import { ArrowRight, ArrowUp, Box, Check, ChevronRight, FileSpreadsheet, FileText, FileUp, Folder, Hand, LayoutTemplate, Lightbulb, ListTodo, Paperclip, Plus, Presentation, Puzzle, RotateCcw, ShieldAlert, ShieldCheck, Square, Target, X } from "lucide-react";
 import type { WebContextUsage, WebPlanState, WebSkillInfo } from "../../../../shared/protocol";
 import type { ComposerImage, QueuedUserMessage } from "../../types";
 import { THINKING_OPTIONS } from "../../constants";
@@ -989,11 +989,12 @@ export function ChatComposer({
             <button type="button" className={`${styles.sendButton} ${styles.stopButton}`} aria-label={t("composer.controls.stop")} title={t("composer.controls.stop")} onClick={triggerPetStop}>
               <Square size={13} fill="currentColor" strokeWidth={1.8} aria-hidden="true" />
             </button>
-          ) : (
+          ) : null}
+          {(!agentBusy || canSubmit) ? (
             <button type="submit" className={styles.sendButton} aria-label={promptPending ? t("composer.controls.sending") : t("composer.controls.send")} disabled={promptPending || !canSubmit}>
-              {promptPending ? <span className={styles.pendingDots}>…</span> : <ArrowUp size={18} strokeWidth={2.2} aria-hidden="true" />}
+              {promptPending ? <span className={styles.pendingDots}>…</span> : <ArrowRight size={17} strokeWidth={2.2} aria-hidden="true" />}
             </button>
-          )}
+          ) : null}
         </div>
       </footer>
     </form>

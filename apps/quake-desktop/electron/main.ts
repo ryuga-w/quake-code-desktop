@@ -179,12 +179,26 @@ function showBrandedNotification(title: string, body: string) {
     }
   };
 
-  // Windows: toast with logo; app name comes from AUMID Start Menu shortcut ("Quake Code").
+  const openChat = () => {
+    focusWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("notification:action", { action: "open-chat" });
+    }
+  };
+  const replyToChat = () => {
+    focusWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("notification:action", { action: "reply" });
+    }
+  };
+
+  // Windows: toast with logo + iki aksiyon butonu (Sohbete don / Yanit gonder).
+  // app name comes from AUMID Start Menu shortcut ("Quake Code").
   if (process.platform === "win32" && iconPath) {
     try {
       const iconUrl = pathToFileURL(iconPath).href;
       const toastXml = `<?xml version="1.0" encoding="utf-8"?>
-<toast activationType="foreground">
+<toast activationType="foreground" launch="open-chat">
   <visual>
     <binding template="ToastGeneric">
       <text>${escapeXml(title || APP_DISPLAY_NAME)}</text>
@@ -192,10 +206,20 @@ function showBrandedNotification(title: string, body: string) {
       <image placement="appLogoOverride" hint-crop="circle" src="${escapeXml(iconUrl)}"/>
     </binding>
   </visual>
+  <actions>
+    <action content="Sohbete dön" arguments="open-chat" activationType="foreground"/>
+    <action content="Yanıt gönder" arguments="reply" activationType="foreground"/>
+  </actions>
   <audio silent="true"/>
 </toast>`;
       const n = new Notification({ toastXml });
-      n.on("click", focusWindow);
+      // Windows toast: tiklanan aksiyonun `arguments`'i click event'in ilk argumanina
+      // (event.arguments) gelir; body/baslik tiklamasi launch="open-chat" olur.
+      n.on("click", (_event: Electron.Event, ...args: unknown[]) => {
+        const arg = String((args?.[0] as { arguments?: string } | undefined)?.arguments ?? (args?.[0] ?? "open-chat"));
+        if (arg === "reply") replyToChat();
+        else openChat();
+      });
       n.show();
       return;
     } catch (err) {
@@ -207,6 +231,10 @@ function showBrandedNotification(title: string, body: string) {
     title: title || APP_DISPLAY_NAME,
     body,
     silent: true,
+    actions: [
+      { type: "button", text: "Sohbete dön" },
+      { type: "button", text: "Yanıt gönder" },
+    ],
   };
   if (iconPath) {
     try {
@@ -218,7 +246,11 @@ function showBrandedNotification(title: string, body: string) {
     }
   }
   const n = new Notification(opts);
-  n.on("click", focusWindow);
+  n.on("click", openChat);
+  n.on("action", (_event, index) => {
+    if (index === 1) replyToChat();
+    else openChat();
+  });
   n.show();
 }
 

@@ -168,6 +168,11 @@ import {
 	updatePlanTool,
 	updatePlanToolDefinition,
 } from "./update-plan.js";
+import {
+	createClearPlanToolDefinition,
+	clearPlanTool,
+	clearPlanToolDefinition,
+} from "./clear-plan.js";
 
 export type Tool = AgentTool<any>;
 export type ToolDef = ToolDefinition<any, any>;
@@ -188,6 +193,7 @@ export const codingTools: Tool[] = [
 	generateImageTool,
 	generateVideoTool,
 	updatePlanTool,
+	clearPlanTool,
 ];
 export const readOnlyTools: Tool[] = [readTool, grepTool, findTool, lsTool, webSearchTool, webOpenPageTool, webFindInPageTool];
 
@@ -210,6 +216,7 @@ export const allTools = {
 	generate_image: generateImageTool,
 	generate_video: generateVideoTool,
 	update_plan: updatePlanTool,
+	clear_plan: clearPlanTool,
 	inspect_windows_ui: inspectWindowsUiTool,
 	os_control_action: osControlActionTool,
 	os_wait_for_window: osWaitForWindowTool,
@@ -234,6 +241,7 @@ export const allToolDefinitions = {
 	generate_image: generateImageToolDefinition,
 	generate_video: generateVideoToolDefinition,
 	update_plan: updatePlanToolDefinition,
+	clear_plan: clearPlanToolDefinition,
 	inspect_windows_ui: inspectWindowsUiToolDefinition,
 	os_control_action: osControlActionToolDefinition,
 	os_wait_for_window: osWaitForWindowToolDefinition,
@@ -274,6 +282,7 @@ export function createCodingToolDefinitions(cwd: string, options?: ToolsOptions)
 		createGenerateImageToolDefinition(cwd),
 		createGenerateVideoToolDefinition(cwd),
 		createUpdatePlanToolDefinition(),
+		createClearPlanToolDefinition(),
 		inspectWindowsUiToolDefinition,
 		osControlActionToolDefinition,
 		osWaitForWindowToolDefinition,
@@ -307,6 +316,7 @@ export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): R
 		generate_image: createGenerateImageToolDefinition(cwd),
 		generate_video: createGenerateVideoToolDefinition(cwd),
 		update_plan: createUpdatePlanToolDefinition(),
+		clear_plan: createClearPlanToolDefinition(),
 		inspect_windows_ui: inspectWindowsUiToolDefinition,
 		os_control_action: osControlActionToolDefinition,
 		os_wait_for_window: osWaitForWindowToolDefinition,

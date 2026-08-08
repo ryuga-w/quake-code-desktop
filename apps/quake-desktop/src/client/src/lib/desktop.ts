@@ -144,6 +144,8 @@ export interface QuakeDesktopApi {
   showItemInFolder?: (targetPath: string) => Promise<{ ok: boolean; error?: string }>;
   /** Native OS notification (Electron Notification). force skips background-only gate. */
   showNotification?: (title: string, body?: string, force?: boolean) => void;
+  /** Bildirim aksiyon butonlari (Sohbete don / Yanit gonder). Unsubscribe doner. */
+  onNotificationAction?: (callback: (payload: { action: "open-chat" | "reply" }) => void) => () => void;
   /** True when minimized / unfocused / hidden (background-only notifications). */
   isWindowInBackground?: () => Promise<boolean>;
   /** Prevent app suspension while unattended Goal work is active. */

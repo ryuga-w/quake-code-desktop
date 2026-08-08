@@ -1,5 +1,6 @@
 import { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
+import { registerQuakeMonacoThemes } from "./theme";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import CssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import HtmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
@@ -25,6 +26,11 @@ export function configureLocalMonaco(): void {
       return new EditorWorker();
     },
   };
+
+  // Ozel temalari (quake-light/quake-dark) global kaydet: beforeMount vermeyen
+  // Editor/DiffEditor kullanicilari (EditorTabs, MainEditorView, MonacoModal)
+  // da timeline zeminli temayi bulur; aksi halde beyaz varsayilana duserlerdi.
+  registerQuakeMonacoThemes(monaco);
 
   loader.config({ monaco });
 }

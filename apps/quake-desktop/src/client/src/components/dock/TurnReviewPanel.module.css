@@ -273,12 +273,12 @@
 
 :global([data-theme="light"]) .panel,
 :global([data-theme="light"]) .diffViewport {
-  background: #ffffff;
+  background: var(--surface-timeline);
 }
 
 :global([data-theme="light"]) .toolbar,
 :global([data-theme="light"]) .fileHeader {
-  background: #f5f5f6;
+  background: color-mix(in srgb, var(--heading) 5%, var(--surface-timeline));
 }
 
 :global([data-theme="light"]) .lineAdd { background: rgba(34, 197, 94, 0.14); }

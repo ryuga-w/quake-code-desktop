@@ -532,6 +532,22 @@ function buildMutationReview(row: ToolFileMutationRow, turnDiff?: TurnDiffView, 
   });
 }
 
+function LiveCommandTimer({ startedAt }: { startedAt?: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!startedAt) return;
+    const tick = () => setNow(Date.now());
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [startedAt]);
+
+  if (!startedAt) return null;
+  const seconds = Math.max(0, Math.floor((now - startedAt) / 1000));
+  const formatted = seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  return <span style={{ opacity: 0.85, fontFamily: "var(--font-mono)", fontSize: "11.5px", marginLeft: 4 }}>· {formatted}</span>;
+}
+
 function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, locale, onInspectFileChange }: { rows: ToolFileMutationRow[]; commands: ToolCardState[]; turnDiff?: TurnDiffView; turnId?: number; locale: "tr" | "en"; onInspectFileChange?: FileChangeInspectHandler }) {
   const fileFailed = rows.some((row) => row.tool.status === "error");
   const fileActive = rows.some((row) => row.active);
@@ -559,6 +575,7 @@ function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, locale, on
 
   const commandFailed = commands.some((tool) => tool.status === "error");
   const commandActive = commands.some((tool) => isActiveToolModel(tool));
+  const activeCommandTool = commands.find((tool) => isActiveToolModel(tool));
   const commandLabel = commands.length === 0
     ? ""
     : commandFailed
@@ -607,6 +624,9 @@ function FileMutationBatchSummary({ rows, commands, turnDiff, turnId, locale, on
     {commandLabel && (
       <span className={commandActive && !commandFailed ? styles.toolNoticeMutationStateLive : styles.toolNoticeMutationState}>
         {commandLabel}
+        {commandActive && activeCommandTool && (
+          <LiveCommandTimer startedAt={activeCommandTool.startedAt} />
+        )}
       </span>
     )}
   </span>;

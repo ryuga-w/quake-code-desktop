@@ -583,6 +583,8 @@ export type WebAgentEvent =
   | { type: "turn_started"; turnId: string; startedAt: number }
   /** Codex TurnComplete */
   | { type: "turn_completed"; turnId: string; startedAt: number; completedAt: number; durationMs: number }
+  /** Agent dismissed the plan via clear_plan — client should close the plan tab. */
+  | { type: "plan_cleared" }
   /**
    * Codex `EventMsg::TurnAborted` / app-server turn interrupted.
    * reason maps TurnAbortReason (interrupted | replaced | budget_limited | review_ended).

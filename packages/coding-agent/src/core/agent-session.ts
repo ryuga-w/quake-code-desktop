@@ -97,7 +97,7 @@ import { CURRENT_SESSION_VERSION, getLatestCompactionEntry, type SessionHeader }
 import type { SettingsManager } from "./settings-manager.js";
 import type { SlashCommandInfo } from "./slash-commands.js";
 import { createSyntheticSourceInfo, type SourceInfo } from "./source-info.js";
-import { addPlanUpdateListener } from "./plan-update-bus.js";
+import { addPlanClearListener, addPlanUpdateListener } from "./plan-update-bus.js";
 import { buildSystemPrompt } from "./system-prompt.js";
 import { type BashOperations, createLocalBashOperations } from "./tools/bash.js";
 import { createAllToolDefinitions } from "./tools/index.js";
@@ -277,6 +277,7 @@ export class AgentSession {
 	// Event subscription state
 	private _unsubscribeAgent?: () => void;
 	private _unsubscribePlanUpdates?: () => void;
+	private _unsubscribePlanClear?: () => void;
 	private _eventListeners: AgentSessionEventListener[] = [];
 	private _agentEventQueue: Promise<void> = Promise.resolve();
 
@@ -369,6 +370,10 @@ export class AgentSession {
 		this._unsubscribePlanUpdates = addPlanUpdateListener((update) => {
 			this.emitPlanUpdate(update);
 		});
+		// Core clear_plan tool → plan/cleared (agent-decided dismissal).
+		this._unsubscribePlanClear = addPlanClearListener(() => {
+			this.clearPlan();
+		});
 
 		this._buildRuntime({
 			activeToolNames: this._initialActiveToolNames,
@@ -411,6 +416,21 @@ export class AgentSession {
 		});
 	}
 
+	/**
+	 * Agent-decided plan dismissal. Emits plan/cleared so the runtime can drop
+	 * both the update_plan checklist and the persisted proposed-plan markdown,
+	 * then close the plan panel. Only the agent calls this (via clear_plan), so a
+	 * crashed/interrupted turn never wipes the user's plan automatically.
+	 */
+	clearPlan(): void {
+		this.sessionManager.appendCustomEntry("plan-cleared", { turnId: this._currentTurnId() });
+		this._emit({
+			type: "plan/cleared",
+			threadId: this.sessionId,
+			turnId: this._currentTurnId(),
+		});
+	}
+
 	isRootAgent(): boolean {
 		return !this.sessionManager.getHeader()?.parentSession;
 	}
@@ -430,7 +450,12 @@ export class AgentSession {
 
 	private _syncCollaborationModeTools(): void {
 		const active = this.getActiveToolNames().filter((name) => name !== "request_user_input");
-		if (this._collaborationMode === "plan" && this._toolRegistry.has("request_user_input")) {
+		// request_user_input is available in every collaboration mode (root thread
+		// only). The ajan decides when to ask: in Default mode it prefers reasonable
+		// assumptions but may still ask on genuine ambiguity / critical choices.
+		// This mirrors the plan-mode extension's syncRequestUserInputTool so the two
+		// layers do not fight over the active-tool list.
+		if (this._toolRegistry.has("request_user_input") && this.isRootAgent()) {
 			active.push("request_user_input");
 		}
 		if (this._toolRegistry.has("update_plan") && !active.includes("update_plan")) {
@@ -1047,6 +1072,8 @@ export class AgentSession {
 	 * Call this when completely done with the session.
 	 */
 	dispose(): void {
+		this._unsubscribePlanUpdates?.();
+		this._unsubscribePlanClear?.();
 		this._disconnectFromAgent();
 		this._eventListeners = [];
 	}
@@ -2597,6 +2624,7 @@ export class AgentSession {
 				getCollaborationMode: () => this.collaborationMode,
 				setCollaborationMode: (mode) => this.setCollaborationMode(mode),
 				emitPlanUpdate: (update) => this.emitPlanUpdate(update),
+				clearPlan: () => this.clearPlan(),
 				isRootAgent: () => this.isRootAgent(),
 			},
 			{

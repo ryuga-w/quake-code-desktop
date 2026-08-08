@@ -236,8 +236,8 @@ h1 em { color: var(--muted); font-family: Georgia, "Times New Roman", serif; fon
 .responseFlowPreview .streamdown-scope[style*="--streamdown-caret"] > :last-child::after { display: inline-block; margin-left: 2px; color: var(--muted); animation: responseCaretBlink 900ms steps(1) infinite; }
 
 @keyframes sd-signalTrail {
-  from { opacity: .12; filter: blur(2.5px); transform: translateX(5px); text-shadow: 4px 0 9px color-mix(in srgb, var(--ink) 16%, transparent); }
-  to { opacity: 1; filter: blur(0); transform: translateX(0); text-shadow: 0 0 0 transparent; }
+  from { opacity: 0; filter: blur(1.2px); transform: translateY(1px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
 }
 @keyframes sd-signalTrailFast {
   from { opacity: .55; filter: blur(.7px); transform: translateX(2px); text-shadow: 2px 0 5px color-mix(in srgb, var(--ink) 8%, transparent); }

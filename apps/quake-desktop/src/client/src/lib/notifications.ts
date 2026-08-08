@@ -318,8 +318,8 @@ export function sendNotification(
   void isAppInBackground().then(deliver);
 }
 
-export function notifyTaskComplete(taskName: string, options?: SendNotificationOptions) {
-  sendNotification("task", "Yanıt hazır", taskName, undefined, options);
+export function notifyTaskComplete(taskName: string, options?: SendNotificationOptions & { title?: string }) {
+  sendNotification("task", options?.title ?? "Yanıt hazır", taskName, undefined, options);
 }
 
 export function notifyOperationComplete(operation: string, options?: SendNotificationOptions) {

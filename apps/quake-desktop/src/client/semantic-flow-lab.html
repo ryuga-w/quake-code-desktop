@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajan Çalışırken Çıkan (isWorking) Animasyon Laboratuvarı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080a0f;
+      --nav-bg: #111216;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --heading: #f8fafc;
+      --muted: #8e8e93;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--heading);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container { width: 100%; max-width: 980px; }
+
+    header { text-align: center; margin-bottom: 32px; }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle { color: var(--muted); font-size: 14.5px; }
+
+    .stage-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+      margin-bottom: 28px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 32px;
+    }
+
+    .stage-header-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stage-title { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+    .stage-badge {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: #818cf8;
+      background: rgba(129, 140, 248, 0.12);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(129, 140, 248, 0.25);
+      display: inline-block;
+    }
+
+    /* Simulated NavRail Sidebar */
+    .navrail-sidebar {
+      background: var(--nav-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px 12px;
+      user-select: none;
+    }
+
+    .navrail-head {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding-left: 8px;
+    }
+
+    .thread-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 10px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 13.5px;
+    }
+
+    .thread-item.active {
+      background: #1e1e22;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .title-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    /* ================================================================ */
+    /* AGENT WORKING (isWorking) ANIMATION STYLES                      */
+    /* ================================================================ */
+
+    /* 10. Theme Accent Indigo Spinner (Seçilen Tema Rengi) */
+    .working-indigo-spinner {
+      width: 13px;
+      height: 13px;
+      border: 1.8px solid rgba(129, 140, 248, 0.25);
+      border-top-color: #818cf8;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(129, 140, 248, 0.4);
+      animation: spinCircle 750ms linear infinite;
+    }
+
+    /* 1. Rotating Emerald Spinner Circle */
+    .working-spinner {
+      width: 13px;
+      height: 13px;
+      border: 1.8px solid rgba(16, 185, 129, 0.25);
+      border-top-color: #10b981;
+      border-radius: 50%;
+      animation: spinCircle 750ms linear infinite;
+    }
+    @keyframes spinCircle {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 2. Quantum Pulse Ring */
+    .working-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #818cf8;
+      box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.7);
+      animation: pulseWave 1.2s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+    @keyframes pulseWave {
+      to { box-shadow: 0 0 0 8px rgba(129, 140, 248, 0); }
+    }
+
+    /* 3. Smooth Emerald Wave Dots */
+    .working-wave {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .working-wave span {
+      width: 3.5px;
+      height: 3.5px;
+      border-radius: 50%;
+      background: #818cf8;
+      box-shadow: 0 0 6px rgba(129, 140, 248, 0.8);
+      animation: smoothWave 1s ease-in-out infinite;
+    }
+    .working-wave span:nth-child(2) { animation-delay: 0.15s; }
+    .working-wave span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes smoothWave {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(-3px); opacity: 1; }
+    }
+
+    /* 4. Gemini Spectrum Radar Ring */
+    .working-spectrum {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #4285f4, #9b51e0, #34a853, #4285f4);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff 0);
+      mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff 0);
+      animation: spinCircle 800ms linear infinite;
+    }
+
+    /* 5. Apple Siri Breathing Orb */
+    .working-orb {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #818cf8, #a5b4fc);
+      box-shadow: 0 0 12px rgba(129, 140, 248, 0.8);
+      animation: orbBreathe 1.4s infinite ease-in-out;
+    }
+    @keyframes orbBreathe {
+      0%, 100% { transform: scale(0.85); opacity: 0.7; }
+      50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 16px rgba(165, 180, 252, 0.9); }
+    }
+
+    /* 11. Pure Crisp White Spinner */
+    .working-white-spinner {
+      width: 13px;
+      height: 13px;
+      border: 1.8px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spinCircle 750ms linear infinite;
+    }
+
+    /* Options Selection Grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .option-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+
+    .option-card:hover { border-color: rgba(129, 140, 248, 0.4); transform: translateY(-2px); }
+    .option-card.active {
+      border-color: #818cf8;
+      background: linear-gradient(180deg, rgba(129, 140, 248, 0.08) 0%, rgba(18, 18, 20, 1) 100%);
+      box-shadow: 0 0 0 1px #818cf8;
+    }
+
+    .option-badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 10px;
+      background: rgba(129, 140, 248, 0.15);
+      color: #a5b4fc;
+    }
+
+    .option-name { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .option-desc { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Ajan Çalışırken Çıkan (isWorking) Animasyon Laboratuvarı</h1>
+      <p class="subtitle">Tema rengimizle tam uyumlu dönen halka ve yeni animasyon çeşitleri</p>
+    </header>
+
+    <div class="stage-card">
+      <div class="stage-header-col">
+        <div class="stage-title">Canlı Önizleme Ekranı</div>
+        <div class="stage-badge" id="style-badge">1. Dönen İndigo Halka (Tema Rengimize Uyumlu)</div>
+        <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">
+          Ajan arka planda komut çalıştırırken veya yanıt üretirken yan menüdeki sohbetin sağında görünen canlı animasyon.
+        </p>
+      </div>
+
+      <!-- NavRail Simulator -->
+      <div class="navrail-sidebar">
+        <div class="navrail-head">Görevler</div>
+        <div class="navrail-list">
+
+          <div class="thread-item active">
+            <span class="title-text">Selamlaşma ve Yardım Teklifi</span>
+            <div id="working-slot">
+              <div class="working-indigo-spinner"></div>
+            </div>
+          </div>
+
+          <div class="thread-item">
+            <span class="title-text">selam nasılsın</span>
+          </div>
+
+          <div class="thread-item">
+            <span class="title-text">Nasılsın Sohbeti</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options Selection Grid -->
+    <div class="options-grid">
+      <!-- Option 10: Theme Accent Indigo Spinner -->
+      <div class="option-card active" onclick="selectStyle('indigo-spinner', '1. Dönen İndigo Halka (Tema Rengimize Uyumlu)', this)">
+        <span class="option-badge">Tavsiye Edilen (Bizim Tema)</span>
+        <div class="option-name">1. Dönen İndigo Halka</div>
+        <div class="option-desc">Tema rengimizle (%100 tam uyumlu) mor/indigo auralı 13px dönen yükleme halkası.</div>
+      </div>
+
+      <!-- Option 11: Pure White Spinner -->
+      <div class="option-card" onclick="selectStyle('white-spinner', '2. Saf Beyaz Dönen Halka (Minimalist White)', this)">
+        <span class="option-badge">Saf Beyaz</span>
+        <div class="option-name">2. Saf Beyaz Dönen Halka</div>
+        <div class="option-desc">Net ve keskin saf beyaz renkli dönen yükleme halkası.</div>
+      </div>
+
+      <!-- Option 1: Rotating Emerald Spinner -->
+      <div class="option-card" onclick="selectStyle('spinner', '3. Dönen Zümrüt Halka (Emerald Spinner)', this)">
+        <span class="option-badge">Zümrüt Yeşil</span>
+        <div class="option-name">3. Dönen Zümrüt Halka</div>
+        <div class="option-desc">Zümrüt yeşili renkte dönen mikro yükleme halkası.</div>
+      </div>
+
+      <!-- Option 2: Quantum Pulse Ring -->
+      <div class="option-card" onclick="selectStyle('pulse', '4. Nefes Alan İndigo Daire (Quantum Pulse)', this)">
+        <span class="option-badge">Dairesel Darbe</span>
+        <div class="option-name">4. Nefes Alan İndigo Daire</div>
+        <div class="option-desc">Dışa doğru dalga yayan indigo renkte dairesel nokta.</div>
+      </div>
+
+      <!-- Option 3: Smooth Wave Dots -->
+      <div class="option-card" onclick="selectStyle('wave', '5. Yumuşak İndigo Dalga (Smooth Wave)', this)">
+        <span class="option-badge">İyileştirilmiş Dalga</span>
+        <div class="option-name">5. Yumuşak İndigo Dalga</div>
+        <div class="option-desc">Mavi kaba noktalar yerine 3 adet ipeksi indigo dalga noktası.</div>
+      </div>
+
+      <!-- Option 4: Gemini Spectrum Radar Ring -->
+      <div class="option-card" onclick="selectStyle('spectrum', '6. Gemini Spektrum Halkası (Spectrum Radar)', this)">
+        <span class="option-badge">Google Gemini</span>
+        <div class="option-name">6. Gemini Spektrum Halkası</div>
+        <div class="option-desc">Dönen Google renkleri (Mavi/Mor/Zümrüt) spektrum radar halkası.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function selectStyle(styleKey, label, cardElement) {
+      document.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
+      cardElement.classList.add('active');
+      document.getElementById('style-badge').textContent = label;
+
+      const slot = document.getElementById('working-slot');
+      if (styleKey === 'indigo-spinner') {
+        slot.innerHTML = '<div class="working-indigo-spinner"></div>';
+      } else if (styleKey === 'white-spinner') {
+        slot.innerHTML = '<div class="working-white-spinner"></div>';
+      } else if (styleKey === 'spinner') {
+        slot.innerHTML = '<div class="working-spinner"></div>';
+      } else if (styleKey === 'pulse') {
+        slot.innerHTML = '<div class="working-pulse"></div>';
+      } else if (styleKey === 'wave') {
+        slot.innerHTML = '<div class="working-wave"><span></span><span></span><span></span></div>';
+      } else if (styleKey === 'spectrum') {
+        slot.innerHTML = '<div class="working-spectrum"></div>';
+      }
+    }
+  </script>
+</body>
+</html>

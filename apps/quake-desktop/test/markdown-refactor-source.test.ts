@@ -6,13 +6,14 @@ const root = process.cwd();
 const markdownMessage = readFileSync(join(root, "src/client/src/components/markdown/MarkdownMessage.tsx"), "utf8");
 const markdownContent = readFileSync(join(root, "src/client/src/components/markdown/MarkdownContent.tsx"), "utf8");
 const toolActivity = readFileSync(join(root, "src/client/src/components/markdown/ToolActivityNotice.tsx"), "utf8");
-const semanticFlow = readFileSync(join(root, "src/client/src/components/markdown/SemanticFlow.tsx"), "utf8");
+const semanticFlowComponents = readFileSync(join(root, "src/client/src/components/markdown/semantic-flow/components.tsx"), "utf8");
+const semanticFlow = readFileSync(join(root, "src/client/src/components/markdown/SemanticFlow.tsx"), "utf8") + "\n" + semanticFlowComponents;
 const toolRunDetails = readFileSync(join(root, "src/client/src/components/markdown/ToolRunDetails.tsx"), "utf8");
 const openState = readFileSync(join(root, "src/client/src/components/markdown/tool-activity-open-state.ts"), "utf8");
 
 describe("markdown responsibility boundaries", () => {
   it("retains the React runtime binding required by the desktop Vite transform", () => {
-    for (const source of [markdownMessage, markdownContent, toolActivity, semanticFlow, toolRunDetails]) {
+    for (const source of [markdownMessage, markdownContent, toolActivity, semanticFlowComponents, toolRunDetails]) {
       expect(source).toMatch(/^import React(?:,| from)/);
     }
     expect(markdownContent).toContain("React.useMemo<Components>");

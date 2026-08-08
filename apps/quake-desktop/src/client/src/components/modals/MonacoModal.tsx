@@ -3,6 +3,7 @@ import { normalizeThemeId } from "../settings/SettingsPanels";
 import { readStorageValue } from "../../lib/storage";
 import { DEFAULT_THEME, monacoThemeFor } from "../../lib/theme";
 import { useModalFocusTrap } from "../../lib/modal-focus";
+import { useI18n } from "../../i18n";
 import { EditableMonaco } from "../editor/EditableMonaco";
 import type { MonacoModal as MonacoModalType } from "../../types";
 
@@ -10,6 +11,7 @@ const Editor = React.lazy(() => import("@monaco-editor/react").then((m) => ({ de
 const DiffEditor = React.lazy(() => import("@monaco-editor/react").then((m) => ({ default: m.DiffEditor })));
 
 export function MonacoModal({ modal, onClose }: { modal: MonacoModalType; onClose: () => void }) {
+  const { t } = useI18n();
   const monacoTheme = monacoThemeFor(normalizeThemeId(readStorageValue("quake-web:theme", DEFAULT_THEME)));
   const dialogRef = useModalFocusTrap<HTMLDivElement>();
   useEffect(() => {
@@ -26,7 +28,7 @@ export function MonacoModal({ modal, onClose }: { modal: MonacoModalType; onClos
           {modal.mode === "editor" && modal.path ? (
             <EditableMonaco path={modal.path} content={modal.content} onClose={onClose} />
           ) : (
-            <React.Suspense fallback={<div className="panel-loading" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>Yükleniyor…</div>}>
+            <React.Suspense fallback={<div className="panel-loading">{t("tools.activity.loading")}</div>}>
               {modal.mode === "editor" ? (
                 <Editor theme={monacoTheme} value={modal.content} path={modal.path} options={{ readOnly: true, minimap: { enabled: false }, automaticLayout: true }} />
               ) : (

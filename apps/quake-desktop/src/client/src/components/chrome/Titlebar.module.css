@@ -73,39 +73,31 @@
 }
 
 .projectContext {
+  display: none !important;
+}
+
+/* Titlebar marka yazisi (Dosya menusunun solunda). Referans: Antigravity.
+   Renk/boyut Dosya-Duzenle-Gorunum menu butonlari (.menuBtn) ile ayni. */
+.brandMark {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  max-width: 220px;
-  height: 27px;
-  margin-left: 3px;
-  padding: 0 8px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--text-muted);
-  box-shadow: none;
+  height: 28px;
+  margin-left: 6px;
+  padding: 0 4px;
+  color: var(--text-navigation-muted, var(--text));
+  font-family: var(--font-sans);
   font-size: 12px;
-  font-weight: 500;
-  -webkit-app-region: no-drag;
-}
-.projectContext:hover {
-  background: var(--surface-raised);
-  color: var(--text-primary);
-}
-.projectContext span {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  -webkit-app-region: no-drag;
+  user-select: none;
 }
-.projectContext svg { flex: 0 0 auto; }
 
 /* Ozel menu cubugu. */
 .menubar {
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-left: 4px;
+  margin-left: 6px;
   -webkit-app-region: no-drag;
 }
 

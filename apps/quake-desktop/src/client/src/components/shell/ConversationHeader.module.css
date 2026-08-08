@@ -7,8 +7,8 @@
   gap: 8px;
   min-width: 0;
   height: 42px;
-  padding: 0 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--heading) 8%, transparent);
+  padding: 0 12px 0 44px;
+  border-bottom: 0;
   background: var(--surface-timeline, var(--bg));
   color: var(--heading);
 }
@@ -16,6 +16,26 @@
 .icon {
   flex: 0 0 auto;
   color: var(--muted);
+}
+
+.sidebarToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: background 120ms ease, color 120ms ease;
+}
+.sidebarToggleBtn:hover {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+  color: var(--heading);
 }
 
 .divider {
@@ -35,14 +55,55 @@
   color: color-mix(in srgb, var(--heading) 82%, var(--muted));
 }
 
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workspaceName {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 480;
+  letter-spacing: -0.01em;
+}
+
+.breadcrumbSeparator {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  user-select: none;
+  opacity: 0.7;
+}
+
 .title {
   min-width: 0;
   overflow: hidden;
+  color: var(--muted);
   font-size: 13px;
-  font-weight: 620;
+  font-weight: 480;
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
+  padding: 3px 6px;
+  margin: 0 -3px;
+  border-radius: 6px;
+  transition: background 100ms ease, color 100ms ease;
+}
+
+.title:hover {
+  background: color-mix(in srgb, var(--heading) 8%, transparent);
+  color: var(--heading);
+}
+
+.title:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--heading) 25%, transparent);
+  outline-offset: 1px;
 }
 
 .menuButton {
@@ -70,21 +131,30 @@
 }
 
 .renameForm {
-  flex: 0 1 min(420px, calc(100% - 70px));
-  min-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  min-width: 60px;
   margin: 0;
 }
 
 .renameForm input {
   width: 100%;
-  height: 28px;
-  border: 1px solid color-mix(in srgb, var(--accent-2) 52%, var(--border));
-  border-radius: 7px;
-  padding: 0 8px;
+  height: 24px;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 4px;
+  margin: 0;
   outline: 0;
-  background: var(--panel);
+  background: transparent;
   color: var(--heading);
   font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 12%, transparent);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  box-shadow: none;
+}
+
+.renameForm input::selection {
+  background: #2563eb;
+  color: #ffffff;
 }

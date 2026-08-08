@@ -60,7 +60,7 @@ export function useAppSettings(options: AppSettingsOptions) {
     document.documentElement.classList.toggle("dark", theme === "dark");
     desktop?.setResolvedTheme?.(theme);
     if (theme === "dark") desktop?.setOverlay?.("#0d0e0f", "#e8e8ea");
-    else desktop?.setOverlay?.("#f1eff1", "#1a1a1a");
+    else desktop?.setOverlay?.("#e4e4e4", "#1a1a1a");
   }, [theme]);
 
   useEffect(() => {

@@ -111,6 +111,37 @@ export function isSubagentTool(name: string): boolean {
   return normalized === "spawn_agent" || normalized === "agent" || normalized === "spawn_agents_on_csv";
 }
 
+/** Tarayıcı adresini sadeleştir: host (+ kısa yol), protokolsüz, 48 karakterde kısaltma. */
+export function formatBrowserAddress(raw: string): string {
+  const value = String(raw || "").trim();
+  const clamp = (text: string) => (text.length > 48 ? `${text.slice(0, 47)}…` : text);
+  try {
+    const url = new URL(value);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      const path = url.pathname && url.pathname !== "/" ? url.pathname : "";
+      return clamp(`${url.hostname}${path}${url.search}`);
+    }
+  } catch {
+    // URL değilse (tıklama hedefi, tarayıcı kodu vb.) metni olduğu gibi göster.
+  }
+  return clamp(value);
+}
+
+/** Aktif tarayıcı aracından sadeleştirilmiş adresi çöz (yoksa null). */
+export function selectActiveBrowserAddress(toolMap: Record<string, ToolCardState>): string | null {
+  let latest: ToolCardState | undefined;
+  for (const id in toolMap) {
+    const tool = toolMap[id];
+    if (!isBrowserTool(tool.toolName) || !isActiveTool(tool)) continue;
+    if (!latest || (tool.updatedAt || 0) > (latest.updatedAt || 0)) latest = tool;
+  }
+  if (!latest) return null;
+  const args = latest.args && typeof latest.args === "object" ? (latest.args as Record<string, any>) : {};
+  const raw = typeof args.url === "string" ? args.url : typeof args.target === "string" ? args.target : "";
+  const address = formatBrowserAddress(raw);
+  return address || null;
+}
+
 /** Full body + language — only for expanded tool cards. */
 export function getToolExecutionBody(tool: ToolCardState, locale: ToolActivityLocale = "tr"): { preview: string; language: string } {
   const preview = toolExecutionPreview(tool, locale);
@@ -180,11 +211,67 @@ export function toolDisplayName(name: string, locale: ToolActivityLocale = "tr")
   return map[name] || name;
 }
 
+/** Compact NOUN-phrase label for a Quake Chrome Bridge (chrome_*) call header.
+ *  The UI already prepends a status verb ("Çalıştırıldı" / "Çalışıyor"), so this
+ *  must be a short target/object — never a verb like "...yorum". */
+function summarizeChromeArgs(name: string, value: Record<string, any>, locale: ToolActivityLocale): string | undefined {
+  const en = locale === "en";
+  const n = name.toLowerCase();
+  const cleanSel = (s: unknown): string => {
+    const str = String(s ?? "").trim();
+    return (str.startsWith("text=") ? str.slice(5) : str).slice(0, 60);
+  };
+  if (n === "chrome_click") {
+    const sel = cleanSel(value.selector);
+    return sel ? `“${sel}”` : en ? "element" : "öğe";
+  }
+  if (n === "chrome_type") {
+    const txt = String(value.text ?? "").slice(0, 40);
+    return txt ? `“${txt}”` : en ? "text input" : "metin";
+  }
+  if (n === "chrome_fill_form") {
+    const count = value.fields && typeof value.fields === "object" ? Object.keys(value.fields).length : 0;
+    return en ? `form (${count} fields)` : `form (${count} alan)`;
+  }
+  if (n === "chrome_scroll") return en ? "page scroll" : "sayfa kaydırma";
+  if (n === "chrome_navigate" || n === "chrome_open_tab") {
+    const url = String(value.url ?? "").slice(0, 80);
+    return url || undefined;
+  }
+  if (n === "chrome_run_js") return en ? "page script" : "sayfa scripti";
+  if (n === "chrome_get_page_content") return en ? "page content" : "sayfa içeriği";
+  if (n === "chrome_screenshot") return en ? "screenshot" : "ekran görüntüsü";
+  if (n === "chrome_create_group") {
+    const title = String(value.title ?? "").slice(0, 40);
+    return title ? `${en ? "group" : "grup"}: “${title}”` : en ? "tab group" : "sekme grubu";
+  }
+  if (n === "chrome_close_my_groups") return en ? "group cleanup" : "grup temizliği";
+  if (n === "chrome_list_tabs") return en ? "tab list" : "sekme listesi";
+  if (n === "chrome_list_groups") return en ? "group list" : "grup listesi";
+  if (n === "chrome_activate_tab") return en ? "switch tab" : "sekme geçişi";
+  if (n === "chrome_bridge_status") return en ? "bridge status" : "köprü durumu";
+  if (n === "chrome_close_tab") return en ? "close tab" : "sekme kapatma";
+  if (n === "chrome_reload_tab") return en ? "reload tab" : "sekme yenileme";
+  if (n === "chrome_ungroup") return en ? "ungroup" : "grup çözme";
+  if (n === "chrome_set_group_color") return en ? "group color" : "grup rengi";
+  if (n === "chrome_set_group_title") return en ? "group title" : "grup başlığı";
+  if (n === "chrome_add_tabs_to_group") return en ? "add to group" : "gruba ekleme";
+  if (n === "chrome_my_color") return en ? "my color" : "rengim";
+  // Fallback for any other chrome_* tool: empty, never show tabId.
+  return "";
+}
+
 export function summarizeToolArgs(name: string, args: unknown, options: SummarizeToolArgsOptions = {}, locale: ToolActivityLocale = "tr"): string | undefined {
   if (!args || typeof args !== "object") return undefined;
   const value = args as Record<string, any>;
   const path = toolArgPath(value);
   const writeVerb = options.writeVerb === "create" ? "Oluşturuluyor" : "Yazılıyor";
+  // Quake Chrome Bridge tools: show a meaningful action summary (selector / text
+  // / url) instead of the raw "tabId: 12345" that the generic branch would pick.
+  if (name.toLowerCase().startsWith("chrome_")) {
+    const chromeSummary = summarizeChromeArgs(name, value, locale);
+    if (chromeSummary !== undefined) return chromeSummary;
+  }
   if (isSubagentTool(name)) {
     const prompt = value.message ?? value.prompt ?? value.description;
     return prompt ? `${locale === "en" ? "Input" : "Girdi"}: ${truncateOneLine(String(prompt), 118)}` : undefined;
@@ -497,7 +584,7 @@ export function toolRunActionLabel(tool: ToolCardState, locale: ToolActivityLoca
         created: "Oluşturuldu",
         runningCommand: "Komut çalışıyor",
         commandFailed: "Komut başarısız",
-        ran: "Çalıştırıldı",
+        ran: "Çalıştı",
         reading: "Okunuyor",
         readFailed: "Okuma başarısız",
         read: "Okundu",
@@ -509,10 +596,21 @@ export function toolRunActionLabel(tool: ToolCardState, locale: ToolActivityLoca
         searched: "Arandı",
         browser: "Tarayıcı",
         working: "Çalışıyor",
-        worked: "Çalıştırıldı",
+        worked: "Çalıştı",
         failed: "Başarısız",
       };
 
+  // Quake Chrome Bridge tools narrate in first person via the subject itself
+  // ("sekme listesindeyim"), so they carry no separate action verb.
+  if (tool.toolName.toLowerCase().startsWith("chrome_")) {
+    if (tool.status === "error") return labels.failed;
+    return "";
+  }
+  // update_plan / request_user_input also narrate via the subject only.
+  if (tool.toolName === "update_plan" || tool.toolName === "request_user_input") {
+    if (tool.status === "error") return labels.failed;
+    return "";
+  }
   if (isSubagentTool(tool.toolName)) return pastStatus(tool, labels.creating, labels.created, labels.failed);
   if (isCommandTool(tool.toolName)) {
     if (isActiveTool(tool)) return labels.runningCommand;
@@ -534,8 +632,104 @@ export function toolRunActionLabel(tool: ToolCardState, locale: ToolActivityLoca
   return pastStatus(tool, labels.working, labels.worked, labels.failed);
 }
 
+/** First-person, tense-aware narration for a Quake Chrome Bridge tool row.
+ *  active  → present continuous ("sayfayı kaydırıyorum")
+ *  done    → completed ("sayfayı kaydırdım") */
+function chromeFirstPersonPhrase(tool: ToolCardState, locale: ToolActivityLocale): string {
+  const en = locale === "en";
+  const n = tool.toolName.toLowerCase();
+  const active = isActiveTool(tool);
+  const args = asToolArgsRecord(tool.args);
+  const sel = (() => {
+    const s = String(args.selector ?? "").trim();
+    return (s.startsWith("text=") ? s.slice(5) : s).slice(0, 50);
+  })();
+  const txt = String(args.text ?? "").slice(0, 40);
+  const url = String(args.url ?? "").slice(0, 70);
+  // pair: [present-continuous, completed]
+  const P = (ing: string, done: string) => (active ? ing : done);
+  switch (n) {
+    case "chrome_click":
+      return sel
+        ? (en ? P(`clicking “${sel}”`, `clicked “${sel}”`) : P(`“${sel}” öğesine tıklıyorum`, `“${sel}” öğesine tıkladım`))
+        : (en ? P("clicking", "clicked") : P("tıklıyorum", "tıkladım"));
+    case "chrome_type":
+      return txt
+        ? (en ? P(`typing “${txt}”`, `typed “${txt}”`) : P(`“${txt}” yazıyorum`, `“${txt}” yazdım`))
+        : (en ? P("typing", "typed") : P("yazıyorum", "yazdım"));
+    case "chrome_fill_form": {
+      const count = args.fields && typeof args.fields === "object" ? Object.keys(args.fields).length : 0;
+      return en ? P(`filling the form (${count})`, `filled the form (${count})`) : P(`formu dolduruyorum (${count} alan)`, `formu doldurdum (${count} alan)`);
+    }
+    case "chrome_scroll":
+      return en ? P("scrolling the page", "scrolled the page") : P("sayfayı kaydırıyorum", "sayfayı kaydırdım");
+    case "chrome_navigate":
+      return url ? (en ? P(`opening ${url}`, `opened ${url}`) : P(`${url} açıyorum`, `${url} açtım`)) : (en ? P("navigating", "navigated") : P("sayfaya gidiyorum", "sayfaya gittim"));
+    case "chrome_open_tab":
+      return url ? (en ? P(`opening ${url}`, `opened ${url}`) : P(`${url} açıyorum`, `${url} açtım`)) : (en ? P("opening a tab", "opened a tab") : P("sekme açıyorum", "sekme açtım"));
+    case "chrome_run_js":
+      return en ? P("running a page script", "ran a page script") : P("sayfada script çalıştırıyorum", "sayfada script çalıştırdım");
+    case "chrome_get_page_content":
+      return en ? P("reading the page", "read the page") : P("sayfayı okuyorum", "sayfayı okudum");
+    case "chrome_screenshot":
+      return en ? P("taking a screenshot", "took a screenshot") : P("ekran görüntüsü alıyorum", "ekran görüntüsü aldım");
+    case "chrome_list_tabs":
+      return en ? P("listing tabs", "listed tabs") : P("sekme listesindeyim", "sekmeleri listeledim");
+    case "chrome_list_groups":
+      return en ? P("listing groups", "listed groups") : P("grupları listeliyorum", "grupları listeledim");
+    case "chrome_create_group": {
+      const title = String(args.title ?? "").slice(0, 40);
+      const suffix = title ? `: “${title}”` : "";
+      return en ? P(`grouping tabs${suffix}`, `grouped tabs${suffix}`) : P(`sekmeleri grupluyorum${suffix}`, `sekmeleri grupladım${suffix}`);
+    }
+    case "chrome_close_my_groups":
+      return en ? P("cleaning up my groups", "cleaned up my groups") : P("grubu temizliyorum", "grubu temizledim");
+    case "chrome_ungroup":
+      return en ? P("ungrouping", "ungrouped") : P("grubu çözüyorum", "grubu çözdüm");
+    case "chrome_activate_tab":
+      return en ? P("switching tab", "switched tab") : P("sekmeye geçiyorum", "sekmeye geçtim");
+    case "chrome_close_tab":
+      return en ? P("closing tab", "closed tab") : P("sekmeyi kapatıyorum", "sekmeyi kapattım");
+    case "chrome_reload_tab":
+      return en ? P("reloading tab", "reloaded tab") : P("sekmeyi yeniliyorum", "sekmeyi yeniledim");
+    case "chrome_set_group_color":
+      return en ? P("setting group color", "set group color") : P("grup rengini ayarlıyorum", "grup rengini ayarladım");
+    case "chrome_set_group_title":
+      return en ? P("setting group title", "set group title") : P("grup başlığını ayarlıyorum", "grup başlığını ayarladım");
+    case "chrome_add_tabs_to_group":
+      return en ? P("adding tabs to group", "added tabs to group") : P("sekmeleri gruba ekliyorum", "sekmeleri gruba ekledim");
+    case "chrome_bridge_status":
+      return en ? P("checking bridge status", "checked bridge status") : P("köprü durumuna bakıyorum", "köprü durumuna baktım");
+    case "chrome_my_color":
+      return en ? P("checking my color", "checked my color") : P("rengime bakıyorum", "rengime baktım");
+    default:
+      return truncateOneLine(toolDisplayName(tool.toolName, locale), 60);
+  }
+}
+
 export function toolRunSubject(tool: ToolCardState, locale: ToolActivityLocale = "tr"): string {
   if (isSubagentTool(tool.toolName)) return locale === "en" ? "an agent" : "bir ajan";
+  // Quake Chrome Bridge tools: first-person narration ("sekme listesindeyim"),
+  // tense-aware, and never let the generic file-path scanner mistake output
+  // words (e.g. "by") for a path.
+  if (tool.toolName.toLowerCase().startsWith("chrome_")) {
+    return truncateOneLine(chromeFirstPersonPhrase(tool, locale), 122);
+  }
+  // Plan / user-input tools: clean first-person narration instead of raw args.
+  if (tool.toolName === "update_plan") {
+    const active = isActiveTool(tool);
+    const planArgs = asToolArgsRecord(tool.args);
+    const steps = Array.isArray(planArgs.plan) ? planArgs.plan.length : 0;
+    const done = Array.isArray(planArgs.plan)
+      ? (planArgs.plan as Array<{ status?: string }>).filter((s) => s && s.status === "completed").length
+      : 0;
+    const suffix = steps ? ` (${done}/${steps})` : "";
+    return locale === "en" ? (active ? `updating the plan${suffix}` : `updated the plan${suffix}`) : (active ? `planı güncelliyorum${suffix}` : `planı güncelledim${suffix}`);
+  }
+  if (tool.toolName === "request_user_input") {
+    const active = isActiveTool(tool);
+    return locale === "en" ? (active ? "asking you" : "asked you") : (active ? "sana soruyorum" : "sana sordum");
+  }
   const args = asToolArgsRecord(tool.args);
   const cmd = args.command ?? args.CommandLine;
   if (isCommandTool(tool.toolName) && cmd) return truncateOneLine(String(cmd), 122);

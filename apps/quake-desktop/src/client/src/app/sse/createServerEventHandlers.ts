@@ -166,6 +166,8 @@ export type ServerEventHandlerContext = {
   upsertActiveSessionInSidebar: (firstMessage?: string) => void;
   /** Open (or focus) a right-panel dock tab. */
   openRightPanel: (tab: RightTab) => void;
+  /** Close the plan dock tab after the agent dismissed the plan (clear_plan). */
+  closePlanTab: () => void;
   /** Dispatch extension_ui_request methods (status, widgets, modals, …). */
   handleExtensionRequest: (event: any) => void;
   /** Send the next queued user message after turn completion. */
@@ -187,6 +189,34 @@ function hasActiveToolState(tools: Record<string, ToolCardState>): boolean {
   return Object.values(tools).some(
     (tool) => tool?.status === "queued" || tool?.status === "running" || tool?.status === "streaming",
   );
+}
+
+/** Tek satira sigacak sekilde kisalt (OS toast dar). */
+function clampNotifyText(text: string, max = 140): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, max - 1).trimEnd()}…`;
+}
+
+/**
+ * Turn bittiginde OS bildirimi icin baslik + govde uretir.
+ * Baslik = kullanicinin son sorusu, govde = ajanin son cevabi.
+ * Boylece bildirim statik "Yanit hazir" yerine gercek icerik gosterir.
+ */
+function buildTurnNotification(): { title: string; body: string } {
+  const snap = useAppStore.getState();
+  const messages = (snap.messages ?? []) as Array<{ role?: string; [k: string]: unknown }>;
+  let userText = "";
+  let assistantText = "";
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (!assistantText && m?.role === "assistant") assistantText = textFromMessage(m as any) || "";
+    else if (!userText && m?.role === "user") userText = textFromMessage(m as any) || "";
+    if (userText && assistantText) break;
+  }
+  const title = userText ? clampNotifyText(userText, 60) : "Yanıt hazır";
+  const body = assistantText ? clampNotifyText(assistantText) : "Yanıt tamamlandı";
+  return { title, body };
 }
 
 /**
@@ -475,6 +505,11 @@ export function createServerEventHandlers(ctx: ServerEventHandlerContext): Serve
         return next;
       });
     }
+    // Agent dismissed the plan (clear_plan) — close the plan dock tab.
+    if (event.type === "plan_cleared") {
+      ctx.lastPlanPhaseRef.current = "idle";
+      ctx.closePlanTab();
+    }
     // Codex EventMsg::TurnAborted
     if (event.type === "turn_aborted" && event.reason !== "replaced") {
       ctx.abortedTurnSuppressedRef.current = true;
@@ -589,7 +624,8 @@ export function createServerEventHandlers(ctx: ServerEventHandlerContext): Serve
           ctx.settleActiveToolsAfterIdle();
           // Don't celebrate aborts as "complete".
           if (event.message?.stopReason !== "aborted") {
-            notifyTaskComplete("Yanıt tamamlandı");
+            const n = buildTurnNotification();
+            notifyTaskComplete(n.body, { title: n.title });
           }
           ctx.setUserMessageQueue((prev) => {
             if (prev.length === 0) return prev;
@@ -646,7 +682,8 @@ export function createServerEventHandlers(ctx: ServerEventHandlerContext): Serve
       ctx.settleActiveToolsAfterIdle();
       if (!ctx.turnCompleteNotifiedRef.current) {
         ctx.turnCompleteNotifiedRef.current = true;
-        notifyTaskComplete("Yanıt tamamlandı");
+        const n = buildTurnNotification();
+        notifyTaskComplete(n.body, { title: n.title });
       }
       ctx.setUserMessageQueue((prev) => {
         if (prev.length === 0) return prev;

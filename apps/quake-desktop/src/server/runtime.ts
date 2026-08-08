@@ -101,6 +101,8 @@ type RuntimeSlot = {
   planUpdate?: UpdatePlanArgs;
   proposedPlan?: { id: string; text: string };
   proposedPlanDraft?: string;
+  /** Agent dismissed the plan via clear_plan; suppress persisted plan-item. */
+  planCleared?: boolean;
   surface?: "side-conversation";
   parentSessionPath?: string;
   surfaceCreatedAt?: number;
@@ -574,7 +576,12 @@ export class WebRuntimeController {
   }): Promise<{ cancelled: boolean }> {
     // Keep any currently streaming chat alive in the background — cancel only the
     // active session's blocking UI before moving it out of focus.
-    const parentSession = _options?.parentSession || this.session.sessionFile || undefined;
+    // KRITIK: parentSession fallback'i (`|| this.session.sessionFile`) KALDIRILDI.
+    // Eskiden client bos gonderse bile mevcut oturum parent yaziliyordu -> her ana
+    // sohbet "child" sayilip isRootAgent() hep false donuyor, request_user_input
+    // kiriliyordu. Artik parent SADECE explicit gelirse (yan sohbet/fork) set edilir;
+    // normal yeni sohbet KOK kalir.
+    const parentSession = _options?.parentSession || undefined;
     const isolation = _options?.isolation || "agent";
     this.extensionUi.clearPendingRequests(this.activeInteractionOwnerKey());
     const bootstrap = this.workspaceBootstrap(this.currentCwd);
@@ -1209,17 +1216,27 @@ export class WebRuntimeController {
 
   private getPlanState(): WebPlanState {
     const slot = this.slots.get(this.activeKey);
-    const persistedPlan = [...this.session.sessionManager.getEntries()]
-      .reverse()
-      .find((item: any) => item?.type === "custom" && item?.customType === "plan-item") as
-      | { data?: { id?: string; text?: string } }
-      | undefined;
+    // Walk entries newest-first; if a plan-cleared marker appears before any
+    // plan-item, the agent dismissed the plan (survives session reload).
+    let persistedPlan: { data?: { id?: string; text?: string } } | undefined;
+    let persistedCleared = false;
+    for (const item of [...this.session.sessionManager.getEntries()].reverse()) {
+      const entry = item as any;
+      if (entry?.type !== "custom") continue;
+      if (entry.customType === "plan-cleared") { persistedCleared = true; break; }
+      if (entry.customType === "plan-item") { persistedPlan = entry; break; }
+    }
+    // Live checklist visibility follows only the live slot flag, so a new
+    // update_plan after a clear_plan shows again. The persisted plan-cleared
+    // marker only suppresses the persisted proposed-plan markdown on reload.
+    const checklistCleared = Boolean(slot?.planCleared);
+    const markdownCleared = checklistCleared || persistedCleared;
     const proposedPlan = slot?.proposedPlan || (
-      typeof persistedPlan?.data?.text === "string"
+      !markdownCleared && typeof persistedPlan?.data?.text === "string"
         ? { id: String(persistedPlan.data.id || `plan-${this.session.sessionId}`), text: persistedPlan.data.text }
         : undefined
     );
-    const steps = (slot?.planUpdate?.plan || []).map((item, index) => ({
+    const steps = (checklistCleared ? [] : slot?.planUpdate?.plan || []).map((item, index) => ({
       step: index + 1,
       text: item.step,
       fullText: item.step,
@@ -1622,6 +1639,8 @@ export class WebRuntimeController {
       this.maybeAdvanceGoal(slot, event);
       if (event.type === "turn/plan/updated") {
         slot.planUpdate = { explanation: event.explanation, plan: event.plan };
+        // A fresh checklist supersedes any earlier clear_plan dismissal.
+        slot.planCleared = false;
       } else if (event.type === "item/started" && event.item.type === "plan") {
         slot.proposedPlanDraft = "";
       } else if (event.type === "item/plan/delta") {
@@ -1629,6 +1648,19 @@ export class WebRuntimeController {
       } else if (event.type === "item/completed" && event.item.type === "plan") {
         slot.proposedPlan = { id: event.item.id, text: event.item.text };
         slot.proposedPlanDraft = undefined;
+        slot.planCleared = false;
+      } else if (event.type === "plan/cleared") {
+        // Agent-decided dismissal (clear_plan tool). Drop live checklist and
+        // proposed markdown, and set a marker so getPlanState() ignores the
+        // persisted plan-item entry when rebuilding state.
+        slot.planUpdate = undefined;
+        slot.proposedPlan = undefined;
+        slot.proposedPlanDraft = undefined;
+        slot.planCleared = true;
+        if (resolvedKey === this.activeKey) {
+          this.hub.send({ type: "plan_cleared" } as any);
+          this.emitState();
+        }
       }
     }
 
@@ -1684,6 +1716,11 @@ export class WebRuntimeController {
 
         if (lifecycleEvent.type === "turn_completed") {
           guardianRuntime.endTurn();
+          // NOTE: We intentionally do NOT auto-clear the plan panel on turn
+          // completion. handleRunFailure() also emits agent_end -> turn_completed
+          // on network/errors, so auto-clearing here would wipe the user's plan
+          // when the agent crashed. Clearing is agent-decided via the clear_plan
+          // tool instead (see createClearPlanToolDefinition).
           if (slot) void this.maybeGenerateSessionTitle(slot);
           this.hub.send({
             type: "turn_completed",

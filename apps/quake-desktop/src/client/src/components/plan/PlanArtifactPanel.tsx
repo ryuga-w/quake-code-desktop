@@ -16,10 +16,14 @@ export function PlanArtifactPanel({
 }) {
   const { t } = useI18n();
   const markdown = plan.artifact?.markdown || "";
+  // Plan artik oneri asamasinda mi (ready + plan modu acik), yoksa uygulanmis/gecmis mi?
+  // Uygulandiysa baslik "Uygulanan plan" olur; boylece eski/bayat gorunmez, tamamlanmis is gibi durur.
+  const isProposal = plan.enabled && plan.phase === "ready";
+  const title = isProposal ? t("runtime.plan.proposedPlan") : t("runtime.plan.appliedPlan");
 
-  return <section className={styles.root} aria-label={t("runtime.plan.proposedPlan")}>
+  return <section className={styles.root} aria-label={title}>
     <header className={styles.toolbar}>
-      <div className={styles.breadcrumb}><span>{t("runtime.plan.panel")}</span><i>›</i><b>{t("runtime.plan.proposedPlan")}</b></div>
+      <div className={styles.breadcrumb}><span>{t("runtime.plan.panel")}</span><i>›</i><b>{title}</b></div>
       <div className={styles.actions}>
         <span className={styles.model}>{plan.enabled ? t("runtime.plan.planMode") : t("runtime.plan.defaultMode")}</span>
         <button type="button" className={styles.icon} onClick={onClose} aria-label={t("runtime.plan.closeTab")}><X size={15} /></button>

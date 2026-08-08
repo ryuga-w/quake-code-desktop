@@ -56,63 +56,31 @@ function createHarness(initialMode: "default" | "plan" = "default") {
 }
 
 describe("Codex-compatible plan mode extension", () => {
-	it("keeps update_plan active and hides request_user_input in Default mode", async () => {
+	it("keeps update_plan and request_user_input active in Default mode", async () => {
 		const harness = createHarness();
 		await harness.handlers.get("session_start")!({}, harness.ctx);
 		expect(harness.getActiveTools()).toContain("update_plan");
-		expect(harness.getActiveTools()).not.toContain("request_user_input");
+		// request_user_input is now available in every collaboration mode so the
+		// ajan can ask on genuine ambiguity even in Default mode.
+		expect(harness.getActiveTools()).toContain("request_user_input");
 	});
 
-	it("toggles Plan mode and exposes request_user_input", async () => {
+	it("keeps request_user_input available across mode toggles", async () => {
 		const harness = createHarness();
 		await harness.commands.get("plan")!.handler("", harness.ctx);
 		expect(harness.getMode()).toBe("plan");
 		expect(harness.getActiveTools()).toContain("request_user_input");
 		await harness.commands.get("plan")!.handler("", harness.ctx);
 		expect(harness.getMode()).toBe("default");
-		expect(harness.getActiveTools()).not.toContain("request_user_input");
+		expect(harness.getActiveTools()).toContain("request_user_input");
 	});
 
-	it("emits an authoritative update_plan snapshot and returns Plan updated", async () => {
-		const harness = createHarness();
-		const result = await harness.tools.get("update_plan")!.execute(
-			"call-1",
-			{
-				explanation: "Starting",
-				plan: [
-					{ step: "Inspect", status: "in_progress" },
-					{ step: "Report", status: "pending" },
-				],
-			},
-			undefined,
-			undefined,
-			harness.ctx,
-		);
-		expect(harness.emitPlanUpdate).toHaveBeenCalledWith({
-			explanation: "Starting",
-			plan: [
-				{ step: "Inspect", status: "in_progress" },
-				{ step: "Report", status: "pending" },
-			],
-		});
-		expect(result.content[0].text).toBe("Plan updated");
-	});
+	// NOTE: update_plan is a core builtin (Codex PlanHandler) and is no longer
+	// registered by this extension. Its behavior (snapshot emit + Plan-mode
+	// blocking) is covered by src/core/tools/update-plan.test.ts.
 
-	it("rejects update_plan in Plan mode", async () => {
-		const harness = createHarness("plan");
-		await expect(
-			harness.tools.get("update_plan")!.execute(
-				"call-1",
-				{ plan: [{ step: "Inspect", status: "in_progress" }] },
-				undefined,
-				undefined,
-				harness.ctx,
-			),
-		).rejects.toThrow("not allowed in Plan mode");
-	});
-
-	it("round-trips request_user_input only in root Plan mode", async () => {
-		const harness = createHarness("plan");
+	it("round-trips request_user_input for the root thread in Default mode", async () => {
+		const harness = createHarness("default");
 		const result = await harness.tools.get("request_user_input")!.execute(
 			"call-2",
 			{
@@ -134,6 +102,32 @@ describe("Codex-compatible plan mode extension", () => {
 		);
 		expect(harness.requestUserInput).toHaveBeenCalledOnce();
 		expect(JSON.parse(result.content[0].text)).toEqual({ answers: { scope: { answers: ["A"] } } });
+	});
+
+	it("rejects request_user_input for non-root threads", async () => {
+		const harness = createHarness("default");
+		harness.ctx.isRootAgent = () => false;
+		await expect(
+			harness.tools.get("request_user_input")!.execute(
+				"call-3",
+				{
+					questions: [
+						{
+							header: "Scope",
+							id: "scope",
+							question: "Which scope?",
+							options: [
+								{ label: "A", description: "First" },
+								{ label: "B", description: "Second" },
+							],
+						},
+					],
+				},
+				undefined,
+				undefined,
+				harness.ctx,
+			),
+		).rejects.toThrow("root thread");
 	});
 
 	it("injects the Plan Mode collaboration instructions", async () => {

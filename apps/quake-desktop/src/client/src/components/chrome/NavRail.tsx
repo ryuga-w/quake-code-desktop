@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
+  PanelLeft,
   Search,
   Plus,
   Clock,
@@ -45,8 +46,10 @@ export type NavProject = {
   sessions: NavSession[];
 };
 
-/** A pinned task keeps the same session identity and actions as its normal rail row. */
-export type NavPinned = NavSession & {
+export type NavPinned = {
+  id: string;
+  name: string;
+  modified?: number | string;
   onOpen?: () => void;
 };
 
@@ -89,8 +92,6 @@ export function NavRail({
   onRenameSession,
   unreadSessionPaths,
   onRemoveProject,
-  onPeekEnter,
-  onPeekLeave,
 }: {
   leftOpen: boolean;
   onToggle: () => void;
@@ -127,13 +128,10 @@ export function NavRail({
   unreadSessionPaths?: Set<string>;
   /** Remove workspace/folder from the Projects list (not delete files on disk). */
   onRemoveProject?: (cwd: string) => void;
-  /** Keeps the temporary overlay rail open while the pointer is inside it. */
   onPeekEnter?: () => void;
-  /** Schedules the temporary overlay rail to close after the pointer leaves. */
   onPeekLeave?: () => void;
 }) {
   void _onOpenSessions;
-  void onToggle;
   const { t } = useI18n();
   const navMenu = useContextMenu();
   const [showAllSessions, setShowAllSessions] = useState(false);
@@ -171,10 +169,6 @@ export function NavRail({
     () => [...sessions].sort((a, b) => modifiedTs(b.modified) - modifiedTs(a.modified)),
     [sessions],
   );
-  const sortedPinned = useMemo(
-    () => [...(pinned || [])].sort((a, b) => modifiedTs(b.modified) - modifiedTs(a.modified)),
-    [pinned],
-  );
   const displayedSessions = showAllSessions ? sortedSessions : sortedSessions.slice(0, 10);
   const hasMoreSessions = sortedSessions.length > 10;
   const sidebarSizeLabel = t(sidebarSize === "quarter" ? "navRail.sidebarQuarter" : "navRail.sidebarHalf");
@@ -182,17 +176,8 @@ export function NavRail({
   const sidebarSizeGlyph = sidebarSize === "quarter" ? "¼" : "½";
 
   return (
-    <aside
-      className={`${styles.navrail} ${leftOpen ? "" : styles.collapsed}`}
-      aria-hidden={!leftOpen}
-      aria-label={t("navRail.navigation")}
-      onPointerEnter={onPeekEnter}
-      onPointerLeave={onPeekLeave}
-    >
+    <aside className={`${styles.navrail} ${leftOpen ? "" : styles.collapsed}`} aria-hidden={!leftOpen} aria-label={t("navRail.navigation")}>
       <div className={styles.topBar}>
-        <div className={styles.brandMark} aria-label="Quake Code">
-          <b>Quake Code</b>
-        </div>
         <div className={styles.topActions}>
           <button
             type="button"
@@ -243,31 +228,6 @@ export function NavRail({
       </div>
 
       <div className={styles.scroll}>
-        {sortedPinned.length > 0 && (
-          <div className={`${styles.section} ${styles.pinnedSection}`}>
-            <div className={`${styles.sectionHead} ${styles.pinnedSectionHead}`}>
-              {t("navRail.pinnedTasks")}
-            </div>
-            <div className={`${styles.threads} ${styles.threadsOpen}`}>
-              {sortedPinned.map((session) => (
-                <ThreadItem
-                  key={`pinned:${session.path}`}
-                  session={session}
-                  flat
-                  activeSessionId={activeSessionId}
-                  actions={threadActions}
-                  onSwitchSession={onSwitchSession}
-                  renaming={renamingSession?.path === session.path}
-                  onRenameCancel={() => setRenamingSession(undefined)}
-                  onRenameCommit={(nextName) => {
-                    onRenameSession?.(session, nextName);
-                    setRenamingSession(undefined);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
         <div className={styles.section}>
           <div className={styles.sectionHead}>{t("navRail.tasks")}</div>
           <div className={`${styles.threads} ${styles.threadsOpen}`}>
@@ -428,14 +388,12 @@ function ThreadItem({
         </button>
       )}
       {!renaming && <span className={styles.threadMeta}>
-        {isWorking && (
-          <span className={styles.generatingDots} title={t("navRail.agentGenerating")} aria-label={t("navRail.agentGenerating")}>
-            <span />
-            <span />
-            <span />
-          </span>
-        )}
-        {!isWorking && isUnread && <span className={styles.unreadDot} title={t("navRail.unreadReply")} aria-label={t("navRail.unreadReply")} />}
+        <span className={styles.threadStatusSlot}>
+          {isWorking && (
+            <span className={styles.generatingDots} title={t("navRail.agentGenerating")} aria-label={t("navRail.agentGenerating")} />
+          )}
+          {!isWorking && isUnread && <span className={styles.unreadDot} title={t("navRail.unreadReply")} aria-label={t("navRail.unreadReply")} />}
+        </span>
         <span className={styles.threadActions}>
           <button
             type="button"

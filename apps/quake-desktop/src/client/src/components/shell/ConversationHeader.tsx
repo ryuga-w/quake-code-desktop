@@ -1,5 +1,5 @@
 import React from "react";
-import { Archive, CirclePlus, Copy, Folder, MoreHorizontal, Pencil, Pin, PinOff, SquarePen } from "lucide-react";
+import { Archive, CirclePlus, Copy, Folder, MoreHorizontal, Pencil, Pin, PinOff } from "lucide-react";
 import { formatSessionTitle } from "../../lib/render";
 import { copyTextWithToast } from "../../lib/copy-toast";
 import { useContextMenu, type MenuItem } from "../chrome/ContextMenu";
@@ -12,6 +12,7 @@ export function ConversationHeader({
   onRename,
   onArchive,
   onOpenSideTask,
+  workspaceName,
 }: {
   session: any;
   pinned: boolean;
@@ -19,13 +20,15 @@ export function ConversationHeader({
   onRename: (nextName: string) => void;
   onArchive: () => void;
   onOpenSideTask: () => void;
+  workspaceName?: string;
 }) {
   const menu = useContextMenu();
   const [renaming, setRenaming] = React.useState(false);
   const [draft, setDraft] = React.useState(() => formatSessionTitle(session));
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const title = formatSessionTitle(session);
-  const workspaceTitle = String(session?.cwd || "").trim();
+  const rawCwd = String(session?.cwd || "").trim();
+  const folderName = workspaceName || (rawCwd ? (rawCwd.replace(/[\\/]+$/, "").split(/[\\/]/).filter(Boolean).pop() || "quake-desktop") : "quake-desktop");
 
   React.useEffect(() => {
     if (!renaming) setDraft(title);
@@ -76,41 +79,51 @@ export function ConversationHeader({
   return (
     <>
       <header className={styles.header} aria-label="Aktif sohbet başlığı">
-        <SquarePen className={styles.icon} size={15} strokeWidth={1.7} aria-hidden="true" />
         <span className={styles.divider} aria-hidden="true" />
-        <span
-          className={styles.workspaceIcon}
-          title={workspaceTitle ? `Çalışma alanı: ${workspaceTitle}` : "Çalışma alanı"}
-          aria-label={workspaceTitle ? `Çalışma alanı: ${workspaceTitle}` : "Çalışma alanı"}
-        >
-          <Folder size={16} strokeWidth={1.75} aria-hidden="true" />
-        </span>
-        {renaming ? (
-          <form
-            className={styles.renameForm}
-            onSubmit={(event) => {
-              event.preventDefault();
-              commitRename();
-            }}
-          >
-            <input
-              ref={inputRef}
-              value={draft}
-              maxLength={120}
-              onChange={(event) => setDraft(event.currentTarget.value)}
-              onBlur={commitRename}
-              onKeyDown={(event) => {
-                if (event.key !== "Escape") return;
+        <div className={styles.breadcrumb}>
+          <span className={styles.workspaceName}>{folderName}</span>
+          <span className={styles.breadcrumbSeparator}>/</span>
+          {renaming ? (
+            <form
+              className={styles.renameForm}
+              onSubmit={(event) => {
                 event.preventDefault();
-                setDraft(title);
-                setRenaming(false);
+                commitRename();
               }}
-              aria-label="Sohbet adını değiştir"
-            />
-          </form>
-        ) : (
-          <strong className={styles.title} title={title}>{title}</strong>
-        )}
+            >
+              <input
+                ref={inputRef}
+                value={draft}
+                maxLength={120}
+                onChange={(event) => setDraft(event.currentTarget.value)}
+                onBlur={commitRename}
+                onKeyDown={(event) => {
+                  if (event.key !== "Escape") return;
+                  event.preventDefault();
+                  setDraft(title);
+                  setRenaming(false);
+                }}
+                aria-label="Sohbet adını değiştir"
+              />
+            </form>
+          ) : (
+            <strong
+              className={styles.title}
+              title="Adı değiştirmek için tıklayın"
+              onClick={beginRename}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  beginRename();
+                }
+              }}
+            >
+              {title}
+            </strong>
+          )}
+        </div>
         <button
           type="button"
           className={styles.menuButton}

@@ -2094,6 +2094,7 @@ export class InteractiveMode {
 	      getCollaborationMode: () => this.session.collaborationMode,
 	      setCollaborationMode: (mode) => this.session.setCollaborationMode(mode),
 	      emitPlanUpdate: (update) => this.session.emitPlanUpdate(update),
+	      clearPlan: () => this.session.clearPlan(),
 	      isRootAgent: () => this.session.isRootAgent(),
 	    });
 

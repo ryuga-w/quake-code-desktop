@@ -32,9 +32,9 @@
 .topBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 40px;
-  padding: 0 5px;
+  justify-content: flex-end;
+  height: 38px;
+  padding: 0 6px 0 42px;
   flex: 0 0 auto;
 }
 
@@ -237,14 +237,6 @@
   letter-spacing: 0.01em;
 }
 
-.pinnedSection {
-  margin-bottom: 8px;
-}
-
-.pinnedSectionHead {
-  color: var(--text-navigation-muted, #777c83);
-}
-
 .threads {
   display: none;
   flex-direction: column;
@@ -289,9 +281,10 @@
 }
 
 .threadActive {
-  background: var(--surface-navigation-active, #363336);
+  background: var(--surface-navigation-active, #1e1e22);
   color: var(--text-navigation, #fff);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-navigation, #fff) 2.5%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: var(--nav-thread-active-shadow, 0 2px 8px rgba(0, 0, 0, 0.25));
 }
 
 .threadMain {
@@ -305,7 +298,7 @@
   background: transparent !important;
   color: inherit !important;
   font: inherit !important;
-  font-weight: 440 !important;
+  font-weight: 400 !important;
   text-align: left;
   cursor: pointer;
 }
@@ -355,6 +348,17 @@
   gap: 4px;
 }
 
+.threadStatusSlot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-left: auto;
+}
+
 .time {
   flex: 0 0 auto;
   margin-left: auto;
@@ -365,37 +369,39 @@
 }
 
 .generatingDots {
-  width: 17px;
-  height: 10px;
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-.generatingDots > span {
-  width: 3px;
-  height: 3px;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  display: inline-block;
+  border: 1.8px solid rgba(255, 255, 255, 0.22);
+  border-top-color: #ffffff;
   border-radius: 50%;
-  background: #3b82f6;
-  animation: generatingDot 1.05s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+  animation: spinCircle 750ms linear infinite;
 }
-
-.generatingDots > span:nth-child(2) { animation-delay: 0.12s; }
-.generatingDots > span:nth-child(3) { animation-delay: 0.24s; }
 
 .unreadDot {
   width: 6px;
   height: 6px;
-  flex: 0 0 auto;
+  flex: 0 0 6px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: var(--heading, #ffffff);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--heading, #ffffff) 40%, transparent);
 }
 
-@keyframes generatingDot {
-  0%, 60%, 100% { opacity: 0.3; transform: translateY(1px); }
-  30% { opacity: 1; transform: translateY(-1px); }
+:global([data-theme="light"]) .generatingDots {
+  border: 1.8px solid rgba(0, 0, 0, 0.16);
+  border-top-color: #111111;
+  box-shadow: none;
+}
+
+:global([data-theme="light"]) .unreadDot {
+  background: #111111;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes spinCircle {
+  to { transform: rotate(360deg); }
 }
 
 .threadActions {
@@ -599,10 +605,31 @@
   color: #2c292c;
 }
 :global([data-theme="light"]) .brandMark { color: #1e1b1e; }
+/* Referans (Antigravity): NavRail yazilari ince ve zarif - daha acik gri,
+   dusuk font-weight, hafif harf araligi. */
 :global([data-theme="light"]) .newChat,
 :global([data-theme="light"]) .navItem,
 :global([data-theme="light"]) .thread,
-:global([data-theme="light"]) .settingsRow { color: #302d30 !important; }
+:global([data-theme="light"]) .settingsRow {
+  color: #4a474a !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.005em;
+}
+
+/* Referans (Antigravity): "+ New Conversation" ustte hafif acik zeminli,
+   ince kenarlikli buton. Saf beyaz (#fff) zemine gore fazla parlak/"bikini"
+   duruyordu; kirik beyaza cekip kontrasti dusurduk. */
+:global([data-theme="light"]) .newChat {
+  background: #eeeeee !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-weight: 450 !important;
+}
+:global([data-theme="light"]) .newChat:hover {
+  background: #f2f2f2 !important;
+  border-color: rgba(0, 0, 0, 0.09) !important;
+}
 :global([data-theme="light"]) .settingsRow:hover {
   background: var(--surface-navigation-hover, #e5e2e5);
   color: var(--text-navigation, #2c292c) !important;
@@ -612,15 +639,44 @@
 :global([data-theme="light"]) .navItem:hover,
 :global([data-theme="light"]) .navItemActive,
 :global([data-theme="light"]) .navItemRow:hover > .navItem,
-:global([data-theme="light"]) .thread:hover { background: #e5e2e5 !important; }
+:global([data-theme="light"]) .thread:hover { background: #dedcde !important; }
 :global([data-theme="light"]) .navItemTrailing { color: #716c71; }
 :global([data-theme="light"]) .navItemTrailing:hover { background: #d5d1d5; color: #242124; }
-:global([data-theme="light"]) .threadActive { background: #dad7da; color: #111 !important; }
+
+/* Referans (Antigravity): tum NavRail metinleri ince ve zarif - acik gri,
+   dusuk agirlik. threadMain/threadName gibi ic butonlari da kapsar. */
+:global([data-theme="light"]) .navItem,
+:global([data-theme="light"]) .thread,
+:global([data-theme="light"]) .threadMain,
+:global([data-theme="light"]) .threadName {
+  color: #4a474a !important;
+  font-weight: 400 !important;
+}
+/* Referans (Antigravity): aktif sohbet satiri hafif acik vurgu. Saf beyaz
+   yerine kirik beyaz + cok ince kenarlik; golge yok ki zemine yedirilsin. */
+:global([data-theme="light"]) .threadActive {
+  background: #eeeeee;
+  color: #2c2a2c !important;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  --nav-thread-active-shadow: none;
+}
+:global([data-theme="light"]) .threadActive:hover {
+  background: #f2f2f2 !important;
+}
 :global([data-theme="light"]) .renameForm input { background: #fff; border-color: #aaa5aa; color: #222; }
 :global([data-theme="light"]) .bottom { border-top-color: #d7d3d7; }
 :global([data-theme="light"]) .threadHoverCard { background: #f7f5f7; border-color: #d8d4d8; color: #242124; }
 :global([data-theme="light"]) .hoverCardHead strong,
 :global([data-theme="light"]) .hoverCardMeta > span { color: #242124; }
+:global([data-theme="light"]) .generatingDots {
+  border-color: rgba(0, 0, 0, 0.15);
+  border-top-color: #18181b;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+:global([data-theme="light"]) .unreadDot {
+  background: #18181b;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .navrail,

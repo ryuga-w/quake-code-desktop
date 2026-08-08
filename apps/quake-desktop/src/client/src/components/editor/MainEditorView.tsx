@@ -2,6 +2,7 @@ import React from "react";
 import { normalizeThemeId } from "../settings/SettingsPanels";
 import { readStorageValue } from "../../lib/storage";
 import { DEFAULT_THEME, monacoThemeFor } from "../../lib/theme";
+import { useI18n } from "../../i18n";
 import { EditableMonaco } from "./EditableMonaco";
 import type { MainView } from "../../types";
 
@@ -9,6 +10,7 @@ const Editor = React.lazy(() => import("@monaco-editor/react").then((m) => ({ de
 const DiffEditor = React.lazy(() => import("@monaco-editor/react").then((m) => ({ default: m.DiffEditor })));
 
 export function MainEditorView({ view, onBack }: { view: Exclude<MainView, { mode: "chat" }>; onBack: () => void }) {
+  const { t } = useI18n();
   const monacoTheme = monacoThemeFor(normalizeThemeId(readStorageValue("quake-web:theme", DEFAULT_THEME)));
   return (
     <section className="main-editor-view">
@@ -22,11 +24,11 @@ export function MainEditorView({ view, onBack }: { view: Exclude<MainView, { mod
         {view.mode === "editor" && view.path ? (
           <EditableMonaco path={view.path} content={view.content} onClose={onBack} />
         ) : view.mode === "editor" ? (
-          <React.Suspense fallback={<div className="panel-loading">Yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading">{t("tools.activity.loading")}</div>}>
             <Editor theme={monacoTheme} value={view.content} options={{ readOnly: true, minimap: { enabled: false }, automaticLayout: true }} />
           </React.Suspense>
         ) : (
-          <React.Suspense fallback={<div className="panel-loading">Yükleniyor…</div>}>
+          <React.Suspense fallback={<div className="panel-loading">{t("tools.activity.loading")}</div>}>
             <DiffEditor theme={monacoTheme} original={view.original} modified={view.modified} options={{ readOnly: true, minimap: { enabled: false }, automaticLayout: true }} />
           </React.Suspense>
         )}

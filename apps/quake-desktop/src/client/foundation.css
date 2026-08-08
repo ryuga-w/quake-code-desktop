@@ -8,7 +8,7 @@
   --surface-navigation: #0d0e0f;
   --surface-navigation-hover: #171819;
   --surface-navigation-active: #202124;
-  --surface-timeline: #101112;
+  --surface-timeline: #141416;
   --surface-browser-chrome: #1d1c1d;
   --surface-browser-tab: #2a282a;
   --surface-browser-hover: #302e30;
@@ -75,11 +75,13 @@
 }
 
 [data-theme="light"] {
-  --surface-navigation: #f1eff1;
-  --surface-navigation-hover: #e5e2e5;
-  --surface-navigation-active: #dad7da;
-  --surface-timeline: #ffffff;
-  --surface-browser-chrome: #ffffff;
+  /* Aydinlik tema sidebar (NavRail) zemini: referans gorseldeki acik gri. */
+  --surface-navigation: #e4e4e4;
+  --surface-navigation-hover: #dcdcdc;
+  --surface-navigation-active: #d2d2d2;
+  /* Timeline zemini beyaz yerine yumusak acik gri (#ececec) - referans gorsel. */
+  --surface-timeline: #ececec;
+  --surface-browser-chrome: var(--surface-timeline);
   --surface-browser-tab: #f1eff1;
   --surface-browser-hover: #f4f2f4;
   --stroke-browser: #e4e1e4;
@@ -94,7 +96,12 @@
   --text-terminal: var(--text-navigation);
   --text-terminal-muted: var(--text-navigation-muted);
   --stroke-navigation: #d7d3d7;
-  --stroke-workspace: #d9dadd;
+  /* Timeline sol/ust kenar cizgisi: zeminle (#ececec) neredeyse ayni yapip
+     kenardaki karartma/cizgi hissini kaldiriyoruz. */
+  --stroke-workspace: #ececec;
+  /* Sola imleci cekince acilan peek sidebar golgesi: aydinlik temada koyu
+     karartma yerine cok hafif, yumusak golge. */
+  --left-peek-shadow: 10px 0 24px rgba(0, 0, 0, 0.08);
   --text-navigation: #2c292c;
   --text-navigation-muted: #716c71;
 }

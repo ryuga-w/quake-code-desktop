@@ -93,13 +93,37 @@ class BrowserManager {
 
 		// Fallback: launch standalone persistent context (Edge on Windows)
 		const userDataDir = join(homedir(), ".quake-code", "playwright-profile");
-		this.context = await chromium.launchPersistentContext(userDataDir, {
+		const baseOptions = {
 			headless: false,
-			channel: process.platform === "win32" ? "msedge" : undefined,
 			viewport: { width: 1440, height: 960 },
 			locale: "tr-TR",
 			args: ["--disable-blink-features=AutomationControlled", "--disable-infobars"],
-		});
+		};
+		// Version-safe launch: prefer Playwright's bundled Chromium (always ABI
+		// compatible), fall back to the system Edge/Chrome channel only if that
+		// fails. A very new system Edge + older Playwright otherwise crashes on
+		// launch (exitCode 21).
+		const forcedChannel = process.env.QUAKE_WEB_CHANNEL?.trim();
+		if (forcedChannel) {
+			this.context = await chromium.launchPersistentContext(userDataDir, { ...baseOptions, channel: forcedChannel });
+		} else {
+			try {
+				this.context = await chromium.launchPersistentContext(userDataDir, baseOptions);
+			} catch (bundledErr) {
+				const channels = process.platform === "win32" ? ["msedge", "chrome"] : ["chrome", "chromium"];
+				let launched: typeof this.context | undefined;
+				for (const channel of channels) {
+					try {
+						launched = await chromium.launchPersistentContext(userDataDir, { ...baseOptions, channel });
+						break;
+					} catch {
+						/* try next channel */
+					}
+				}
+				if (!launched) throw bundledErr;
+				this.context = launched;
+			}
+		}
 		if (this.context.pages().length > 0) {
 			const first = this.context.pages()[0]!;
 			const id = `tab-${this.counter++}`;

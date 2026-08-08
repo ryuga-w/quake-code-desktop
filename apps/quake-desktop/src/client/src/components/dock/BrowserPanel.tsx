@@ -231,7 +231,11 @@ export function BrowserPanel({
       resizeObserver.disconnect();
       window.removeEventListener("resize", syncBounds);
       window.removeEventListener("scroll", syncBounds, true);
-      browser.hide();
+      // Ajan gezinince `current` değişir ve bu efekt yeniden kurulur. Cleanup'ta
+      // hide() çağırmak native görünümü her navigasyonda ekran dışına atıp geri
+      // getiriyordu (görünür flicker / "kaybolup durma"). Gizleme yalnızca gerçek
+      // unmount'ta (ayrı efekt) ve `current` boşken (yukarıdaki erken dönüş) yapılır;
+      // yeni çalışma bounds'u zaten senkronladığı için burada gizlemeye gerek yok.
     };
   }, [current]);
 

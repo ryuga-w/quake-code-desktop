@@ -9,8 +9,10 @@
 import type { UpdatePlanArgs } from "./plan-protocol.js";
 
 export type PlanUpdateListener = (update: UpdatePlanArgs) => void;
+export type PlanClearListener = () => void;
 
 const listeners = new Set<PlanUpdateListener>();
+const clearListeners = new Set<PlanClearListener>();
 let lastSnapshot: UpdatePlanArgs | undefined;
 
 /** Register a session listener (idempotent). Returns unsubscribe. */
@@ -59,4 +61,24 @@ export function getLastPlanUpdate(): UpdatePlanArgs | undefined {
 
 export function clearLastPlanUpdate(): void {
 	lastSnapshot = undefined;
+}
+
+/** Register a session listener for agent-decided plan dismissal (clear_plan). */
+export function addPlanClearListener(listener: PlanClearListener): () => void {
+	clearListeners.add(listener);
+	return () => {
+		clearListeners.delete(listener);
+	};
+}
+
+/** Emit an agent-decided plan dismissal to all registered sessions. */
+export function publishPlanClear(): void {
+	lastSnapshot = undefined;
+	for (const listener of [...clearListeners]) {
+		try {
+			listener();
+		} catch {
+			/* non-fatal per-listener */
+		}
+	}
 }

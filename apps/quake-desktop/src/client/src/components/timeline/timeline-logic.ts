@@ -449,7 +449,7 @@ export function hasActiveTimelineTool(tools: ToolCardState[]): boolean {
   return tools.some((tool) => tool.status === "queued" || tool.status === "running" || tool.status === "streaming");
 }
 
-export function groupTimelineRows(rows: Array<TimelineMessageItem | TimelineToolItem>, streamingText: string, messageToolHistory: Map<any, TimelineMessageHistory>, activeStreamingTurnId?: number): TimelineRowItem[] {
+export function groupTimelineRows(rows: Array<TimelineMessageItem | TimelineToolItem>, streamingText: string, messageToolHistory: Map<any, TimelineMessageHistory>, activeStreamingTurnId?: number, agentIsStreaming?: boolean): TimelineRowItem[] {
   type ToolTurnAccumulator = {
     key: string;
     time: number;
@@ -562,9 +562,24 @@ export function groupTimelineRows(rows: Array<TimelineMessageItem | TimelineTool
   // Session-level `isStreaming` must never revive the previous turn's settled
   // activity. Only the group owned by the active conversation turn stays live
   // during message_end gaps between tool calls.
+  let liveGroupMarked = false;
   if (activeStreamingTurnId) {
     const activeGroup = turnGroups.get(`turn:${activeStreamingTurnId}`);
-    if (activeGroup) activeGroup.pending = true;
+    if (activeGroup) {
+      activeGroup.pending = true;
+      liveGroupMarked = true;
+    }
+  }
+  // Dayaniklilik: ajan hala calisiyor (agentIsStreaming) ama aktif turn ID'si
+  // hicbir grupla eslesmediyse (tool turnId semasi countConversationTurns ile
+  // uyusmayabilir), en guncel (en buyuk time) grubu canli tut. Aksi halde turn
+  // "Xs calisti" deyip bitmis gorunur ama ajan devam eder -> "durdu sandim" bug.
+  if (agentIsStreaming && !liveGroupMarked && turnGroups.size > 0) {
+    let latestGroup: ToolTurnAccumulator | undefined;
+    for (const group of turnGroups.values()) {
+      if (!latestGroup || group.time >= latestGroup.time) latestGroup = group;
+    }
+    if (latestGroup) latestGroup.pending = true;
   }
 
   // Build the disclosure in true protocol order. Visible assistant narration is a
@@ -588,10 +603,32 @@ export function groupTimelineRows(rows: Array<TimelineMessageItem | TimelineTool
     // A trailing narration is the provisional final answer even before agent_end.
     // If another tool arrives later it stops being the latest assistant message
     // and is rebuilt as an intermediate phase in the next projection.
+    //
+    // KRITIK: Ajan cok-adimli bir turn'de (arac cagirmadan once) ARA metin yazabilir.
+    // O metin hala akiyorsa (__streaming) ya da bu grup AKTIF streaming turn ise, bu
+    // henuz nihai cevap DEGIL. Boyle durumda "final" sayip pending'i kapatirsak UI
+    // yanlislikla "Xs calisti" (bitti) moduna gecer, sonra yeni arac gelince tekrar
+    // "calisiyor"a doner -> kullanicinin gordugu "durdu sandim ama devam ediyor" bug'i.
+    // Bu yuzden aktif turn'de VEYA metin hala akarken narration'i final saymiyoruz.
+    // Ajan hala calisiyorsa ve bu grup en guncel (son) grupsa, aktif turn ID'si
+    // eslesmese bile onu aktif streaming grubu say -> narration'i erken "final"
+    // sayip "Xs calisti" moduna gecmeyi engeller.
+    const isNewestGroup = (() => {
+      let latest: ToolTurnAccumulator | undefined;
+      for (const candidate of turnGroups.values()) {
+        if (!latest || candidate.time >= latest.time) latest = candidate;
+      }
+      return latest === group;
+    })();
+    const isActiveStreamingGroup = (Boolean(activeStreamingTurnId) && group.turnId === activeStreamingTurnId)
+      || Boolean(agentIsStreaming && isNewestGroup);
+    const latestAssistantStillStreaming = Boolean(latestAssistantMessage?.message?.__streaming);
     const finalAssistantMessage = latestAssistantMessage
       && hasVisibleAssistantNarration(latestAssistantText)
       && (latestAssistantHistory?.tools.length || 0) === 0
       && extractToolCallNamesFromMessageText(latestAssistantText).length === 0
+      && !isActiveStreamingGroup
+      && !latestAssistantStillStreaming
       ? latestAssistantMessage
       : undefined;
     group.pending = group.pending && !finalAssistantMessage;

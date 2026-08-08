@@ -46,10 +46,16 @@ describe("Codex-compatible plan contracts", () => {
   });
 
   it("renders Proposed Plan and Updated Plan without execution controls", () => {
-    expect(artifactPanel).toContain('aria-label={t("runtime.plan.proposedPlan")}');
+    // Baslik plan durumuna gore dinamik: oneri asamasinda proposedPlan, uygulandiysa appliedPlan.
+    expect(artifactPanel).toContain('t("runtime.plan.proposedPlan")');
+    expect(artifactPanel).toContain('t("runtime.plan.appliedPlan")');
+    expect(artifactPanel).toContain('aria-label={title}');
     expect(artifactPanel).toContain('aria-label={t("runtime.plan.updatedPlan")}');
     expect(artifactPanel).toContain("plan.steps.map");
-    expect(artifactPanel).not.toContain("Uygula");
+    // Panel salt-goruntuleme: plan uygulama AKSIYONU (buton/handler) icermemeli.
+    // ("Uygulanan plan" durum etiketi bir aksiyon degil, o yuzden metni degil handler'i kontrol et.)
+    expect(artifactPanel).not.toContain("applyPlan");
+    expect(artifactPanel).not.toContain("onApply");
     expect(artifactPanel).not.toContain("onResume");
     expect(artifactPanel).not.toContain("onAddTodo");
   });

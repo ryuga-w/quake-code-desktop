@@ -310,6 +310,8 @@ export interface ExtensionContext {
 	setCollaborationMode(mode: CollaborationModeKind): void;
 	/** Emit an authoritative update_plan snapshot to all session clients. */
 	emitPlanUpdate(update: UpdatePlanArgs): void;
+	/** Agent-decided dismissal of the plan panel (checklist + proposed markdown). */
+	clearPlan(): void;
 	/** Whether this session is the root agent thread. */
 	isRootAgent(): boolean;
 }
@@ -1435,6 +1437,7 @@ export interface ExtensionContextActions {
 	getCollaborationMode: () => CollaborationModeKind;
 	setCollaborationMode: (mode: CollaborationModeKind) => void;
 	emitPlanUpdate: (update: UpdatePlanArgs) => void;
+	clearPlan: () => void;
 	isRootAgent: () => boolean;
 }
 

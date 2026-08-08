@@ -43,6 +43,12 @@ contextBridge.exposeInMainWorld("quakeDesktop", {
   /** Native OS notification (QuakeCode desktop parity). Main also re-checks focus. */
   showNotification: (title: string, body?: string, force?: boolean) =>
     ipcRenderer.send("notification:show", { title, body: body || "", force: Boolean(force) }),
+  /** Bildirim aksiyon butonlari (Sohbete don / Yanit gonder) tiklanınca tetiklenir. */
+  onNotificationAction: (callback: (payload: { action: "open-chat" | "reply" }) => void) => {
+    const listener = (_e: unknown, payload: { action: "open-chat" | "reply" }) => callback(payload);
+    ipcRenderer.on("notification:action", listener);
+    return () => ipcRenderer.removeListener("notification:action", listener);
+  },
   /**
    * True when the desktop window is minimized, hidden, or unfocused —
    * used so completion toasts do not fire while the user is in the app.

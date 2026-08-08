@@ -7,11 +7,12 @@
   min-height: 104px;
   margin: 0 auto 14px;
   overflow: visible;
-  border: 1px solid color-mix(in srgb, var(--heading) 4%, transparent);
-  border-radius: 19px;
-  background: var(--composer-surface, #2b2b2b);
-  box-shadow: none;
-  transition: border-color 120ms ease, background 120ms ease;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  background: var(--composer-surface, #1e1e1e);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
 }
 
 .planPill {
@@ -763,16 +764,16 @@
   min-width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #f1f1f1;
-  color: #242424;
+  background: var(--heading, #ffffff);
+  color: var(--bg-surface, #18181b);
   transition: transform 100ms ease, opacity 120ms ease, background 120ms ease;
 }
 
 button[type="submit"].sendButton > svg {
-  color: #000;
+  color: inherit;
 }
 
-.sendButton:hover:not(:disabled) {
+.sendButton:not(.stopButton):hover:not(:disabled) {
   transform: translateY(-1px);
   background: var(--heading);
 }
@@ -787,13 +788,15 @@ button[type="submit"].sendButton > svg {
 }
 
 .stopButton {
-  background: var(--error-soft, color-mix(in srgb, var(--error) 15%, var(--panel)));
-  color: var(--error, #ef4444);
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  transition: transform 120ms ease, background 120ms ease !important;
 }
 
 .stopButton:hover {
-  background: color-mix(in srgb, var(--error) 22%, var(--panel));
-  color: var(--error, #ef4444);
+  background: rgba(239, 68, 68, 0.28) !important;
+  color: #dc2626 !important;
+  transform: scale(1.06) !important;
 }
 
 .pendingDots {
@@ -1045,7 +1048,7 @@ button[type="submit"].sendButton > svg {
   border: 1px solid color-mix(in srgb, var(--heading) 9%, transparent);
   border-radius: 16px;
   padding: 8px 4px 6px;
-  background: color-mix(in srgb, var(--composer-surface, #242426) 94%, #111 6%);
+  background: var(--composer-surface, #242426);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.025);
   box-sizing: border-box;
   scrollbar-color: color-mix(in srgb, var(--heading) 18%, transparent) transparent;
@@ -1912,6 +1915,10 @@ button[type="submit"].sendButton > svg {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 20px rgba(0, 0, 0, 0.04);
 }
 
+:global([data-theme="light"]) .addPopover {
+  background: var(--composer-surface, #ffffff);
+}
+
 :global([data-theme="light"]) .planPillDetail,
 :global([data-theme="light"]) .planPillTrigger {
   border-color: rgba(22, 22, 26, 0.08);
@@ -1945,18 +1952,32 @@ button[type="submit"].sendButton > svg {
 }
 
 :global([data-theme="light"]) .sendButton {
-  background: #242428;
-  color: #fff;
+  background: #18181b !important;
+  color: #ffffff !important;
+}
+
+:global([data-theme="light"]) .sendButton > svg {
+  color: #ffffff !important;
 }
 
 :global([data-theme="light"]) .sendButton:disabled {
-  background: #d8d8dd;
-  color: #77777e;
+  background: #e4e4e7 !important;
+  color: #a1a1aa !important;
+  opacity: 0.6 !important;
+}
+
+:global([data-theme="light"]) .sendButton:disabled > svg {
+  color: #a1a1aa !important;
 }
 
 :global([data-theme="light"]) .stopButton {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+:global([data-theme="light"]) .stopButton:hover {
+  background: #fca5a5 !important;
+  color: #b91c1c !important;
 }
 
 :global([data-theme="light"]) .preferenceEffort[data-level="max"] {

@@ -51,6 +51,6 @@ describe("titlebar panel controls", () => {
     expect(foundation).toContain("--surface-navigation: #f1eff1");
     expect(foundation).toContain("--font-navigation: 14.5px");
     expect(appSettings).toContain('setOverlay?.("#0d0e0f", "#e8e8ea")');
-    expect(appSettings).toContain('setOverlay?.("#f1eff1", "#1a1a1a")');
+    expect(appSettings).toContain('setOverlay?.("#e4e4e4", "#1a1a1a")');
   });
 });

@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, ChevronRight, FolderCode, ListTree, PanelBottom, PanelRight, Plus } from "lucide-react";
+import { Bot, ChevronRight, FolderCode, ListTree, MousePointer2, PanelBottom, PanelRight, Plus } from "lucide-react";
 import type { WebSubagentSummary } from "../../../../shared/protocol";
 import { apiGet } from "../../lib/api";
 import { type Translate, useI18n } from "../../i18n";
 import { readStorageValue, writeStorageValue } from "../../lib/storage";
 import { useAppStore } from "../../state/app-store";
+import { selectActiveBrowserAddress } from "../../lib/tool-activity";
 import {
   collectWorkspaceSubagents,
   isAgentActiveStatus,
@@ -21,7 +22,7 @@ export function WorkspaceChrome({
   onToggleTerminal,
   terminalOpen,
   onOpenFiles,
-  onOpenBrowser: _onOpenBrowser,
+  onOpenBrowser,
   onOpenPlan,
   onOpenAgents,
   onOpenSubagent,
@@ -111,6 +112,7 @@ export function WorkspaceChrome({
       subagents={subagents}
       subagentStatus={subagentStatus}
       onOpenFiles={onOpenFiles}
+      onOpenBrowser={onOpenBrowser}
       onOpenPlan={onOpenPlan}
       onOpenAgents={onOpenAgents}
       onOpenSubagent={onOpenSubagent}
@@ -125,6 +127,7 @@ export function WorkspaceContextCard({
   subagents: suppliedSubagents,
   subagentStatus: suppliedSubagentStatus,
   onOpenFiles,
+  onOpenBrowser,
   onOpenPlan,
   onOpenAgents,
   onOpenSubagent,
@@ -135,6 +138,7 @@ export function WorkspaceContextCard({
   subagents?: WorkspaceSubagentSummary[];
   subagentStatus?: string;
   onOpenFiles: () => void;
+  onOpenBrowser?: () => void;
   onOpenPlan: () => void;
   onOpenAgents?: () => void;
   onOpenSubagent?: (agentId: string) => void;
@@ -146,6 +150,7 @@ export function WorkspaceContextCard({
   const collectedSubagents = useMemo(() => collectWorkspaceSubagents(tools, messages, 12), [messages, tools]);
   const subagents = suppliedSubagents || collectedSubagents;
   const subagentStatus = suppliedSubagentStatus || storeSubagentStatus;
+  const browserAddress = useMemo(() => selectActiveBrowserAddress(tools), [tools]);
   const steps = plan?.steps || [];
   const hasPlan = Boolean(plan?.artifact || plan?.enabled || steps.length);
 
@@ -180,10 +185,26 @@ export function WorkspaceContextCard({
       <span>{t("workspace.outputs.label")}</span>
       <button type="button" onClick={onOpenFiles} aria-label={t("workspace.outputs.add")}><Plus aria-hidden="true" /></button>
     </div>
+    {browserAddress ? (
+      <button
+        type="button"
+        className="workspace-context-row workspace-context-browser"
+        title={browserAddress}
+        aria-label={`${t("workspace.outputs.browsing")} ${browserAddress}`}
+        onClick={onOpenBrowser}
+        disabled={!onOpenBrowser}
+      >
+        <span className="workspace-context-browser-cursor" aria-hidden="true"><MousePointer2 aria-hidden="true" /></span>
+        <span className="workspace-context-browser-url">{browserAddress}</span>
+        <b><i className="workspace-context-status-dot" /> {t("workspace.outputs.browsing")}</b>
+      </button>
+    ) : null}
     {subagents.length === 0 ? (
+      browserAddress ? null : (
       <button type="button" className="workspace-context-muted" title={workspacePath || workspaceName} onClick={onOpenFiles}>
         {t("workspace.outputs.empty")}
       </button>
+      )
     ) : (
       <div className="workspace-context-items">
         <div className="workspace-context-section-label">{t("workspace.outputs.subagents")}</div>

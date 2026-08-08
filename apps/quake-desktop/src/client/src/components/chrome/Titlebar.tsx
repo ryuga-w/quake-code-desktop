@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  PanelLeft,
   Folder,
 } from "lucide-react";
 import styles from "./Titlebar.module.css";
@@ -137,22 +136,12 @@ export function Titlebar({
         ref={barRef}
         className={`${styles.titlebar} ${isMac ? styles.mac : ""}`}
       >
-        <div className={styles.left}>
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={onToggleSidebar}
-            aria-label={leftOpen ? t("common.titlebar.collapseSidebar") : t("common.titlebar.expandSidebar")}
-            title={t("common.titlebar.sidebar")}
-          >
-            <PanelLeft size={18} strokeWidth={2.25} aria-hidden="true" />
-          </button>
-        </div>
-
-        <button type="button" className={`${styles.projectContext} ${leftOpen ? styles.projectContextSidebarOpen : ""}`} onClick={() => runAction("open-folder")} title={workspacePath || t("common.titlebar.openWorkspace")}>
+        <button type="button" className={`${styles.projectContext} ${leftOpen ? styles.projectContextSidebarOpen : ""}`} onClick={() => runAction("open-folder")} title={workspacePath || t("common.titlebar.selectProject")}>
           <Folder size={14} strokeWidth={1.9} aria-hidden="true" />
           <span>{workspaceName || t("common.titlebar.selectProject")}</span>
         </button>
+
+        <span className={styles.brandMark} aria-label="Quake">Quake</span>
 
         <nav className={styles.menubar} aria-label={t("common.titlebar.menuBar")}>
           {menus.map((menu) => (

@@ -1,4 +1,5 @@
 import React from "react";
+import { PanelLeft } from "lucide-react";
 import type { WebContextUsage, WebGoalState, WebPlanState } from "../../../shared/protocol";
 import { apiGet } from "../lib/api";
 import { normalizeSessionDraftKey } from "../lib/client-ids";
@@ -815,6 +816,22 @@ export function AppShell(props: AppShellProps) {
     if (leftWidth !== leftSidebarWidth) onLeftWidthChange(leftSidebarWidth);
   }, [leftSidebarSize, leftSidebarWidth, leftWidth, onLeftWidthChange]);
 
+  // Bildirim aksiyon butonlari: "Sohbete don" -> chat gorunumu; "Yanit gonder" ->
+  // chat gorunumu + composer'a odaklan (kullanici hemen yazmaya baslasin).
+  React.useEffect(() => {
+    const api = (window as unknown as { quakeDesktop?: { onNotificationAction?: (cb: (p: { action: "open-chat" | "reply" }) => void) => () => void } }).quakeDesktop;
+    if (!api?.onNotificationAction) return;
+    const unsubscribe = api.onNotificationAction(({ action }) => {
+      setCenterView("chat");
+      if (action === "reply") {
+        requestAnimationFrame(() => {
+          try { promptRef.current?.focus(); } catch { /* ignore */ }
+        });
+      }
+    });
+    return unsubscribe;
+  }, [setCenterView, promptRef]);
+
   // Older drag previews wrote the transient width directly onto #app. Remove
   // that override so reopening always falls back to the persisted shell width.
   React.useLayoutEffect(() => {
@@ -952,6 +969,15 @@ export function AppShell(props: AppShellProps) {
 
     <DropZone onFilesUploaded={() => void refreshFiles(currentFileDir)}>
     <div className={`app-shell ${centerView === "chat" && !hasVisibleMessages ? "new-chat" : ""}`} style={{ "--dock-w": rightOpen ? `${rightWidth}px` : "0px", "--left-sidebar-width": `${leftSidebarWidth}px`, "--active-left-sidebar-width": leftOpen ? `${leftSidebarWidth}px` : "0px" } as React.CSSProperties}>
+    <button
+      type="button"
+      className="fixed-sidebar-toggle-btn"
+      onClick={toggleLeftPanel}
+      aria-label={leftOpen ? t("common.titlebar.collapseSidebar") : t("common.titlebar.expandSidebar")}
+      title={t("common.titlebar.sidebar")}
+    >
+      <PanelLeft size={16} strokeWidth={1.8} aria-hidden="true" />
+    </button>
     <Titlebar
       leftOpen={leftOpen}
       onToggleSidebar={toggleLeftPanel}

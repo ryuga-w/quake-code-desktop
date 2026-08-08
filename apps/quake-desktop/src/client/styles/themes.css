@@ -8,12 +8,12 @@
 [data-theme="dark"] {
   color-scheme: dark;
   /* Surfaces: Codex-style warm charcoal, with restrained elevation steps */
-  --bg: #171716;
-  --paper: #1a1919;
-  --paper-soft: #201d1f;
-  --panel: #1d1d1c;
-  --panel-2: #252524;
-  --surface: #20201f;
+  --bg: #141416;
+  --paper: #141416;
+  --paper-soft: #18181a;
+  --panel: #141416;
+  --panel-2: #1c1c1e;
+  --surface: #141416;
   --surface-strong: #2b2b2a;
   --text: #e8e8ea;
   --heading: #f5f5f7;
@@ -21,6 +21,7 @@
   --muted-2: #6e6e76;
   --accent: #f0f0f2;
   --accent-2: #c8c8ce;
+  --link: #4a9eff;
   --accent-bright: #ffffff;
   --accent-soft: rgba(255, 255, 255, 0.07);
   --accent-wash: rgba(255, 255, 255, 0.04);
@@ -45,18 +46,18 @@
   --code-inline-bg: rgba(255, 255, 255, 0.09);
   --code-inline-fg: #97979e;
   /* Composer and user message surfaces. */
-  --composer-surface: #242426;
-  --composer-project-surface: #18191b;
-  --composer-text: #f5f5f7;
-  --composer-placeholder: #8d8d94;
-  --composer-compact-surface: #242426;
-  --composer-compact-border: rgba(255, 255, 255, 0.12);
-  --composer-compact-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
-  --composer-focus-surface: #242426;
-  --composer-focus-border: #3a383a;
-  --composer-focus-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-  --user-bubble-bg: #1b1b1d;
-  --user-bubble-fg: #f5f5f7;
+  --composer-surface: #1e1e1e;
+  --composer-project-surface: #171717;
+  --composer-text: #e3e3e3;
+  --composer-placeholder: #828282;
+  --composer-compact-surface: #1e1e1e;
+  --composer-compact-border: rgba(255, 255, 255, 0.08);
+  --composer-compact-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  --composer-focus-surface: #222222;
+  --composer-focus-border: rgba(255, 255, 255, 0.14);
+  --composer-focus-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --user-bubble-bg: #1e1e1e;
+  --user-bubble-fg: #e3e3e3;
   --user-bubble-shadow: none;
   --thinking-fg: #7a7a82;
   --tool-card-bg: #222221;
@@ -97,6 +98,7 @@
   --muted-2: #8e8e93;
   --accent: #1c1c1e;
   --accent-2: #3a3a3c;
+  --link: #2563eb;
   --accent-bright: #000000;
   --accent-soft: rgba(0, 0, 0, 0.06);
   --accent-wash: rgba(0, 0, 0, 0.04);
@@ -114,11 +116,14 @@
   --shimmer-base: rgba(0, 0, 0, 0.04);
   --shimmer-hi: rgba(0, 0, 0, 0.08);
   --code-bg: #f7f7f8;
+  /* Aydinlik temada kod metni koyu olmali; aksi halde koyu temanin acik gri
+     (#e6e6e8) rengi miras kalip acik zeminde okunmuyordu. */
+  --code-fg: #24292f;
   --code-header-bg: #efeff1;
   --code-border: rgba(0, 0, 0, 0.1);
-  --code-fg: #1f2328;
-  --code-inline-bg: rgba(0, 0, 0, 0.06);
-  --code-inline-fg: #57606a;
+  --code-inline-bg: rgba(220, 38, 38, 0.08);
+  --code-inline-fg: #d12f26;
+  --code-inline-border: rgba(220, 38, 38, 0.16);
   --composer-surface: #ffffff;
   --composer-text: #1c1c1e;
   --composer-placeholder: #747479;
@@ -335,10 +340,14 @@
 }
 [data-theme="light"] .sidebar,
 [data-theme="light"] .rightbar {
-  background: #f3f3f3;
+  background: var(--surface-timeline);
   border-color: rgba(0, 0, 0, 0.07);
 }
 [data-theme="light"] .rightbar[data-active-panel="launcher"] {
-  background: #ffffff;
+  background: var(--surface-timeline);
   border-color: rgba(0, 0, 0, 0.07);
+}
+[data-theme="light"] .dock-workspace-tab.active {
+  background: var(--surface-navigation);
+  border-color: rgba(0, 0, 0, 0.08);
 }
